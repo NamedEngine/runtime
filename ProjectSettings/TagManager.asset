@@ -1,0 +1,340 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: 0
+    uniqueID: 1872934951
+    locked: 0
+  - name: 1
+    uniqueID: 1669674661
+    locked: 0
+  - name: 2
+    uniqueID: 3614375245
+    locked: 0
+  - name: 3
+    uniqueID: 765818079
+    locked: 0
+  - name: 4
+    uniqueID: 3628993663
+    locked: 0
+  - name: 5
+    uniqueID: 972045095
+    locked: 0
+  - name: 6
+    uniqueID: 3544217351
+    locked: 0
+  - name: 7
+    uniqueID: 1678708913
+    locked: 0
+  - name: 8
+    uniqueID: 2561864587
+    locked: 0
+  - name: 9
+    uniqueID: 3076257949
+    locked: 0
+  - name: 10
+    uniqueID: 2902815963
+    locked: 0
+  - name: 11
+    uniqueID: 1403048789
+    locked: 0
+  - name: 12
+    uniqueID: 2736477167
+    locked: 0
+  - name: 13
+    uniqueID: 3443879467
+    locked: 0
+  - name: 14
+    uniqueID: 3161269313
+    locked: 0
+  - name: 15
+    uniqueID: 1326114859
+    locked: 0
+  - name: 16
+    uniqueID: 1159944505
+    locked: 0
+  - name: 17
+    uniqueID: 3635888115
+    locked: 0
+  - name: 18
+    uniqueID: 423327617
+    locked: 0
+  - name: 19
+    uniqueID: 2292006599
+    locked: 0
+  - name: 20
+    uniqueID: 2256173189
+    locked: 0
+  - name: 21
+    uniqueID: 2149450403
+    locked: 0
+  - name: 22
+    uniqueID: 1743473617
+    locked: 0
+  - name: 23
+    uniqueID: 2828617565
+    locked: 0
+  - name: 24
+    uniqueID: 3367019719
+    locked: 0
+  - name: 25
+    uniqueID: 3881850227
+    locked: 0
+  - name: 26
+    uniqueID: 1765790915
+    locked: 0
+  - name: 27
+    uniqueID: 1926661063
+    locked: 0
+  - name: 28
+    uniqueID: 2281474211
+    locked: 0
+  - name: 29
+    uniqueID: 904679959
+    locked: 0
+  - name: 30
+    uniqueID: 761701859
+    locked: 0
+  - name: 31
+    uniqueID: 2973808027
+    locked: 0
+  - name: 32
+    uniqueID: 578113211
+    locked: 0
+  - name: 34
+    uniqueID: 3693518489
+    locked: 0
+  - name: 35
+    uniqueID: 3271895247
+    locked: 0
+  - name: 36
+    uniqueID: 1506509963
+    locked: 0
+  - name: 37
+    uniqueID: 3253284815
+    locked: 0
+  - name: 38
+    uniqueID: 1633540509
+    locked: 0
+  - name: 39
+    uniqueID: 3074991185
+    locked: 0
+  - name: 40
+    uniqueID: 593514495
+    locked: 0
+  - name: 41
+    uniqueID: 3587174829
+    locked: 0
+  - name: 42
+    uniqueID: 2714866353
+    locked: 0
+  - name: 43
+    uniqueID: 4012252383
+    locked: 0
+  - name: 44
+    uniqueID: 1865222181
+    locked: 0
+  - name: 45
+    uniqueID: 1006338955
+    locked: 0
+  - name: 46
+    uniqueID: 876384563
+    locked: 0
+  - name: 47
+    uniqueID: 1292009223
+    locked: 0
+  - name: 48
+    uniqueID: 2181480859
+    locked: 0
+  - name: 49
+    uniqueID: 3812831807
+    locked: 0
+  - name: 50
+    uniqueID: 1961724641
+    locked: 0
+  - name: 51
+    uniqueID: 1915121441
+    locked: 0
+  - name: 52
+    uniqueID: 2559622063
+    locked: 0
+  - name: 53
+    uniqueID: 1093925311
+    locked: 0
+  - name: 54
+    uniqueID: 3679539451
+    locked: 0
+  - name: 55
+    uniqueID: 1106476027
+    locked: 0
+  - name: 56
+    uniqueID: 1898093483
+    locked: 0
+  - name: 57
+    uniqueID: 3136299983
+    locked: 0
+  - name: 58
+    uniqueID: 3718894611
+    locked: 0
+  - name: 59
+    uniqueID: 38368713
+    locked: 0
+  - name: 60
+    uniqueID: 2563787491
+    locked: 0
+  - name: 61
+    uniqueID: 2630767519
+    locked: 0
+  - name: 62
+    uniqueID: 674855793
+    locked: 0
+  - name: 63
+    uniqueID: 1263359173
+    locked: 0
+  - name: 64
+    uniqueID: 3169972683
+    locked: 0
+  - name: 65
+    uniqueID: 2329143861
+    locked: 0
+  - name: 66
+    uniqueID: 1345135377
+    locked: 0
+  - name: 67
+    uniqueID: 3498603261
+    locked: 0
+  - name: 68
+    uniqueID: 3150312623
+    locked: 0
+  - name: 69
+    uniqueID: 1880777679
+    locked: 0
+  - name: 70
+    uniqueID: 247127173
+    locked: 0
+  - name: 71
+    uniqueID: 2372011517
+    locked: 0
+  - name: 72
+    uniqueID: 3426048839
+    locked: 0
+  - name: 73
+    uniqueID: 2688397147
+    locked: 0
+  - name: 74
+    uniqueID: 1056701125
+    locked: 0
+  - name: 75
+    uniqueID: 1678734733
+    locked: 0
+  - name: 76
+    uniqueID: 4250695101
+    locked: 0
+  - name: 77
+    uniqueID: 180911969
+    locked: 0
+  - name: 78
+    uniqueID: 3505542139
+    locked: 0
+  - name: 79
+    uniqueID: 365611987
+    locked: 0
+  - name: 80
+    uniqueID: 1296765533
+    locked: 0
+  - name: 81
+    uniqueID: 936161189
+    locked: 0
+  - name: 82
+    uniqueID: 3959797705
+    locked: 0
+  - name: 83
+    uniqueID: 3563031817
+    locked: 0
+  - name: 84
+    uniqueID: 3264559179
+    locked: 0
+  - name: 85
+    uniqueID: 218767379
+    locked: 0
+  - name: 86
+    uniqueID: 4170541857
+    locked: 0
+  - name: 87
+    uniqueID: 3932719647
+    locked: 0
+  - name: 88
+    uniqueID: 842019801
+    locked: 0
+  - name: 89
+    uniqueID: 204168831
+    locked: 0
+  - name: 90
+    uniqueID: 740672653
+    locked: 0
+  - name: 91
+    uniqueID: 148282699
+    locked: 0
+  - name: 92
+    uniqueID: 148779741
+    locked: 0
+  - name: 93
+    uniqueID: 1454493053
+    locked: 0
+  - name: 94
+    uniqueID: 2892836693
+    locked: 0
+  - name: 95
+    uniqueID: 764579697
+    locked: 0
+  - name: 96
+    uniqueID: 2989624209
+    locked: 0
+  - name: 97
+    uniqueID: 3157897155
+    locked: 0
+  - name: 98
+    uniqueID: 3427419635
+    locked: 0
+  - name: 99
+    uniqueID: 2911410957
+    locked: 0
