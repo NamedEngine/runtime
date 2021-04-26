@@ -7,10 +7,11 @@ using Unity.Mathematics;
 using UnityEngine;
 
 public class MapLoader : MonoBehaviour {
-    [SerializeField] GameObject staticObjectPrefab;
+    [SerializeField] GameObject staticObjectPrefab;  // TODO: most likely this would be assigned by logic engine
     [SerializeField] GameObject kinematicObjectPrefab;
     [SerializeField] GameObject mapObject;
     [SerializeField] GraphicsConverter graphicsConverter;
+    [SerializeField] FileLoader fileLoader;
     
     static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name).Value;
     static Func<XElement, string, int> getIntAttr = (element, name) => Convert.ToInt32(getAttr(element, name));
@@ -30,7 +31,7 @@ public class MapLoader : MonoBehaviour {
     public void LoadMap(string mapPath) {
         ClearMap();
 
-        var mapDocument = XDocument.Load(mapPath);
+        var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
         var root = mapDocument.Root;
         
         var tilesets = root.Descendants("tileset")
@@ -154,7 +155,7 @@ public class MapLoader : MonoBehaviour {
     }
 
     TileSet LoadTileSet(string tileSetPath, int firstgid) {
-        var tileSetDocument = XDocument.Load(tileSetPath);
+        var tileSetDocument = XDocument.Parse(fileLoader.LoadText(tileSetPath));
 
         var root = tileSetDocument.Root;
         

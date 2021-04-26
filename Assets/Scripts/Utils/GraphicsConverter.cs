@@ -2,13 +2,12 @@
 using UnityEngine;
 
 public class GraphicsConverter: MonoBehaviour {
-    [SerializeField] PathLimiter pathLimiter;
+    [SerializeField] FileLoader fileLoader;
     [SerializeField] float pixelsPerUnit = 100;
     public float PixelsPerUnit => pixelsPerUnit;
 
     public byte[] PathToBytes(string path) {
-        pathLimiter.CheckRange(path);
-        return File.ReadAllBytes(path);
+        return fileLoader.LoadBytes(path);
     }
     
     public Texture2D BytesToTexture(byte[] bytes) {

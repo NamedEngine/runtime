@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class PathLimiter : MonoBehaviour {
     [SerializeField] string root;
+    public string Root => root;
 
-    public void CheckRange(string path) {
+    public void CheckRange(string path) {  // TODO: maybe also return modified path
         var fullRootPath = Path.GetFullPath(root);
         var fullPath = Path.GetFullPath(path);
 
