@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable {
@@ -48,8 +46,7 @@ public abstract class Chainable {
     }
 
     public void Execute(CoroRunner runner) {
-        bool shouldNotify;
-        var logic = InternalLogic(out shouldNotify);
+        var logic = InternalLogic(out var shouldNotify);
         if (logic != null) {
             // Debug.Log(GetType()+ ": my logic is Async!");
             IEnumerator Wrapper() {
@@ -69,5 +66,5 @@ public abstract class Chainable {
         }
     }
 
-    abstract protected IEnumerator InternalLogic(out bool shouldNotify);
+    protected abstract IEnumerator InternalLogic(out bool shouldNotify);
 }

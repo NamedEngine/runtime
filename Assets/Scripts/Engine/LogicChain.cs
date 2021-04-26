@@ -24,7 +24,7 @@ public class LogicChain : MonoBehaviour {
             throw new Exception("Should not setup chain when running");
         }
         
-        // TODO maybe remove "Need sorted value instatiators" constraint
+        // TODO maybe remove "Need sorted value instantiators" constraint
         var preparedValues = new IValue[info.ValueInstantiators.Length];
         for (int i = 0; i < preparedValues.Length; i++) {
             preparedValues[i] = info.ValueInstantiators[i](variableDictionary, preparedValues);
@@ -75,14 +75,14 @@ public class LogicChain : MonoBehaviour {
     }
 
     void RunCoro(IEnumerator coro) {
-        IEnumerator runner() {
+        IEnumerator Runner() {
             _coroCount++;
             yield return coro;
             _coroCount--;
             // Debug.Log("FINISHED RUNNING CORO; COROS LEFT: " + _coroCount);
         }
         // Debug.Log("Running new coro!");
-        StartCoroutine(runner());
+        StartCoroutine(Runner());
     }
 
     public void Finish() {

@@ -1,7 +1,4 @@
-﻿
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 
 public abstract class Action : Chainable {
     protected Action(IValue[][] argTypes, IValue[] values) : base(argTypes, values) { }
@@ -10,5 +7,5 @@ public abstract class Action : Chainable {
         return ActionLogic();
     }
 
-    abstract protected IEnumerator ActionLogic();
+    protected abstract IEnumerator ActionLogic();
 }

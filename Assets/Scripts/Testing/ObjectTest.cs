@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -89,11 +88,13 @@ public class ObjectTest : MonoBehaviour {
         
         var newObject = _logicObject.Clone(gameObject);
         Destroy(_logicObject);
-        // _logicObject = null;
         
         yield return new WaitForSeconds(10);
         Debug.Log("STARTING SECOND");
         
+        // newObject may have Second state as its initial one because
+        // previous object was cloned having Second state as its current one
+        // so CLONE ONLY NOT RUNNING OBJECTS A.K.A. CLASSES
         _logicObject = newObject;
     }
 }

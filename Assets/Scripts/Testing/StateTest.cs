@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
 using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
 using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
-using Object = System.Object;
 
 public class StateTest : MonoBehaviour {
     LogicState _state1;

@@ -30,6 +30,8 @@ public class MapLoader : MonoBehaviour {
 
     public void LoadMap(string mapPath) {
         ClearMap();
+        
+        // TODO: do something with path handling in this file
 
         var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
         var root = mapDocument.Root;

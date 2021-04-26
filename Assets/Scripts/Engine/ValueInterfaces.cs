@@ -2,4 +2,6 @@
     bool Cast(IValue value);
 }
 
-public interface IVariable : IValue, IClonable<IVariable> { }
+public interface IVariable : IValue {
+    IVariable Clone();
+}

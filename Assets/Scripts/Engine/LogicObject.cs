@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class LogicObject : MonoBehaviour {  // TODO maybe monobehaviour
+public class LogicObject : MonoBehaviour {
     LogicState _generalState;
     Dictionary<string, LogicState> _logicStates;
 
     Dictionary<string, IVariable> _logicVariables;
     public Dictionary<string, IVariable> LogicVariables => _logicVariables;
-
-
+    
     string _currentState;
     public void SetState(string state) {  // TODO: maybe reduce scope somehow
-        // Debug.Log("Swithcing from state\"" + _currentState +"\" to state \"" + state + "\"");
         if (_currentState != "") {
             _logicStates[_currentState].Finish();
         }
@@ -53,7 +49,7 @@ public class LogicObject : MonoBehaviour {  // TODO maybe monobehaviour
         _generalState.Finish();
         foreach (var state in _logicStates.Values) {
             state.Finish();
-            // TODO: maybe also let chains know they are being destroyed so they could finish their work BUT MAYBE NOT cause they will be destroyed only with their object
+            // not letting chains know they are being destroyed cause they are attached to the same object and are gone for good after the process
         }
     }
 }

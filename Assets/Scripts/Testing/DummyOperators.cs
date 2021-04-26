@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Globalization;
-using UnityEngine;
 
-public class DummyAnd : LogicOperator<bool> {
+public class DummyAnd : Operator<bool> {
     static readonly IValue[][] ArgTypes = {
         new IValue[]{new Value<bool>()},
         new IValue[]{new Value<bool>()},
@@ -16,7 +13,7 @@ public class DummyAnd : LogicOperator<bool> {
     }
 }
 
-public class DummyOr : LogicOperator<bool> {
+public class DummyOr : Operator<bool> {
     static readonly IValue[][] ArgTypes = {
         new IValue[]{new Value<bool>()},
         new IValue[]{new Value<bool>()},
@@ -29,7 +26,7 @@ public class DummyOr : LogicOperator<bool> {
     }
 }
 
-public class DummyPlus : LogicOperator<int> {
+public class DummyPlus : Operator<int> {
     static readonly IValue[][] ArgTypes = {
         new IValue[]{new Value<int>()},
         new IValue[]{new Value<int>()},
@@ -43,7 +40,7 @@ public class DummyPlus : LogicOperator<int> {
     }
 }
 
-public class DummyToInt : LogicOperator<int> {
+public class DummyToInt : Operator<int> {
     static readonly IValue[][] ArgTypes = {
         new IValue[] {
             new Value<int>(),
@@ -71,7 +68,7 @@ public class DummyToInt : LogicOperator<int> {
     }
 }
 
-public class DummyToString : LogicOperator<string> {
+public class DummyToString : Operator<string> {
     static readonly IValue[][] ArgTypes = {
         new IValue[] {
             new Value<int>(),
