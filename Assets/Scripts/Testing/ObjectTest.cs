@@ -11,8 +11,8 @@ public class ObjectTest : MonoBehaviour {
     LogicObject _logicObject;
 
     void Start() {
-        LogicVariable<T> ToVar<T>(T val) {
-            return new LogicVariable<T>(val);
+        Variable<T> ToVar<T>(T val) {
+            return new Variable<T>(val);
         }
 
         _logicObject = gameObject.AddComponent<LogicObject>();

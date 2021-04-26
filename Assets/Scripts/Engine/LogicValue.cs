@@ -1,18 +1,19 @@
-﻿using UnityEngine;
-
-public abstract class LogicValue<T> : IValue {
+﻿public class Value<T> : IValue {
     public T Get() {
         var val = InternalGet();
         // Debug.Log("Getting value of type " + GetType() + ": " + val);
         return val;
     }
-    abstract protected T InternalGet();
 
-    public virtual bool Cast(IValue value) {
-        return value is LogicValue<T>;
+    virtual protected T InternalGet() {
+        return default;
     }
 
-    public static implicit operator T(LogicValue<T> v) => v.Get();
+    public virtual bool Cast(IValue value) {
+        return value is Value<T>;
+    }
+
+    public static implicit operator T(Value<T> v) => v.Get();
     
     public override string ToString() {
         return Get().ToString();

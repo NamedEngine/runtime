@@ -5,51 +5,51 @@ using UnityEngine;
 
 public class DummyAnd : LogicOperator<bool> {
     static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<bool>()},
-        new IValue[]{new LogicVariable<bool>()},
+        new IValue[]{new Value<bool>()},
+        new IValue[]{new Value<bool>()},
     };
     
     public DummyAnd(IValue[] values) : base(ArgTypes, values) { }
 
     protected override bool InternalGet() {
-        return Arguments[0] as LogicValue<bool> && Arguments[1] as LogicValue<bool>;
+        return Arguments[0] as Value<bool> && Arguments[1] as Value<bool>;
     }
 }
 
 public class DummyOr : LogicOperator<bool> {
     static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<bool>()},
-        new IValue[]{new LogicVariable<bool>()},
+        new IValue[]{new Value<bool>()},
+        new IValue[]{new Value<bool>()},
     };
 
     public DummyOr(IValue[] values) : base(ArgTypes, values) { }
 
     protected override bool InternalGet() {
-        return Arguments[0] as LogicValue<bool> || Arguments[1] as LogicValue<bool>;
+        return Arguments[0] as Value<bool> || Arguments[1] as Value<bool>;
     }
 }
 
 public class DummyPlus : LogicOperator<int> {
     static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<int>()},
-        new IValue[]{new LogicVariable<int>()},
+        new IValue[]{new Value<int>()},
+        new IValue[]{new Value<int>()},
     };
 
     public DummyPlus(IValue[] values) : base(ArgTypes, values) { }
 
 
     protected override int InternalGet() {
-        return (Arguments[0] as LogicValue<int>) + (Arguments[1] as LogicValue<int>);
+        return (Arguments[0] as Value<int>) + (Arguments[1] as Value<int>);
     }
 }
 
 public class DummyToInt : LogicOperator<int> {
     static readonly IValue[][] ArgTypes = {
         new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>(),
-            new LogicVariable<bool>(),
-            new LogicVariable<string>(),
+            new Value<int>(),
+            new Value<float>(),
+            new Value<bool>(),
+            new Value<string>(),
         },
     };
 
@@ -57,13 +57,13 @@ public class DummyToInt : LogicOperator<int> {
 
     protected override int InternalGet() {
         switch (Arguments[0]) {
-            case LogicValue<int> intVal:
+            case Value<int> intVal:
                 return intVal;
-            case LogicValue<float> floatVal:
+            case Value<float> floatVal:
                 return Convert.ToInt32(floatVal);
-            case LogicValue<bool> boolVal:
+            case Value<bool> boolVal:
                 return Convert.ToInt32(boolVal);
-            case LogicValue<string> strVal:
+            case Value<string> strVal:
                 return Convert.ToInt32(strVal);
             default:
                 throw new Exception("This should not be possible!");
@@ -74,10 +74,10 @@ public class DummyToInt : LogicOperator<int> {
 public class DummyToString : LogicOperator<string> {
     static readonly IValue[][] ArgTypes = {
         new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>(),
-            new LogicVariable<bool>(),
-            new LogicVariable<string>(),
+            new Value<int>(),
+            new Value<float>(),
+            new Value<bool>(),
+            new Value<string>(),
         },
     };
 
@@ -85,13 +85,13 @@ public class DummyToString : LogicOperator<string> {
 
     protected override string InternalGet() {
         switch (Arguments[0]) {
-            case LogicValue<int> intVal:
+            case Value<int> intVal:
                 return intVal.ToString();
-            case LogicValue<float> floatVal:
+            case Value<float> floatVal:
                 return floatVal.ToString();
-            case LogicValue<bool> boolVal:
+            case Value<bool> boolVal:
                 return boolVal.ToString();
-            case LogicValue<string> strVal:
+            case Value<string> strVal:
                 return strVal;
             default:
                 throw new Exception("This should not be possible!");

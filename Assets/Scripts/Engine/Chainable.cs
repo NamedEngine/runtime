@@ -12,7 +12,7 @@ public abstract class Chainable {
 
     protected Chainable(IValue[][] argTypes, IValue[] arguments) {
         _constraints = new LogicTypeConstraints(argTypes);
-        _constraints.CheckArgs(arguments);
+        _constraints.CheckArgs(arguments, this);
         
         Arguments = arguments;
     }

@@ -14,8 +14,8 @@ public class StateTest : MonoBehaviour {
     Dictionary<string, IVariable> _variables;
     
     void Start() {
-        LogicVariable<T> ToVar<T>(T val) {
-            return new LogicVariable<T>(val);
+        Variable<T> ToVar<T>(T val) {
+            return new Variable<T>(val);
         }
         
         

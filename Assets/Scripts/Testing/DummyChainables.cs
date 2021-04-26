@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Globalization;
 using System.Linq;
-using Engine;
 using UnityEngine;
 
 public class DummySyncAction1 : Action {
@@ -66,12 +65,12 @@ public class DummyFalseCondition : Condition {
 
 public class DummyLog : Action {
     static readonly IValue[][] ArgTypes = new IValue[][] {
-        new IValue[] {new LogicVariable<string>()},
+        new IValue[] {new Value<string>()},
     }.Concat(Enumerable.Repeat(new IValue[] {
-        new LogicVariable<int>(),
-        new LogicVariable<float>(),
-        new LogicVariable<bool>(),
-        new LogicVariable<string>(),
+        new Value<int>(),
+        new Value<float>(),
+        new Value<bool>(),
+        new Value<string>(),
         new NullValue(),
     }, 100).ToArray());
     
@@ -81,20 +80,20 @@ public class DummyLog : Action {
     protected override IEnumerator ActionLogic() {
         string ValueToString(IValue val) {
             switch (val) {
-                case LogicValue<int> intVal:
+                case Value<int> intVal:
                     return intVal.ToString();
-                case LogicValue<float> floatVal:
+                case Value<float> floatVal:
                     return floatVal.ToString();
-                case LogicValue<bool> boolVal:
+                case Value<bool> boolVal:
                     return boolVal.ToString();
-                case LogicValue<string> strVal:
+                case Value<string> strVal:
                     return strVal;
                 default:
                     throw new Exception("This should not be possible!");
             }
         }
         
-        var format = Arguments[0] as LogicValue<string>;
+        var format = Arguments[0] as Value<string>;
         var other = Arguments
             .Skip(1)
             .Select(ValueToString)
@@ -109,19 +108,18 @@ public class DummyLog : Action {
 public class DummyWait : Action {
     static readonly IValue[][] ArgTypes = {
         new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>()
+            new Value<int>(),
+            new Value<float>()
         },
-        
     };
     
     public DummyWait(IValue[] values) : base(ArgTypes, values) { }
     protected override IEnumerator ActionLogic() {
         switch (Arguments[0]) {
-            case LogicValue<int> intVal:
+            case Value<int> intVal:
                 yield return new WaitForSeconds(intVal);
                 break;
-            case LogicValue<float> floatVal:
+            case Value<float> floatVal:
                 yield return new WaitForSeconds(floatVal);
                 break;
             default:
@@ -145,13 +143,13 @@ public class DummySetState : Action {
 
 public class DummyNce : Condition {
     static readonly IValue[][] ArgTypes = {
-        new IValue[] {new LogicVariable<int>()}
+        new IValue[] {new Value<int>()}
     };
 
     int _activationsLeft;
 
     public DummyNce(IValue[] values) : base(ArgTypes, values) {
-        _activationsLeft = values[0] as LogicValue<int>;
+        _activationsLeft = values[0] as Value<int>;
     }
 
     protected override bool ConditionLogic() {
@@ -159,3 +157,19 @@ public class DummyNce : Condition {
         return _activationsLeft >= 0;
     }
 }
+
+public class DummyBoolCopy : Action {
+    static readonly IValue[][] ArgTypes = {
+        new IValue[] {new Value<bool>()},
+        new IValue[] {new Variable<bool>()},
+    };
+
+    public DummyBoolCopy(IValue[] values) : base(ArgTypes, values) { }
+
+    protected override IEnumerator ActionLogic() {
+        (Arguments[1] as Variable<bool>).Set(Arguments[0] as Value<bool>);
+        return null;
+    }
+}
+
+

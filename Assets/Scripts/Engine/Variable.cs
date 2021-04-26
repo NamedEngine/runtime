@@ -1,7 +1,7 @@
-﻿public class LogicVariable<T> : LogicValue<T>, IVariable {
+﻿public class Variable<T> : Value<T>, IVariable {
     T _value;
 
-    public LogicVariable(T value = default) {
+    public Variable(T value = default) {
         _value = value;
     }
 
@@ -14,10 +14,10 @@
     }
 
     public override bool Cast(IValue value) {
-        return value is LogicVariable<T>;
+        return value is Variable<T>;
     }
 
     public IVariable Clone() {
-        return new LogicVariable<T>(_value);
+        return new Variable<T>(_value);
     }
 }
