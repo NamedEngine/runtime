@@ -108,13 +108,13 @@ namespace Actions {
         }
     }
 
-    public class DummyBoolCopy : Action {
+    public class DummySetBool : Action {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {new Value<bool>()},
             new IValue[] {new Variable<bool>()},
         };
 
-        public DummyBoolCopy(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummySetBool(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             (Arguments[1] as Variable<bool>).Set(Arguments[0] as Value<bool>);

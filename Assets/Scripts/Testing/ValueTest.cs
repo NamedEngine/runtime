@@ -18,11 +18,11 @@ public class ValueTest : MonoBehaviour {
         IValue val1 = new Variable<bool>();
         IValue val2 = new DummyAnd(null, new [] {val1, val1}, false);
 
-        var shouldWork1 = new DummyBoolCopy(null, new [] {val1, val1}, false);
-        var shouldWork2 = new DummyBoolCopy(null, new [] {val2, val1}, false);
+        var shouldWork1 = new DummySetBool(null, new [] {val1, val1}, false);
+        var shouldWork2 = new DummySetBool(null, new [] {val2, val1}, false);
 
         try {
-            var shouldFail = new DummyBoolCopy(null, new[] {val1, val2}, false);
+            var shouldFail = new DummySetBool(null, new[] {val1, val2}, false);
             throw new ApplicationException("Should not be thrown!");
         }
         catch {
