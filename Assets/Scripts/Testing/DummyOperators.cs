@@ -1,4 +1,6 @@
 ﻿using System;
+using UnityEngine;
+using Random = System.Random;
 
 namespace Operators {
     public class DummyAnd : Operator<bool> {
@@ -7,7 +9,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
         
-        public DummyAnd(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyAnd(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> && Arguments[1] as Value<bool>;
@@ -20,7 +22,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
 
-        public DummyOr(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyOr(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> || Arguments[1] as Value<bool>;
@@ -33,7 +35,7 @@ namespace Operators {
             new IValue[]{new Value<int>()},
         };
 
-        public DummyPlus(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyPlus(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
 
         protected override int InternalGet() {
@@ -51,7 +53,7 @@ namespace Operators {
             },
         };
 
-        public DummyToInt(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyToInt(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override int InternalGet() {
             switch (Arguments[0]) {
@@ -79,7 +81,7 @@ namespace Operators {
             },
         };
 
-        public DummyToString(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyToString(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override string InternalGet() {
             switch (Arguments[0]) {
@@ -101,7 +103,7 @@ namespace Operators {
         static readonly IValue[][] ArgTypes = { };
         Random _random = new Random();
         
-        public DummyRandInt(IValue[] arguments, bool constraintReference) : base(ArgTypes, arguments, constraintReference) { }
+        public DummyRandInt(GameObject gameObject, IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, arguments, constraintReference) { }
 
         protected override int InternalGet() {
             return _random.Next(int.MinValue, int.MaxValue);

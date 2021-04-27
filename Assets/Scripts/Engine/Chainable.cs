@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
+    protected readonly GameObject ThisGameObject;
     protected readonly IValue[] Arguments;
     // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
     bool _constraintReference;
@@ -12,9 +14,10 @@ public abstract class Chainable : IConstrainable {
         return _constraints.ArgTypes;
     }
 
-    protected Chainable(IValue[][] argTypes, IValue[] arguments, bool constraintReference) {
+    protected Chainable(IValue[][] argTypes, GameObject gameObject, IValue[] arguments, bool constraintReference) {
         _constraintReference = constraintReference;
-        
+        ThisGameObject = gameObject;
+
         _constraints = new LogicTypeConstraints(argTypes);
         if (!_constraintReference) {
             _constraints.CheckArgs(arguments, this);

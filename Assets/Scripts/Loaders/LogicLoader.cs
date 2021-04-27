@@ -309,8 +309,7 @@ public class LogicLoader : MonoBehaviour {
             throw new ArgumentException("Could not find " + node.type + " with name " + node.name);  // TODO: move to LANG RULES
         }
         
-        var constructor = type.GetConstructor(new[] {typeof(IValue[]), typeof(bool)});
-        // var constructor = type.GetConstructor(new[] {typeof(IValue[])});
+        var constructor = type.GetConstructor(new[] {typeof(GameObject), typeof(IValue[]), typeof(bool)});
         if (constructor == null) {
             throw new ApplicationException("Could not find constructor for " + node.type + " with name " + node.name);  // TODO: move to LANG RULES
         }
@@ -327,7 +326,7 @@ public class LogicLoader : MonoBehaviour {
                 .ToArray();
                 
             return constructor
-                .Invoke(new object[] {usedValues, false}) as TOut;
+                .Invoke(new object[] {logicObject.gameObject, usedValues, false}) as TOut;
         };
     }
 
@@ -366,7 +365,7 @@ public class LogicLoader : MonoBehaviour {
 
     Func<LogicObject, Dictionary<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator<T>(ParsedNodeInfo parameter,
         ConstructorInfo parentConstructor, Dictionary<string, ParsedNodeInfo> parsedNodes) where T : class, IConstrainable {
-        var typeReference = parentConstructor.Invoke(new object[] {new IValue[] { }, true}) as T;
+        var typeReference = parentConstructor.Invoke(new object[] {null, null, true}) as T;
         var constraints = typeReference.GetConstraints();
             
         var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);

@@ -49,6 +49,7 @@ public class LogicObject : MonoBehaviour {
         _generalState.Finish();
         foreach (var state in _logicStates.Values) {
             state.Finish();
+            state.Destroy(Destroy);
             // not letting chains know they are being destroyed cause they are attached to the same object and are gone for good after the process
         }
     }

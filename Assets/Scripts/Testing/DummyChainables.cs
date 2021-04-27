@@ -11,7 +11,7 @@ namespace Actions {
             return null;
         }
 
-        public DummySyncAction1(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummySyncAction1(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
     public class DummySyncAction2 : Action {
         static readonly IValue[][] ArgTypes = { };
@@ -20,7 +20,7 @@ namespace Actions {
             return null;
         }
 
-        public DummySyncAction2(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummySyncAction2(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
     public class DummyAsyncAction1 : Action {
@@ -30,7 +30,7 @@ namespace Actions {
             yield return new WaitForSeconds(1);
         }
 
-        public DummyAsyncAction1(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyAsyncAction1(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
     public class DummyAsyncAction2 : Action {
@@ -40,7 +40,7 @@ namespace Actions {
             yield return new WaitForSeconds(2);
         }
 
-        public DummyAsyncAction2(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyAsyncAction2(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
     public class DummyLog : Action {
@@ -54,7 +54,7 @@ namespace Actions {
             new NullValue(),
         }, 100).ToArray());
         
-        public DummyLog(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyLog(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
         
         // ReSharper disable Unity.PerformanceAnalysis
         protected override IEnumerator ActionLogic() {
@@ -93,7 +93,7 @@ namespace Actions {
             },
         };
         
-        public DummyWait(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyWait(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
         protected override IEnumerator ActionLogic() {
             switch (Arguments[0]) {
                 case Value<int> intVal:
@@ -114,7 +114,7 @@ namespace Actions {
             new IValue[] {new Variable<bool>()},
         };
 
-        public DummyBoolCopy(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyBoolCopy(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             (Arguments[1] as Variable<bool>).Set(Arguments[0] as Value<bool>);
@@ -127,7 +127,7 @@ public class DummySetState : Action {
     static readonly IValue[][] ArgTypes = { };
     readonly System.Action _stateSetter;
 
-    public DummySetState(System.Action stateSetter) : base(ArgTypes, new IValue[] {}, false) {
+    public DummySetState(System.Action stateSetter) : base(ArgTypes,null, new IValue[] {}, false) {
         _stateSetter = stateSetter;
     }
     protected override IEnumerator ActionLogic() {
@@ -144,7 +144,7 @@ namespace Conditions {
             return true;
         }
 
-        public DummyTrueCondition(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyTrueCondition(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
     public class DummyFalseCondition : Condition {
@@ -154,7 +154,7 @@ namespace Conditions {
             return false;
         }
 
-        public DummyFalseCondition(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) { }
+        public DummyFalseCondition(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
     public class DummyNce : Condition {
@@ -164,7 +164,7 @@ namespace Conditions {
 
         int _activationsLeft;
 
-        public DummyNce(IValue[] values, bool constraintReference) : base(ArgTypes, values, constraintReference) {
+        public DummyNce(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) {
             _activationsLeft = values[0] as Value<int>;
         }
 

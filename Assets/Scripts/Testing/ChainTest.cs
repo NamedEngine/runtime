@@ -16,11 +16,11 @@ public class ChainTest : MonoBehaviour {
         
         // ConstructorInfo GC(Type[] params) => Type.GetType("Operators.DummySum")
 
-        ChainableInstantiator c0 = (logicObject, variables, values) => new DummyTrueCondition(new IValue[] { }, false);
-        ChainableInstantiator c1 = (logicObject, variables, values) => new DummySyncAction1(new IValue[] { }, false);
-        ChainableInstantiator c2 = (logicObject, variables, values) => new DummyAsyncAction1(new IValue[] { }, false);
-        ChainableInstantiator c3 = (logicObject, variables, values) => new DummyFalseCondition(new IValue[] { }, false);
-        ChainableInstantiator c4 = (logicObject, variables, values) => new DummySyncAction2(new IValue[] { }, false);
+        ChainableInstantiator c0 = (logicObject, variables, values) => new DummyTrueCondition(null, new IValue[] { }, false);
+        ChainableInstantiator c1 = (logicObject, variables, values) => new DummySyncAction1(null, new IValue[] { }, false);
+        ChainableInstantiator c2 = (logicObject, variables, values) => new DummyAsyncAction1(null, new IValue[] { }, false);
+        ChainableInstantiator c3 = (logicObject, variables, values) => new DummyFalseCondition(null, new IValue[] { }, false);
+        ChainableInstantiator c4 = (logicObject, variables, values) => new DummySyncAction2(null, new IValue[] { }, false);
         
         // oh god forgive me for i MOST LIKELY will use this monstrosity to do shit
         ChainableInstantiator c5 = (logicObject, variables, values) => 

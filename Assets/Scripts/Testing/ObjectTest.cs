@@ -27,16 +27,16 @@ public class ObjectTest : MonoBehaviour {
             {"y", ToVar(3)},
         };
 
-        OperatorInstantiator plusInst = (logicObject, dictionary, values) => new DummyPlus(new IValue[] {dictionary["x"], dictionary["y"]}, false);
-        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(new IValue[] {values[0]}, false);
-        ChainableInstantiator wait3 = (logicObject, dictionary, values) => new DummyWait(new IValue[] { ToVal(3f)}, false);
-        ChainableInstantiator wait05 = (logicObject, dictionary, values) => new DummyWait(new IValue[] { ToVal(0.5f)}, false);
-        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
-        ChainableInstantiator logImpatince = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("IMPATIENCE!")}, false);
-        ChainableInstantiator log2 = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 2")}, false);
-        ChainableInstantiator state1Setter = (logicObject, ictionary, values) => new DummySetState(() => _logicObject.SetState("State 1"));
-        ChainableInstantiator state2Setter = (logicObject, dictionary, values) => new DummySetState(() => _logicObject.SetState("State 2"));
-        ChainableInstantiator nce3 = (logicObject, dictionary, values) => new DummyNce(new IValue[] {dictionary["y"]}, false);
+        OperatorInstantiator plusInst = (logicObject, dictionary, values) => new DummyPlus(null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
+        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(null, new IValue[] {values[0]}, false);
+        ChainableInstantiator wait3 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(3f)}, false);
+        ChainableInstantiator wait05 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(0.5f)}, false);
+        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
+        ChainableInstantiator logImpatince = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("IMPATIENCE!")}, false);
+        ChainableInstantiator log2 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 2")}, false);
+        ChainableInstantiator state1Setter = (logicObject, ictionary, values) => new DummySetState(() => logicObject.SetState("State 1"));
+        ChainableInstantiator state2Setter = (logicObject, dictionary, values) => new DummySetState(() => logicObject.SetState("State 2"));
+        ChainableInstantiator nce3 = (logicObject, dictionary, values) => new DummyNce(null, new IValue[] {dictionary["y"]}, false);
         
 
         OperatorInstantiator[] vals11 = {plusInst, toString};
@@ -90,17 +90,36 @@ public class ObjectTest : MonoBehaviour {
 
     IEnumerator ChangeObject() {
         yield return new WaitForSeconds(10);
-        Debug.Log("DESTROYING FIRST OBJECT AND SETUPING SECOND");
-        
+        Debug.Log("SETUPING SECOND");
         var newObject = _logicObject.Clone(gameObject);
-        Destroy(_logicObject);
+        var tempObj = _logicObject;
+        _logicObject = null;
         
-        yield return new WaitForSeconds(10);
+        yield return new WaitForSeconds(4);
+        Debug.Log("DESTROYING FIRST");
+        Destroy(tempObj);
+        
+        yield return new WaitForSeconds(4);
         Debug.Log("STARTING SECOND");
         
         // newObject may have Second state as its initial one because
         // previous object was cloned having Second state as its current one
         // so CLONE ONLY NOT RUNNING OBJECTS A.K.A. CLASSES
+        _logicObject = newObject;
+        
+        yield return new WaitForSeconds(10);
+        Debug.Log("SETUPING THIRD");
+        newObject = _logicObject.Clone(gameObject);
+        tempObj = _logicObject;
+        _logicObject = null;
+        
+        yield return new WaitForSeconds(4);
+        Debug.Log("DESTROYING SECOND");
+        Destroy(tempObj);
+        
+        yield return new WaitForSeconds(4);
+        Debug.Log("STARTING THIRD");
+        
         _logicObject = newObject;
     }
 }

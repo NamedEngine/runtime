@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
 using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
 using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using Object = UnityEngine.Object;
 
 public class LogicState {
     readonly LogicChain[] _logicChains;
@@ -26,6 +28,12 @@ public class LogicState {
     public void Finish() {
         foreach (var logicChain in _logicChains) {
             logicChain.Finish();
+        }
+    }
+    
+    public void Destroy(Action<UnityEngine.Object> destroyer) {
+        foreach (var logicChain in _logicChains) {
+            destroyer(logicChain);
         }
     }
 

@@ -27,13 +27,13 @@ public class StateTest : MonoBehaviour {
             {"y", ToVar(4)},
         };
 
-        OperatorInstantiator plusInst = (logicObject, dictionary, values) => new DummyPlus(new IValue[] {dictionary["x"], dictionary["y"]}, false);
-        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(new IValue[] {values[0]}, false);
-        ChainableInstantiator wait3 = (logicObject, dictionary, values) => new DummyWait(new IValue[] { ToVal(3f)}, false);
-        ChainableInstantiator wait5 = (logicObject, dictionary, values) => new DummyWait(new IValue[] { ToVal(5f)}, false);
-        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
-        ChainableInstantiator logPatince = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("PATIENCE!")}, false);
-        ChainableInstantiator log2 = (logicObject, dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 2")}, false);
+        OperatorInstantiator plusInst = (logicObject, dictionary, values) => new DummyPlus(null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
+        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(null, new IValue[] {values[0]}, false);
+        ChainableInstantiator wait3 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(3f)}, false);
+        ChainableInstantiator wait5 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(5f)}, false);
+        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
+        ChainableInstantiator logPatince = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("PATIENCE!")}, false);
+        ChainableInstantiator log2 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 2")}, false);
 
         OperatorInstantiator[] vals11 = {plusInst, toString};
         ChainableInstantiator[] ch11 = {wait3, log1};
