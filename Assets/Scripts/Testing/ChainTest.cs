@@ -6,8 +6,8 @@ using Conditions;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class ChainTest : MonoBehaviour {
     LogicChain _chain;
@@ -16,14 +16,14 @@ public class ChainTest : MonoBehaviour {
         
         // ConstructorInfo GC(Type[] params) => Type.GetType("Operators.DummySum")
 
-        ChainableInstantiator c0 = (variables, values) => new DummyTrueCondition(new IValue[] { }, false);
-        ChainableInstantiator c1 = (variables, values) => new DummySyncAction1(new IValue[] { }, false);
-        ChainableInstantiator c2 = (variables, values) => new DummyAsyncAction1(new IValue[] { }, false);
-        ChainableInstantiator c3 = (variables, values) => new DummyFalseCondition(new IValue[] { }, false);
-        ChainableInstantiator c4 = (variables, values) => new DummySyncAction2(new IValue[] { }, false);
+        ChainableInstantiator c0 = (logicObject, variables, values) => new DummyTrueCondition(new IValue[] { }, false);
+        ChainableInstantiator c1 = (logicObject, variables, values) => new DummySyncAction1(new IValue[] { }, false);
+        ChainableInstantiator c2 = (logicObject, variables, values) => new DummyAsyncAction1(new IValue[] { }, false);
+        ChainableInstantiator c3 = (logicObject, variables, values) => new DummyFalseCondition(new IValue[] { }, false);
+        ChainableInstantiator c4 = (logicObject, variables, values) => new DummySyncAction2(new IValue[] { }, false);
         
         // oh god forgive me for i MOST LIKELY will use this monstrosity to do shit
-        ChainableInstantiator c5 = (variables, values) => 
+        ChainableInstantiator c5 = (logicObject, variables, values) => 
             System.Type.GetType("Actions.DummyAsyncAction2")
                 .GetConstructor(new [] {values.GetType(), true.GetType()})
                 .Invoke(new object[] {new IValue[] { }, false}) as Chainable;
@@ -47,7 +47,7 @@ public class ChainTest : MonoBehaviour {
         };
 
         var chainInfo = new LogicChainInfo(new OperatorInstantiator[]{}, instantiators, relations);
-        _chain.SetupChain(new VariableDictionary(), chainInfo);
+        _chain.SetupChain(null, new VariableDictionary(), chainInfo);
         _chain.Execute();
 
         StartCoroutine(CopyTest());
@@ -56,7 +56,7 @@ public class ChainTest : MonoBehaviour {
     IEnumerator CopyTest() {
         yield return new WaitForSeconds(3);
         Debug.Log("LESS COPY");
-        var chainCopy = _chain.Clone(new VariableDictionary());
+        var chainCopy = _chain.Clone(null, new VariableDictionary(), gameObject);
         chainCopy.Execute();
     }
 }

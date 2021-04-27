@@ -16,7 +16,7 @@ public class LogicObject : MonoBehaviour {
         }
         
         _currentState = state;
-        _logicStates[_currentState].Start(_logicVariables);
+        _logicStates[_currentState].Start(this, _logicVariables);
         _logicStates[_currentState].ProcessLogic();
     }
     
@@ -33,14 +33,14 @@ public class LogicObject : MonoBehaviour {
     }
 
     public LogicObject Clone(GameObject objectToAttachTo) {
+        var newObject = objectToAttachTo.AddComponent<LogicObject>();
+        
         var clonedVariables = _logicVariables.ToDictionary(entry => entry.Key,
             entry => entry.Value.Clone());
         
-        var clonedGeneralState = _generalState.Clone(clonedVariables);
+        var clonedGeneralState = _generalState.Clone(newObject, clonedVariables, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(clonedVariables));
-
-        var newObject = objectToAttachTo.AddComponent<LogicObject>();
+            entry => entry.Value.Clone(newObject, clonedVariables, objectToAttachTo));
         newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables);
         return newObject;
     }

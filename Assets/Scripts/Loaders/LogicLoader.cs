@@ -88,17 +88,17 @@ public class LogicLoader : MonoBehaviour {
 
         var stateNameAndSetterById = stateInfos
             .Select(stateInfo => (stateInfo.id, stateInfo.name != "" ? stateInfo.name : stateInfo.id))
-            .Select<(string id, string stateName),(string, (string, System.Action))>(pair => 
-                (pair.id, (pair.stateName, () => logicObject.SetState(pair.stateName)))
+            .Select<(string id, string stateName),(string, (string, System.Action<LogicObject>))>(pair => 
+                (pair.id, (pair.stateName, obj => obj.SetState(pair.stateName)))
             )
             .ToDictionary();
         
         // Debug.Log("Getting general state");
-        var generalState = GetStatePair(classInfo, stateNameAndSetterById, variables, parsedNodes).Value;
+        var generalState = GetStatePair(classInfo, logicObject, stateNameAndSetterById, variables, parsedNodes).Value;
         
         // Debug.Log("Getting other states");
         var states = stateInfos
-            .Select(stateInfo => GetStatePair(stateInfo, stateNameAndSetterById, variables, parsedNodes))
+            .Select(stateInfo => GetStatePair(stateInfo, logicObject, stateNameAndSetterById, variables, parsedNodes))
             .ToDictionary();
         // foreach (var state in states.Keys) {
         //     Debug.Log("State: " + state);
@@ -176,8 +176,8 @@ public class LogicLoader : MonoBehaviour {
         }
     }
 
-    KeyValuePair<string, LogicState> GetStatePair(ParsedNodeInfo stateInfo,
-        Dictionary<string, (string, System.Action)> stateNameAndSetterById,
+    KeyValuePair<string, LogicState> GetStatePair(ParsedNodeInfo stateInfo, LogicObject logicObject,
+        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById,
         Dictionary<string, (string, IVariable)> variables, Dictionary<string, ParsedNodeInfo> parsedNodes) {
         string stateName;
         if (stateInfo.type == NodeType.Class) {
@@ -193,13 +193,13 @@ public class LogicLoader : MonoBehaviour {
             .ToArray();
         // Debug.Log("State \"" + stateName + "\" has these chain starts: " + string.Join(", ", chainsStarts.Select(i => i.id)));
         var chains = chainsStarts
-            .Select(info => GetChain(info, stateNameAndSetterById, variables, parsedNodes))
+            .Select(info => GetChain(info, logicObject, stateNameAndSetterById, variables, parsedNodes))
             .ToArray();
 
         return new KeyValuePair<string, LogicState>(stateName, new LogicState(chains));
     }
     
-    LogicChain GetChain(ParsedNodeInfo chainStartInfo, Dictionary<string, (string, System.Action)> stateNameAndSetterById, 
+    LogicChain GetChain(ParsedNodeInfo chainStartInfo, LogicObject logicObject, Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, 
         Dictionary<string, (string, IVariable)> variables, Dictionary<string,ParsedNodeInfo> parsedNodes) {
         var chain = gameObject.AddComponent<LogicChain>();
 
@@ -284,21 +284,21 @@ public class LogicLoader : MonoBehaviour {
         var chainInfo = new LogicChainInfo(operatorInstantiators, chainableInstantiators, chainableRelations.ToArray());
         
         // Debug.Log("Setuping chain " + chainStartInfo.id);
-        chain.SetupChain(objectVariables, chainInfo);
+        chain.SetupChain(logicObject, objectVariables, chainInfo);
         // Debug.Log("SETUPED chain " + chainStartInfo.id);
         
         return chain;
     }
 
-    Func<Dictionary<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut, TReal>(ParsedNodeInfo node,
-        Dictionary<string, (string, System.Action)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
+    Func<LogicObject, Dictionary<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut, TReal>(ParsedNodeInfo node,
+        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
         Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where TOut : class where TReal : class, IConstrainable {
         // Debug.Log("Getting instantiator for node " + node.id + " with type " + node.type + " and name " + node.name);
         if (node.type == NodeType.State) {
             // Debug.Log("Returning state setter");
             var setter = stateNameAndSetterById[node.id].Item2;
-            return (dictionary, values) => new DummySetState(setter) as TOut;
+            return (logicObject, dictionary, values) => new DummySetState(() => setter(logicObject)) as TOut;
         }
 
         // you know what? this fucking language doesn't have templates nor multiple base classes, so fuck it, I am using reflection now
@@ -321,9 +321,9 @@ public class LogicLoader : MonoBehaviour {
             .Select(parameterInfo => GetValueLocator<TReal>(parameterInfo, constructor, variables, operatorPositions, parsedNodes))
             .ToArray();
         
-        return (dictionary, values) => {
+        return (logicObject, dictionary, values) => {
             var usedValues = valueLocators
-                .Select(loc => loc(dictionary, values))
+                .Select(loc => loc(logicObject, dictionary, values))
                 .ToArray();
                 
             return constructor
@@ -331,13 +331,13 @@ public class LogicLoader : MonoBehaviour {
         };
     }
 
-    Func<Dictionary<string, IVariable>, IValue[], T> GetNodeInstantiator<T>(ParsedNodeInfo node,
-        Dictionary<string, (string, System.Action)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
+    Func<LogicObject, Dictionary<string, IVariable>, IValue[], T> GetNodeInstantiator<T>(ParsedNodeInfo node,
+        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
         Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where T : class, IConstrainable =>
         GetNodeInstantiator<T, T>(node, stateNameAndSetterById, variables, operatorPositions, parsedNodes);
     
-    Func<Dictionary<string, IVariable>, IValue[], IValue> GetValueLocator<T>(ParsedNodeInfo parameter,
+    Func<LogicObject, Dictionary<string, IVariable>, IValue[], IValue> GetValueLocator<T>(ParsedNodeInfo parameter,
         ConstructorInfo parentConstructor, Dictionary<string, (string, IVariable)> variables, Dictionary<string, int> operatorPositions,
         Dictionary<string, ParsedNodeInfo> parsedNodes) where T : class, IConstrainable {
         var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);
@@ -355,16 +355,16 @@ public class LogicLoader : MonoBehaviour {
         switch (sourceType) {
             case NodeType.Variable:
                 // Debug.Log("Creating locator for variable with name: " + variables[sourceId].Item1);
-                return (dictionary, values) => dictionary[variables[sourceId].Item1];
+                return (logicObject, dictionary, values) => dictionary[variables[sourceId].Item1];
             case NodeType.Operator:
                 // Debug.Log("Creating locator for operator with position: " + operatorPositions[sourceId]);
-                return (dictionary, values) => values[operatorPositions[sourceId]];
+                return (logicObject, dictionary, values) => values[operatorPositions[sourceId]];
             default:
                 throw new ApplicationException("This should not be possible!");
         }
     }
 
-    Func<Dictionary<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator<T>(ParsedNodeInfo parameter,
+    Func<LogicObject, Dictionary<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator<T>(ParsedNodeInfo parameter,
         ConstructorInfo parentConstructor, Dictionary<string, ParsedNodeInfo> parsedNodes) where T : class, IConstrainable {
         var typeReference = parentConstructor.Invoke(new object[] {new IValue[] { }, true}) as T;
         var constraints = typeReference.GetConstraints();
@@ -383,7 +383,7 @@ public class LogicLoader : MonoBehaviour {
         }
 
         var possibleType = possibleValueTypes[0];
-        return (dictionary, values) => GetValueByType(possibleType, parameter.name);
+        return (logicObject, dictionary, values) => GetValueByType(possibleType, parameter.name);
     }
 
     IValue GetValueByType(ValueType type, string value) {

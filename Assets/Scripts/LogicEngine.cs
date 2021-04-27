@@ -14,14 +14,13 @@ public class LogicEngine : MonoBehaviour {
     void Start() {
         _logicClasses = logicLoader.LoadLogicClasses();
 
-        _logicObjects = new Dictionary<string, LogicObject>(); // TODO: FIX CLONE
-        // _logicObjects = _logicClasses
-        //     .Select(pair => (pair.Key, pair.Value.Clone(gameObject)))
-        //     .ToDictionary();
+        _logicObjects = _logicClasses
+            .Select(pair => (pair.Key, pair.Value.Clone(gameObject)))
+            .ToDictionary();
     }
 
     void Update() {
-        foreach (var logicObject in _logicClasses) {
+        foreach (var logicObject in _logicObjects) {
             logicObject.Value.ProcessLogic();
         }
     }
