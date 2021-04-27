@@ -5,7 +5,10 @@ using System.Xml.Linq;
 using UnityEngine;
 
 public class DrawIOParser : ILogicParser<string> {
-    static string parameterType = "parameter";
+    static readonly Dictionary<string, NodeType> NodeTypesByNotation = Enum
+        .GetValues(typeof(NodeType))
+        .Cast<NodeType>()
+        .ToDictionary(t => t.ToString().StartWithLower(), t => t);
     
     static string GetAttr(XElement element, string name) => element.Attribute(name).Value;
 
@@ -14,14 +17,14 @@ public class DrawIOParser : ILogicParser<string> {
 
         var info = new ParsedNodeInfo {
             id = getAttr("id"),
-            type = getAttr("type"),
+            type = NodeTypesByNotation[getAttr("type")],
             name = getAttr("label"),
-            children = new string[]{},
+            parameters = new string[]{},
             prev = new string[]{},
             next = new string[]{}
         };
 
-        if (info.type == parameterType) {
+        if (info.type == NodeType.Parameter) {
             var childObj = obj.Elements("mxCell").First();
             info.parent = GetAttr(childObj, "parent");
         }
@@ -47,7 +50,7 @@ public class DrawIOParser : ILogicParser<string> {
 
         // add children
         var childrenDict = infoDict
-            .Where(pair => pair.Value.type == parameterType)
+            .Where(pair => pair.Value.type == NodeType.Parameter)
             .GroupBy(pair => pair.Value.parent)
             .Select(gr => new KeyValuePair<string, string[]>(gr.Key,
                 gr.Select(pair => pair.Key).ToArray()
@@ -55,7 +58,7 @@ public class DrawIOParser : ILogicParser<string> {
             .ToDictionary();
         foreach (var parent in childrenDict.Keys) {
             var updatedInfo = infoDict[parent];
-            updatedInfo.children = childrenDict[parent];
+            updatedInfo.parameters = childrenDict[parent];
             infoDict[parent] = updatedInfo;
         }
 

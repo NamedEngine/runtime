@@ -25,4 +25,28 @@ public static class Extensions {
     public static Dictionary<T1, T2> ToDictionary<T1, T2>(this IEnumerable<KeyValuePair<T1, T2>> source) {
         return source.ToDictionary(pair => pair.Key, pair => pair.Value);
     }
+    
+    public static Dictionary<T1, T2> ToDictionary<T1, T2>(this IEnumerable<(T1, T2)> source) {
+        return source.ToDictionary(pair => pair.Item1, pair => pair.Item2);
+    }
+    
+    public static Dictionary<T2, T1> ToReverseDictionary<T1, T2>(this Dictionary<T1, T2> source) {
+        return source.ToDictionary(pair => pair.Value, pair => pair.Key);
+    }
+
+    public static string StartWithLower(this string source) {
+        if (source == "") {
+            return source;
+        }
+        
+        return char.ToLowerInvariant(source[0]) + source.Substring(1);
+    }
+    
+    public static string StartWithUpper(this string source) {
+        if (source == "") {
+            return source;
+        }
+        
+        return char.ToUpperInvariant(source[0]) + source.Substring(1);
+    }
 }

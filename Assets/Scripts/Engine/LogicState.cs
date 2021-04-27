@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicState {
     readonly LogicChain[] _logicChains;

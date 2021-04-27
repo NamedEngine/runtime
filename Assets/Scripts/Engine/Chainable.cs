@@ -3,14 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
-public abstract class Chainable {
+public abstract class Chainable : IConstrainable {
     protected readonly IValue[] Arguments;
+    // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
+    bool _constraintReference;
     readonly LogicTypeConstraints _constraints;
-    public IValue[][] TypeConstraints => _constraints.ArgTypes;
+    public IValue[][] GetConstraints() {
+        return _constraints.ArgTypes;
+    }
 
-    protected Chainable(IValue[][] argTypes, IValue[] arguments) {
+    protected Chainable(IValue[][] argTypes, IValue[] arguments, bool constraintReference) {
+        _constraintReference = constraintReference;
+        
         _constraints = new LogicTypeConstraints(argTypes);
-        _constraints.CheckArgs(arguments, this);
+        if (!_constraintReference) {
+            _constraints.CheckArgs(arguments, this);
+        }
         
         Arguments = arguments;
     }
@@ -41,11 +49,19 @@ public abstract class Chainable {
         }
     }
     public void AddChild(Chainable chainable) {
+        if (_constraintReference) {
+            throw new ApplicationException("This object is only a constraints reference");
+        }
+        
         _notifiables.Add(chainable.GetNotified);
         chainable.AddParent();
     }
 
     public void Execute(CoroRunner runner) {
+        if (_constraintReference) {
+            throw new ApplicationException("This object is only a constraints reference");
+        }
+        
         var logic = InternalLogic(out var shouldNotify);
         if (logic != null) {
             // Debug.Log(GetType()+ ": my logic is Async!");

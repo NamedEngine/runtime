@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Actions;
+using Operators;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class StateTest : MonoBehaviour {
     LogicState _state1;
@@ -15,6 +17,9 @@ public class StateTest : MonoBehaviour {
         Variable<T> ToVar<T>(T val) {
             return new Variable<T>(val);
         }
+        ConcreteValue<T> ToVal<T>(T val) {
+            return new ConcreteValue<T>(val);
+        }
         
         
         _variables = new VariableDictionary {
@@ -22,16 +27,16 @@ public class StateTest : MonoBehaviour {
             {"y", ToVar(4)},
         };
 
-        ValueInstatiator plusInst = (dictionary, values) => new DummyPlus(new IValue[] {dictionary["x"], dictionary["y"]});
-        ValueInstatiator toString = (dictionary, values) => new DummyToString(new IValue[] {values[0]});
-        ChainableInstaniator wait3 = (dictionary, values) => new DummyWait(new IValue[] { ToVar(3f)});
-        ChainableInstaniator wait5 = (dictionary, values) => new DummyWait(new IValue[] { ToVar(5f)});
-        ChainableInstaniator log1 = (dictionary, values) => new DummyLog(new IValue[] {ToVar("Log from STATE 1: {0}"), values[1] });
-        ChainableInstaniator logPatince = (dictionary, values) => new DummyLog(new IValue[] {ToVar("PATIENCE!")});
-        ChainableInstaniator log2 = (dictionary, values) => new DummyLog(new IValue[] {ToVar("Log from STATE 2")});
+        OperatorInstantiator plusInst = (dictionary, values) => new DummyPlus(new IValue[] {dictionary["x"], dictionary["y"]}, false);
+        OperatorInstantiator toString = (dictionary, values) => new DummyToString(new IValue[] {values[0]}, false);
+        ChainableInstantiator wait3 = (dictionary, values) => new DummyWait(new IValue[] { ToVal(3f)}, false);
+        ChainableInstantiator wait5 = (dictionary, values) => new DummyWait(new IValue[] { ToVal(5f)}, false);
+        ChainableInstantiator log1 = (dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
+        ChainableInstantiator logPatince = (dictionary, values) => new DummyLog(new IValue[] {ToVal("PATIENCE!")}, false);
+        ChainableInstantiator log2 = (dictionary, values) => new DummyLog(new IValue[] {ToVal("Log from STATE 2")}, false);
 
-        ValueInstatiator[] vals11 = {plusInst, toString};
-        ChainableInstaniator[] ch11 = {wait3, log1};
+        OperatorInstantiator[] vals11 = {plusInst, toString};
+        ChainableInstantiator[] ch11 = {wait3, log1};
         (int, int)[] rels11 = {
             (0, 1)
         };
@@ -39,8 +44,8 @@ public class StateTest : MonoBehaviour {
         var lc11 = gameObject.AddComponent<LogicChain>();
         lc11.SetupChain(_variables, lci11);
         
-        ValueInstatiator[] vals12 = {};
-        ChainableInstaniator[] ch12 = {wait5, logPatince};
+        OperatorInstantiator[] vals12 = {};
+        ChainableInstantiator[] ch12 = {wait5, logPatince};
         (int, int)[] rels12 = {
             (0, 1)
         };
@@ -50,8 +55,8 @@ public class StateTest : MonoBehaviour {
         
         _state1 = new LogicState(new [] {lc11, lc12});
         
-        ValueInstatiator[] vals21 = {};
-        ChainableInstaniator[] ch21 = {wait3, log2};
+        OperatorInstantiator[] vals21 = {};
+        ChainableInstantiator[] ch21 = {wait3, log2};
         (int, int)[] rels21 = {
             (0, 1)
         };

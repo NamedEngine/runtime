@@ -13,6 +13,10 @@
         return value is Value<T>;
     }
 
+    public bool IsType(ValueType type) {
+        return typeof(T) == ValueTypeConverter.GetType(type);
+    }
+
     public static implicit operator T(Value<T> v) => v.Get();
     
     public override string ToString() {

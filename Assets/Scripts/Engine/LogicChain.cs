@@ -4,8 +4,8 @@ using System.Linq;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicChain : MonoBehaviour {
     int _coroCount;
@@ -25,13 +25,13 @@ public class LogicChain : MonoBehaviour {
         }
         
         // TODO maybe remove "Need sorted value instantiators" constraint
-        var preparedValues = new IValue[info.ValueInstantiators.Length];
-        for (int i = 0; i < preparedValues.Length; i++) {
-            preparedValues[i] = info.ValueInstantiators[i](variableDictionary, preparedValues);
+        var preparedOperators = new IValue[info.OperatorInstantiators.Length];
+        for (int i = 0; i < preparedOperators.Length; i++) {
+            preparedOperators[i] = info.OperatorInstantiators[i](variableDictionary, preparedOperators);
         }
 
         var preparedChainables = info.ChainableInstantiators
-            .Select(chInst => chInst(variableDictionary, preparedValues))
+            .Select(chInst => chInst(variableDictionary, preparedOperators))
             .ToArray();
 
         for (int parent = 0; parent < preparedChainables.Length; parent++) {
