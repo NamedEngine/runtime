@@ -1,131 +1,124 @@
 ﻿using System;
 using System.Collections;
-using System.Globalization;
 using System.Linq;
-using Engine;
 using UnityEngine;
 
-public class DummySyncAction1 : Action {
-    static readonly IValue[][] ArgTypes = { };
-    
-    protected override IEnumerator ActionLogic() {
-        return null;
+namespace Actions {
+    public class DummySyncAction1 : Action {
+        static readonly IValue[][] ArgTypes = { };
+        
+        protected override IEnumerator ActionLogic() {
+            return null;
+        }
+
+        public DummySyncAction1(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+    }
+    public class DummySyncAction2 : Action {
+        static readonly IValue[][] ArgTypes = { };
+        
+        protected override IEnumerator ActionLogic() {
+            return null;
+        }
+
+        public DummySyncAction2(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
-    public DummySyncAction1(IValue[] values) : base(ArgTypes, values) { }
-}
-public class DummySyncAction2 : Action {
-    static readonly IValue[][] ArgTypes = { };
-    
-    protected override IEnumerator ActionLogic() {
-        return null;
+    public class DummyAsyncAction1 : Action {
+        static readonly IValue[][] ArgTypes = { };
+        
+        protected override IEnumerator ActionLogic() {
+            yield return new WaitForSeconds(1);
+        }
+
+        public DummyAsyncAction1(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
-    public DummySyncAction2(IValue[] values) : base(ArgTypes, values) { }
-}
+    public class DummyAsyncAction2 : Action {
+        static readonly IValue[][] ArgTypes = { };
+        
+        protected override IEnumerator ActionLogic() {
+            yield return new WaitForSeconds(2);
+        }
 
-public class DummyAsyncAction1 : Action {
-    static readonly IValue[][] ArgTypes = { };
-    
-    protected override IEnumerator ActionLogic() {
-        yield return new WaitForSeconds(1);
+        public DummyAsyncAction2(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
-    public DummyAsyncAction1(IValue[] values) : base(ArgTypes, values) { }
-}
+    public class DummyLog : Action {
+        static readonly IValue[][] ArgTypes = new IValue[][] {
+            new IValue[] {new Value<string>()},
+        }.Concat(Enumerable.Repeat(new IValue[] {
+            new Value<int>(),
+            new Value<float>(),
+            new Value<bool>(),
+            new Value<string>(),
+            new NullValue(),
+        }, 100).ToArray());
+        
+        public DummyLog(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        
+        // ReSharper disable Unity.PerformanceAnalysis
+        protected override IEnumerator ActionLogic() {
+            string ValueToString(IValue val) {
+                switch (val) {
+                    case Value<int> intVal:
+                        return intVal.ToString();
+                    case Value<float> floatVal:
+                        return floatVal.ToString();
+                    case Value<bool> boolVal:
+                        return boolVal.ToString();
+                    case Value<string> strVal:
+                        return strVal;
+                    default:
+                        throw new Exception("This should not be possible!");
+                }
+            }
+            
+            var format = Arguments[0] as Value<string>;
+            var other = Arguments
+                .Skip(1)
+                .Select(ValueToString)
+                .ToArray();
+            var message = string.Format(format, other);
+            Debug.Log(message);
 
-public class DummyAsyncAction2 : Action {
-    static readonly IValue[][] ArgTypes = { };
-    
-    protected override IEnumerator ActionLogic() {
-        yield return new WaitForSeconds(2);
+            return null;
+        }
     }
 
-    public DummyAsyncAction2(IValue[] values) : base(ArgTypes, values) { }
-}
-
-public class DummyTrueCondition : Condition {
-    static readonly IValue[][] ArgTypes = { };
-
-    protected override bool ConditionLogic() {
-        return true;
-    }
-
-    public DummyTrueCondition(IValue[] values) : base(ArgTypes, values) { }
-}
-
-public class DummyFalseCondition : Condition {
-    static readonly IValue[][] ArgTypes = { };
-
-    protected override bool ConditionLogic() {
-        return false;
-    }
-
-    public DummyFalseCondition(IValue[] values) : base(ArgTypes, values) { }
-}
-
-public class DummyLog : Action {
-    static readonly IValue[][] ArgTypes = new IValue[][] {
-        new IValue[] {new LogicVariable<string>()},
-    }.Concat(Enumerable.Repeat(new IValue[] {
-        new LogicVariable<int>(),
-        new LogicVariable<float>(),
-        new LogicVariable<bool>(),
-        new LogicVariable<string>(),
-        new NullValue(),
-    }, 100).ToArray());
-    
-    public DummyLog(IValue[] values) : base(ArgTypes, values) { }
-    
-    // ReSharper disable Unity.PerformanceAnalysis
-    protected override IEnumerator ActionLogic() {
-        string ValueToString(IValue val) {
-            switch (val) {
-                case LogicValue<int> intVal:
-                    return intVal.ToString();
-                case LogicValue<float> floatVal:
-                    return floatVal.ToString();
-                case LogicValue<bool> boolVal:
-                    return boolVal.ToString();
-                case LogicValue<string> strVal:
-                    return strVal;
+    public class DummyWait : Action {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[] {
+                new Value<int>(),
+                new Value<float>()
+            },
+        };
+        
+        public DummyWait(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        protected override IEnumerator ActionLogic() {
+            switch (Arguments[0]) {
+                case Value<int> intVal:
+                    yield return new WaitForSeconds(intVal);
+                    break;
+                case Value<float> floatVal:
+                    yield return new WaitForSeconds(floatVal);
+                    break;
                 default:
                     throw new Exception("This should not be possible!");
             }
         }
-        
-        var format = Arguments[0] as LogicValue<string>;
-        var other = Arguments
-            .Skip(1)
-            .Select(ValueToString)
-            .ToArray();
-        var message = string.Format(format, other);
-        Debug.Log(message);
-
-        return null;
     }
-}
 
-public class DummyWait : Action {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>()
-        },
-        
-    };
-    
-    public DummyWait(IValue[] values) : base(ArgTypes, values) { }
-    protected override IEnumerator ActionLogic() {
-        switch (Arguments[0]) {
-            case LogicValue<int> intVal:
-                yield return new WaitForSeconds(intVal);
-                break;
-            case LogicValue<float> floatVal:
-                yield return new WaitForSeconds(floatVal);
-                break;
-            default:
-                throw new Exception("This should not be possible!");
+    public class DummyBoolCopy : Action {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[] {new Value<bool>()},
+            new IValue[] {new Variable<bool>()},
+        };
+
+        public DummyBoolCopy(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+
+        protected override IEnumerator ActionLogic() {
+            (Arguments[1] as Variable<bool>).Set(Arguments[0] as Value<bool>);
+            return null;
         }
     }
 }
@@ -133,8 +126,8 @@ public class DummyWait : Action {
 public class DummySetState : Action {
     static readonly IValue[][] ArgTypes = { };
     readonly System.Action _stateSetter;
-    
-    public DummySetState(System.Action stateSetter, IValue[] values) : base(ArgTypes, values) {
+
+    public DummySetState(System.Action stateSetter) : base(ArgTypes,null, new IValue[] {}, false) {
         _stateSetter = stateSetter;
     }
     protected override IEnumerator ActionLogic() {
@@ -143,19 +136,43 @@ public class DummySetState : Action {
     }
 }
 
-public class DummyNce : Condition {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[] {new LogicVariable<int>()}
-    };
+namespace Conditions {
+    public class DummyTrueCondition : Condition {
+        static readonly IValue[][] ArgTypes = { };
 
-    int _activationsLeft;
+        protected override bool ConditionLogic() {
+            return true;
+        }
 
-    public DummyNce(IValue[] values) : base(ArgTypes, values) {
-        _activationsLeft = values[0] as LogicValue<int>;
+        public DummyTrueCondition(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
     }
 
-    protected override bool ConditionLogic() {
-        _activationsLeft = Math.Max(-1, --_activationsLeft);
-        return _activationsLeft >= 0;
+    public class DummyFalseCondition : Condition {
+        static readonly IValue[][] ArgTypes = { };
+
+        protected override bool ConditionLogic() {
+            return false;
+        }
+
+        public DummyFalseCondition(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+    }
+
+    public class DummyNce : Condition {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[] {new Value<int>()}
+        };
+
+        int _activationsLeft;
+
+        public DummyNce(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) {
+            _activationsLeft = values[0] as Value<int>;
+        }
+
+        protected override bool ConditionLogic() {
+            _activationsLeft = Math.Max(-1, --_activationsLeft);
+            return _activationsLeft >= 0;
+        }
     }
 }
+
+

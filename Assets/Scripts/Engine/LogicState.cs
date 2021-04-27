@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using UnityEngine;
-
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using Object = UnityEngine.Object;
 
 public class LogicState {
     readonly LogicChain[] _logicChains;
@@ -19,9 +19,9 @@ public class LogicState {
         }
     }
 
-    public void Start(VariableDictionary variableDictionary) {
+    public void Start(LogicObject thisObject, VariableDictionary variableDictionary) {
         foreach (var logicChain in _logicChains) {
-            logicChain.ResetChain(variableDictionary);
+            logicChain.ResetChain(thisObject, variableDictionary);
         }
     }
 
@@ -30,10 +30,16 @@ public class LogicState {
             logicChain.Finish();
         }
     }
+    
+    public void Destroy(Action<UnityEngine.Object> destroyer) {
+        foreach (var logicChain in _logicChains) {
+            destroyer(logicChain);
+        }
+    }
 
-    public LogicState Clone(VariableDictionary variableDictionary) {
+    public LogicState Clone(LogicObject newObject, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
         var clonedChains = _logicChains
-            .Select(chain => chain.Clone(variableDictionary))
+            .Select(chain => chain.Clone(newObject, variableDictionary, objectToAttachTo))
             .ToArray();
         return new LogicState(clonedChains);
     }

@@ -1,14 +1,14 @@
-﻿using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+﻿using OperatorInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicChainInfo {
-    public readonly ValueInstatiator[] ValueInstantiators;
-    public readonly ChainableInstaniator[] ChainableInstantiators;
+    public readonly OperatorInstantiator[] OperatorInstantiators;
+    public readonly ChainableInstantiator[] ChainableInstantiators;
     public readonly (int, int)[] ChainableRelations;
 
-    public LogicChainInfo(ValueInstatiator[] valueInstantiators, ChainableInstaniator[] chainableInstantiators,
+    public LogicChainInfo(OperatorInstantiator[] operatorInstantiators, ChainableInstantiator[] chainableInstantiators,
         (int, int)[] chainableRelations) {
-        ValueInstantiators = valueInstantiators;
+        OperatorInstantiators = operatorInstantiators;
         ChainableInstantiators = chainableInstantiators;
         ChainableRelations = chainableRelations;
     }

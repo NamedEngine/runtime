@@ -1,100 +1,112 @@
 ﻿using System;
-using System.Collections;
-using System.Globalization;
 using UnityEngine;
+using Random = System.Random;
 
-public class DummyAnd : LogicOperator<bool> {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<bool>()},
-        new IValue[]{new LogicVariable<bool>()},
-    };
-    
-    public DummyAnd(IValue[] values) : base(ArgTypes, values) { }
+namespace Operators {
+    public class DummyAnd : Operator<bool> {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[]{new Value<bool>()},
+            new IValue[]{new Value<bool>()},
+        };
+        
+        public DummyAnd(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
-    protected override bool InternalGet() {
-        return Arguments[0] as LogicValue<bool> && Arguments[1] as LogicValue<bool>;
-    }
-}
-
-public class DummyOr : LogicOperator<bool> {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<bool>()},
-        new IValue[]{new LogicVariable<bool>()},
-    };
-
-    public DummyOr(IValue[] values) : base(ArgTypes, values) { }
-
-    protected override bool InternalGet() {
-        return Arguments[0] as LogicValue<bool> || Arguments[1] as LogicValue<bool>;
-    }
-}
-
-public class DummyPlus : LogicOperator<int> {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[]{new LogicVariable<int>()},
-        new IValue[]{new LogicVariable<int>()},
-    };
-
-    public DummyPlus(IValue[] values) : base(ArgTypes, values) { }
-
-
-    protected override int InternalGet() {
-        return (Arguments[0] as LogicValue<int>) + (Arguments[1] as LogicValue<int>);
-    }
-}
-
-public class DummyToInt : LogicOperator<int> {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>(),
-            new LogicVariable<bool>(),
-            new LogicVariable<string>(),
-        },
-    };
-
-    public DummyToInt(IValue[] values) : base(ArgTypes, values) { }
-
-    protected override int InternalGet() {
-        switch (Arguments[0]) {
-            case LogicValue<int> intVal:
-                return intVal;
-            case LogicValue<float> floatVal:
-                return Convert.ToInt32(floatVal);
-            case LogicValue<bool> boolVal:
-                return Convert.ToInt32(boolVal);
-            case LogicValue<string> strVal:
-                return Convert.ToInt32(strVal);
-            default:
-                throw new Exception("This should not be possible!");
+        protected override bool InternalGet() {
+            return Arguments[0] as Value<bool> && Arguments[1] as Value<bool>;
         }
     }
-}
 
-public class DummyToString : LogicOperator<string> {
-    static readonly IValue[][] ArgTypes = {
-        new IValue[] {
-            new LogicVariable<int>(),
-            new LogicVariable<float>(),
-            new LogicVariable<bool>(),
-            new LogicVariable<string>(),
-        },
-    };
+    public class DummyOr : Operator<bool> {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[]{new Value<bool>()},
+            new IValue[]{new Value<bool>()},
+        };
 
-    public DummyToString(IValue[] values) : base(ArgTypes, values) { }
+        public DummyOr(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
-    protected override string InternalGet() {
-        switch (Arguments[0]) {
-            case LogicValue<int> intVal:
-                return intVal.ToString();
-            case LogicValue<float> floatVal:
-                return floatVal.ToString();
-            case LogicValue<bool> boolVal:
-                return boolVal.ToString();
-            case LogicValue<string> strVal:
-                return strVal;
-            default:
-                throw new Exception("This should not be possible!");
+        protected override bool InternalGet() {
+            return Arguments[0] as Value<bool> || Arguments[1] as Value<bool>;
+        }
+    }
+
+    public class DummyPlus : Operator<int> {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[]{new Value<int>()},
+            new IValue[]{new Value<int>()},
+        };
+
+        public DummyPlus(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+
+
+        protected override int InternalGet() {
+            return (Arguments[0] as Value<int>) + (Arguments[1] as Value<int>);
+        }
+    }
+
+    public class DummyToInt : Operator<int> {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[] {
+                new Value<int>(),
+                new Value<float>(),
+                new Value<bool>(),
+                new Value<string>(),
+            },
+        };
+
+        public DummyToInt(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+
+        protected override int InternalGet() {
+            switch (Arguments[0]) {
+                case Value<int> intVal:
+                    return intVal;
+                case Value<float> floatVal:
+                    return Convert.ToInt32(floatVal);
+                case Value<bool> boolVal:
+                    return Convert.ToInt32(boolVal);
+                case Value<string> strVal:
+                    return Convert.ToInt32(strVal);
+                default:
+                    throw new Exception("This should not be possible!");
+            }
+        }
+    }
+
+    public class DummyToString : Operator<string> {
+        static readonly IValue[][] ArgTypes = {
+            new IValue[] {
+                new Value<int>(),
+                new Value<float>(),
+                new Value<bool>(),
+                new Value<string>(),
+            },
+        };
+
+        public DummyToString(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+
+        protected override string InternalGet() {
+            switch (Arguments[0]) {
+                case Value<int> intVal:
+                    return intVal.ToString();
+                case Value<float> floatVal:
+                    return floatVal.ToString();
+                case Value<bool> boolVal:
+                    return boolVal.ToString();
+                case Value<string> strVal:
+                    return strVal;
+                default:
+                    throw new Exception("This should not be possible!");
+            }
+        }
+    }
+
+    public class DummyRandInt : Operator<int> {
+        static readonly IValue[][] ArgTypes = { };
+        Random _random = new Random();
+        
+        public DummyRandInt(GameObject gameObject, IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, arguments, constraintReference) { }
+
+        protected override int InternalGet() {
+            return _random.Next(int.MinValue, int.MaxValue);
         }
     }
 }

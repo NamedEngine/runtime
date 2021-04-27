@@ -4,8 +4,8 @@ using System.Linq;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using ValueInstatiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstaniator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicChain : MonoBehaviour {
     int _coroCount;
@@ -15,23 +15,23 @@ public class LogicChain : MonoBehaviour {
 
     LogicChainInfo _info;
 
-    public void ResetChain(VariableDictionary variableDictionary) {
-        SetupChain(variableDictionary, _info);    
+    public void ResetChain(LogicObject thisObject, VariableDictionary variableDictionary) {
+        SetupChain(thisObject, variableDictionary, _info);    
     }
     
-    public void SetupChain(VariableDictionary variableDictionary, LogicChainInfo info) { // TODO: thb this stinks
+    public void SetupChain(LogicObject thisObject, VariableDictionary variableDictionary, LogicChainInfo info) { // TODO: thb this stinks
         if (IsRunning) {
             throw new Exception("Should not setup chain when running");
         }
         
-        // TODO maybe remove "Need sorted value instatiators" constraint
-        var preparedValues = new IValue[info.ValueInstantiators.Length];
-        for (int i = 0; i < preparedValues.Length; i++) {
-            preparedValues[i] = info.ValueInstantiators[i](variableDictionary, preparedValues);
+        // TODO maybe remove "Need sorted value instantiators" constraint
+        var preparedOperators = new IValue[info.OperatorInstantiators.Length];
+        for (int i = 0; i < preparedOperators.Length; i++) {
+            preparedOperators[i] = info.OperatorInstantiators[i](thisObject, variableDictionary, preparedOperators);
         }
 
         var preparedChainables = info.ChainableInstantiators
-            .Select(chInst => chInst(variableDictionary, preparedValues))
+            .Select(chInst => chInst(thisObject, variableDictionary, preparedOperators))
             .ToArray();
 
         for (int parent = 0; parent < preparedChainables.Length; parent++) {
@@ -75,14 +75,14 @@ public class LogicChain : MonoBehaviour {
     }
 
     void RunCoro(IEnumerator coro) {
-        IEnumerator runner() {
+        IEnumerator Runner() {
             _coroCount++;
             yield return coro;
             _coroCount--;
             // Debug.Log("FINISHED RUNNING CORO; COROS LEFT: " + _coroCount);
         }
         // Debug.Log("Running new coro!");
-        StartCoroutine(runner());
+        StartCoroutine(Runner());
     }
 
     public void Finish() {
@@ -90,9 +90,9 @@ public class LogicChain : MonoBehaviour {
         _coroCount = 0;
     }
     
-    public LogicChain Clone(VariableDictionary variableDictionary) {
-        var newChain = gameObject.AddComponent<LogicChain>();
-        newChain.SetupChain(variableDictionary, _info);
+    public LogicChain Clone(LogicObject newObject, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
+        var newChain = objectToAttachTo.AddComponent<LogicChain>();
+        newChain.SetupChain(newObject, variableDictionary, _info);
         return newChain;
     }
 }
