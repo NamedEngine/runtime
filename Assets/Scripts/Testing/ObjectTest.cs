@@ -28,10 +28,10 @@ public class ObjectTest : MonoBehaviour {
         };
 
         OperatorInstantiator plusInst = (logicObject, dictionary, values) => new DummyPlus(null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
-        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(null, new IValue[] {values[0]}, false);
+        OperatorInstantiator toString = (logicObject, dictionary, values) => new DummyToString(null, new [] {values[0]}, false);
         ChainableInstantiator wait3 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(3f)}, false);
         ChainableInstantiator wait05 = (logicObject, dictionary, values) => new DummyWait(null, new IValue[] { ToVal(0.5f)}, false);
-        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
+        ChainableInstantiator log1 = (logicObject, dictionary, values) => new DummyLog(null, new [] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
         ChainableInstantiator logImpatince = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("IMPATIENCE!")}, false);
         ChainableInstantiator log2 = (logicObject, dictionary, values) => new DummyLog(null, new IValue[] {ToVal("Log from STATE 2")}, false);
         ChainableInstantiator state1Setter = (logicObject, ictionary, values) => new DummySetState(() => logicObject.SetState("State 1"));

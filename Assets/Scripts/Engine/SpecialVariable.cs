@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 public abstract class SpecialVariable<T> : Variable<T> {
     protected GameObject BoundGameObject; 
@@ -8,6 +9,9 @@ public abstract class SpecialVariable<T> : Variable<T> {
     }
 
     public override IVariable Clone(GameObject objectToAttachTo) {
-        return GetType().GetConstructor(new []{typeof(GameObject)}).Invoke(new object[] {objectToAttachTo}) as IVariable;
+        var constructor = GetType().GetConstructor(new[] {typeof(GameObject)});
+        Debug.Assert(constructor != null, nameof(constructor) + " != null");
+        
+        return constructor.Invoke(new object[] {objectToAttachTo}) as IVariable;
     }
 }

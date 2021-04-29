@@ -1,8 +1,7 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SizePositionConverter : MonoBehaviour {
-    [SerializeField] GraphicsConverter _graphicsConverter;
+    [SerializeField] GraphicsConverter graphicsConverter;
 
     static readonly Vector2 VerticalFlip = new Vector2(1, -1);
     
@@ -14,5 +13,5 @@ public class SizePositionConverter : MonoBehaviour {
         return (posInUnity + Vector2.up * heightInUnity) * VerticalFlip / SizeM2U;
     }
     
-    public float SizeM2U => 1 / _graphicsConverter.PixelsPerUnit;
+    public float SizeM2U => 1 / graphicsConverter.PixelsPerUnit;
 }

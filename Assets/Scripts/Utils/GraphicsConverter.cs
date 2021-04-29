@@ -1,5 +1,4 @@
-﻿using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GraphicsConverter: MonoBehaviour {
     [SerializeField] FileLoader fileLoader;

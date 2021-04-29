@@ -4,7 +4,6 @@ using UnityEngine;
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
 using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
 using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
-using Object = UnityEngine.Object;
 
 public class LogicState {
     readonly LogicChain[] _logicChains;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Reflection;
+﻿using System.Collections;
 using Actions;
 using Conditions;
 using UnityEngine;
@@ -23,10 +21,10 @@ public class ChainTest : MonoBehaviour {
         ChainableInstantiator c4 = (logicObject, variables, values) => new DummySyncAction2(null, new IValue[] { }, false);
         
         // oh god forgive me for i MOST LIKELY will use this monstrosity to do shit
-        ChainableInstantiator c5 = (logicObject, variables, values) => 
-            System.Type.GetType("Actions.DummyAsyncAction2")
-                .GetConstructor(new [] {values.GetType(), true.GetType()})
-                .Invoke(new object[] {new IValue[] { }, false}) as Chainable;
+        // ChainableInstantiator c5 = (logicObject, variables, values) => 
+        //     System.Type.GetType("Actions.DummyAsyncAction2")
+        //         .GetConstructor(new [] {values.GetType(), true.GetType()})
+        //         .Invoke(new object[] {new IValue[] { }, false}) as Chainable;
         
         // var instantiators = new [] {c0, c1, c2, c3, c4};
         // var relations = new [] {

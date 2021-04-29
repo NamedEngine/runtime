@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 
 public class ClassInstantiator : MonoBehaviour {
@@ -15,8 +14,6 @@ public class ClassInstantiator : MonoBehaviour {
         var resultingObjects = new Dictionary<string, LogicObject>();
         var idGenerator = new IdGenerator();
         foreach (var objectInfo in objectInfos) {
-            Debug.Log(objectInfo);
-            
             var classParameter = objectInfo.Parameters.FirstOrDefault(p => p.Name == emptyClassParameter.Name);
             if (classParameter.IsDefault()) {
                 classParameter = emptyClassParameter;

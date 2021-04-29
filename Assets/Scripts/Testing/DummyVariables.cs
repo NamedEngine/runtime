@@ -7,23 +7,23 @@ namespace Variables {
         void SetRenderer() {
             _renderer = BoundGameObject.GetComponent<SpriteRenderer>();
         }
+
+        readonly System.Action _setRendererOnce;
         
         protected override bool InternalGet() {
-            if (!_renderer) {
-                SetRenderer();
-            }
+            _setRendererOnce();
 
             return _renderer.enabled;
         }
 
         public override void Set(bool value) {
-            if (!_renderer) {
-                SetRenderer();
-            }
+            _setRendererOnce();
 
             _renderer.enabled = value;
         }
 
-        public DummyVisible(GameObject gameObject) : base(gameObject) { }
+        public DummyVisible(GameObject gameObject) : base(gameObject) {
+            _setRendererOnce = ((System.Action) SetRenderer).Once();
+        }
     }
 }

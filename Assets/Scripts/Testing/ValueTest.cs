@@ -18,10 +18,13 @@ public class ValueTest : MonoBehaviour {
         IValue val1 = new Variable<bool>();
         IValue val2 = new DummyAnd(null, new [] {val1, val1}, false);
 
+        // ReSharper disable once UnusedVariable
         var shouldWork1 = new DummySetBool(null, new [] {val1, val1}, false);
+        // ReSharper disable once UnusedVariable
         var shouldWork2 = new DummySetBool(null, new [] {val2, val1}, false);
 
         try {
+            // ReSharper disable once UnusedVariable
             var shouldFail = new DummySetBool(null, new[] {val1, val2}, false);
             throw new ApplicationException("Should not be thrown!");
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 public class MapLoader : MonoBehaviour {
     [SerializeField] GameObject staticObjectPrefab;  // TODO: most likely this would be assigned by logic engine
@@ -31,7 +32,8 @@ public class MapLoader : MonoBehaviour {
 
         var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
         var root = mapDocument.Root;
-        
+        Debug.Assert(root != null, nameof(root) + " != null");
+
         var tilesets = root.Descendants("tileset")
             .Select(d => new { path = getAttr(d, "source"), gid = getIntAttr(d, "firstgid") })
             .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
@@ -193,6 +195,7 @@ public class MapLoader : MonoBehaviour {
         var tileSetDocument = XDocument.Parse(fileLoader.LoadText(tileSetPath));
 
         var root = tileSetDocument.Root;
+        Debug.Assert(root != null, nameof(root) + " != null");
         
         var tileWidth = getFloatAttr(root, "tilewidth");
         var tileHeight = getFloatAttr(root, "tileheight");

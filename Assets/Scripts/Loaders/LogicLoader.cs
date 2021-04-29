@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 public class LogicLoader : MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     [SerializeField] GameObject kinematicObjectPrefab;
-    IdGenerator _idGenerator = new IdGenerator();
+    readonly IdGenerator _idGenerator = new IdGenerator();
     public Dictionary<string, LogicObject> LoadLogicClasses() {
         _idGenerator.Reset();
         var parser = new DrawIOParser();
@@ -54,7 +53,7 @@ public class LogicLoader : MonoBehaviour {
         var emptyVariables = CreateSpecialVariables(emptyObject);
         
         emptyObject.SetupObject(emptyState, emptyStates, "", emptyVariables);
-        emptyObject.Class = "";
+        emptyObject.@class = "";
 
         return emptyObject;
     }
@@ -69,9 +68,6 @@ public class LogicLoader : MonoBehaviour {
     void SetupObject(ParsedNodeInfo classInfo, LogicObject logicObject, Dictionary<string,ParsedNodeInfo> parsedNodes) {
         // Debug.Log("Getting variables");
         var variables = GetVariables(classInfo, logicObject, parsedNodes);
-        foreach (var pair in variables) {
-            // Debug.Log("Variable: " + pair.Key + " AKA " + pair.Value.Item1);
-        }
         var objectVariables = variables
             .ToDictionary(pair => pair.Value.Item1, pair => pair.Value.Item2);
 
@@ -105,7 +101,7 @@ public class LogicLoader : MonoBehaviour {
 
         var stateNameAndSetterById = stateInfos
             .Select(stateInfo => (stateInfo.id, stateInfo.name.IfEmpty(stateInfo.id)))
-            .Select<(string id, string stateName),(string, (string, System.Action<LogicObject>))>(pair => 
+            .Select<(string id, string stateName),(string, (string, Action<LogicObject>))>(pair => 
                 (pair.id, (pair.stateName, obj => obj.SetState(pair.stateName)))
             )
             .ToDictionary();
@@ -199,7 +195,7 @@ public class LogicLoader : MonoBehaviour {
     }
 
     static KeyValuePair<string, LogicState> GetStatePair(ParsedNodeInfo stateInfo, LogicObject logicObject,
-        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById,
+        Dictionary<string, (string, Action<LogicObject>)> stateNameAndSetterById,
         Dictionary<string, (string, IVariable)> variables, Dictionary<string, ParsedNodeInfo> parsedNodes) {
         string stateName;
         if (stateInfo.type == NodeType.Class) {
@@ -221,7 +217,7 @@ public class LogicLoader : MonoBehaviour {
         return new KeyValuePair<string, LogicState>(stateName, new LogicState(chains));
     }
 
-    static LogicChain GetChain(ParsedNodeInfo chainStartInfo, LogicObject logicObject, Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, 
+    static LogicChain GetChain(ParsedNodeInfo chainStartInfo, LogicObject logicObject, Dictionary<string, (string, Action<LogicObject>)> stateNameAndSetterById, 
         Dictionary<string, (string, IVariable)> variables, Dictionary<string,ParsedNodeInfo> parsedNodes) {
         var chain = logicObject.gameObject.AddComponent<LogicChain>();
 
@@ -313,7 +309,7 @@ public class LogicLoader : MonoBehaviour {
     }
 
     static Func<LogicObject, Dictionary<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut, TReal>(ParsedNodeInfo node,
-        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
+        Dictionary<string, (string, Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
         Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where TOut : class where TReal : class, IConstrainable {
         // Debug.Log("Getting instantiator for node " + node.id + " with type " + node.type + " and name " + node.name);
@@ -352,7 +348,7 @@ public class LogicLoader : MonoBehaviour {
     }
 
     static Func<LogicObject, Dictionary<string, IVariable>, IValue[], T> GetNodeInstantiator<T>(ParsedNodeInfo node,
-        Dictionary<string, (string, System.Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
+        Dictionary<string, (string, Action<LogicObject>)> stateNameAndSetterById, Dictionary<string, (string, IVariable)> variables,
         Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where T : class, IConstrainable =>
         GetNodeInstantiator<T, T>(node, stateNameAndSetterById, variables, operatorPositions, parsedNodes);
@@ -360,7 +356,7 @@ public class LogicLoader : MonoBehaviour {
     static Func<LogicObject, Dictionary<string, IVariable>, IValue[], IValue> GetValueLocator<T>(ParsedNodeInfo parameter,
         ConstructorInfo parentConstructor, Dictionary<string, (string, IVariable)> variables, Dictionary<string, int> operatorPositions,
         Dictionary<string, ParsedNodeInfo> parsedNodes) where T : class, IConstrainable {
-        var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);
+        // var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);
         // Debug.Log("Getting locator for parameter #" + parameterIndex + " in parent with id " + parameter.parent);
         
         var sourceId = parameter.prev.FirstOrDefault() ?? "";
@@ -387,6 +383,8 @@ public class LogicLoader : MonoBehaviour {
     static Func<LogicObject, Dictionary<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator<T>(ParsedNodeInfo parameter,
         ConstructorInfo parentConstructor, Dictionary<string, ParsedNodeInfo> parsedNodes) where T : class, IConstrainable {
         var typeReference = parentConstructor.Invoke(new object[] {null, null, true}) as T;
+        Debug.Assert(typeReference != null, nameof(typeReference) + " != null");
+        
         var constraints = typeReference.GetConstraints();
             
         var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);

@@ -44,7 +44,7 @@ namespace Actions {
     }
 
     public class DummyLog : Action {
-        static readonly IValue[][] ArgTypes = new IValue[][] {
+        static readonly IValue[][] ArgTypes = new[] {
             new IValue[] {new Value<string>()},
         }.Concat(Enumerable.Repeat(new IValue[] {
             new Value<int>(),
@@ -73,7 +73,7 @@ namespace Actions {
                 }
             }
             
-            var format = Arguments[0] as Value<string>;
+            var format = (Value<string>) Arguments[0];
             var other = Arguments
                 .Skip(1)
                 .Select(ValueToString)
@@ -117,7 +117,7 @@ namespace Actions {
         public DummySetBool(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
-            (Arguments[1] as Variable<bool>).Set(Arguments[0] as Value<bool>);
+            ((Variable<bool>) Arguments[1]).Set((Value<bool>) Arguments[0]);
             return null;
         }
     }
@@ -165,7 +165,7 @@ namespace Conditions {
         int _activationsLeft;
 
         public DummyNce(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) {
-            _activationsLeft = values[0] as Value<int>;
+            _activationsLeft = (Value<int>) values[0];
         }
 
         protected override bool ConditionLogic() {
