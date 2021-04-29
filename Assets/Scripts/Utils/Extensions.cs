@@ -49,4 +49,12 @@ public static class Extensions {
         
         return char.ToUpperInvariant(source[0]) + source.Substring(1);
     }
+    
+    public static string IfEmpty(this string source, string replacement) {
+        if (source == "") {
+            return replacement;
+        }
+
+        return source;
+    }
 }
