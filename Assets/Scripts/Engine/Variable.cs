@@ -1,4 +1,6 @@
-﻿public class Variable<T> : Value<T>, IVariable {
+﻿using UnityEngine;
+
+public class Variable<T> : Value<T>, IVariable {
     T _value;
 
     public Variable(T value = default) {
@@ -9,7 +11,7 @@
         return _value;
     }
 
-    public void Set(T value) {
+    public virtual void Set(T value) {
         _value = value;
     }
 
@@ -17,7 +19,7 @@
         return value is Variable<T>;
     }
 
-    public IVariable Clone() {
+    public virtual IVariable Clone(GameObject objectToAttachTo) {
         return new Variable<T>(_value);
     }
 

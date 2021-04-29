@@ -57,4 +57,9 @@ public static class Extensions {
 
         return source;
     }
+
+    public static void Deconstruct<T1, T2>(this KeyValuePair<T1, T2> source, out T1 val1, out T2 val2) {
+        val1 = source.Key;
+        val2 = source.Value;
+    }
 }

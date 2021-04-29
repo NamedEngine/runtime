@@ -38,7 +38,7 @@ public class LogicObject : MonoBehaviour {
         newObject.Class = newClass ?? Class;
         
         var clonedVariables = _logicVariables.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone());
+            entry => entry.Value.Clone(objectToAttachTo));
         
         var clonedGeneralState = _generalState.Clone(newObject, clonedVariables, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,

@@ -5,6 +5,10 @@ public struct MapObjectInfo {
     public string Name;
     public Rect Rect;
     public MapObjectParameter[] Parameters;
+
+    public override string ToString() {
+        return "\"" + Name + "\" " + Rect + "\nParams: " + string.Join("; ", Parameters);
+    }
 }
 
 public struct MapObjectParameter {

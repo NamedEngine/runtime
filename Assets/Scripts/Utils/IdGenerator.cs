@@ -24,4 +24,8 @@ public class IdGenerator {
             .Select(_ => NewId())
             .ToArray();
     }
+
+    public void Reset() {
+        _ids.Clear();
+    }
 }
