@@ -159,20 +159,25 @@ public class LogicLoader : MonoBehaviour {
             return value == "" ? default : converter(value);
         }
 
-        switch (type) {
-            case ValueType.String:
-                return new Variable<string>(value);
-            case ValueType.Int:
-                var intValue = DefaultOrConvert(Convert.ToInt32);
-                return new Variable<int>(intValue);
-            case ValueType.Float:
-                var floatValue = DefaultOrConvert(Convert.ToSingle);
-                return new Variable<float>(floatValue);
-            case ValueType.Bool:
-                var boolValue = DefaultOrConvert(Convert.ToBoolean);
-                return new Variable<bool>(boolValue);
-            default:
-                throw new ApplicationException("This should not be possible!");
+        try {
+            switch (type) {
+                case ValueType.String:
+                    return new Variable<string>(value);
+                case ValueType.Int:
+                    var intValue = DefaultOrConvert(Convert.ToInt32);
+                    return new Variable<int>(intValue);
+                case ValueType.Float:
+                    var floatValue = DefaultOrConvert(Convert.ToSingle);
+                    return new Variable<float>(floatValue);
+                case ValueType.Bool:
+                    var boolValue = DefaultOrConvert(Convert.ToBoolean);
+                    return new Variable<bool>(boolValue);
+                default:
+                    throw new ApplicationException("This should not be possible!");
+            }
+        }
+        catch (FormatException) {
+            throw new ArgumentException("");  // TODO: move to LANG RULES
         }
     }
 
