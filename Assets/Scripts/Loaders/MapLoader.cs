@@ -15,15 +15,8 @@ public class MapLoader : MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     
     static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name)?.Value ?? "";
-    // static Func<XElement, string, int> getIntAttr = (element, name) => getAttr(element, name) != "" ? Convert.ToInt32(getAttr(element, name)) : 0;
-    // static Func<XElement, string, float> getFloatAttr = (element, name) => getAttr(element, name) != "" ? Convert.ToSingle(getAttr(element, name)) : 0;
     static Func<XElement, string, int> getIntAttr = (element, name) => Convert.ToInt32(getAttr(element, name).IfEmpty("0"));
     static Func<XElement, string, float> getFloatAttr = (element, name) => Convert.ToSingle(getAttr(element, name).IfEmpty("0"));
-
-    void Start() {
-        // TODO
-        LoadMap("Resources\\Maps\\testmap.tmx");
-    }
 
     void ClearMap() {
         for (int i = 0; i < mapObject.transform.childCount; i++) {

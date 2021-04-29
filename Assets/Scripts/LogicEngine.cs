@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
     [SerializeField] MapLoader mapLoader;
     [SerializeField] LogicLoader logicLoader;
+    [SerializeField] ClassInstantiator classInstantiator;
     
 
     Dictionary<string, LogicObject> _logicClasses;
@@ -14,9 +13,8 @@ public class LogicEngine : MonoBehaviour {
     void Start() {
         _logicClasses = logicLoader.LoadLogicClasses();
 
-        _logicObjects = _logicClasses
-            .Select(pair => (pair.Key, pair.Value.Clone(gameObject)))
-            .ToDictionary();
+        var objectInfos = mapLoader.LoadMap("Resources\\Maps\\main.tmx");  // TODO
+        _logicObjects = classInstantiator.InstantiateClasses(_logicClasses, objectInfos);
     }
 
     void Update() {

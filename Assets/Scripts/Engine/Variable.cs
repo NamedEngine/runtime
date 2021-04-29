@@ -20,4 +20,13 @@
     public IVariable Clone() {
         return new Variable<T>(_value);
     }
+
+    public bool TryTransferValueTo(IVariable other) {
+        if (!(other is Variable<T> castedOther)) {
+            return false;
+        }
+        
+        castedOther.Set(Get());
+        return true;
+    }
 }

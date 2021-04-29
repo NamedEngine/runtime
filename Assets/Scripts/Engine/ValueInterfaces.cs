@@ -6,4 +6,6 @@
 
 public interface IVariable : IValue {
     IVariable Clone();
+
+    bool TryTransferValueTo(IVariable other);
 }

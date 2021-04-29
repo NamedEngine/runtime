@@ -14,7 +14,7 @@ public class LogicLoader : MonoBehaviour {
 
         var parsedNodes = fileLoader
             .LoadAllWithExtension(fileLoader.LoadText, ".xml")
-            .Select(logicText => parser.Parse(logicText))
+            .Select(logicText => parser.Parse(logicText))  // TODO: replace ids by new ones from shared pool before merging into one dict (problem: same ids in different files) 
             .SelectMany(x => x)
             .ToDictionary();
 
@@ -37,9 +37,24 @@ public class LogicLoader : MonoBehaviour {
         }
 
         // Debug.Log("Ready!");
-        return objects
+        var readyObjects = objects
             .Select(pair => (parsedNodes[pair.Key].name, pair.Value))
             .ToDictionary();
+        readyObjects.Add("", CreateEmptyLogicObject());
+        return readyObjects;
+    }
+    
+    public LogicObject CreateEmptyLogicObject() {
+        var emptyObject = gameObject.AddComponent<LogicObject>();
+        
+        var emptyState = new LogicState(new LogicChain[] { });
+        var emptyStates = new Dictionary<string, LogicState> {{"", emptyState}};
+        var emptyVariables = new Dictionary<string, IVariable>();
+        
+        emptyObject.SetupObject(emptyState, emptyStates, "", emptyVariables);
+        emptyObject.Class = "";
+
+        return emptyObject;
     }
 
     Dictionary<string, LogicObject> CreateObjects(Dictionary<string,ParsedNodeInfo> parsedNodes) {
@@ -126,6 +141,8 @@ public class LogicLoader : MonoBehaviour {
             .Where(info => info.type == NodeType.Variable)
             .Select(info => GetVariablePair(info, parsedNodes))
             .ToDictionary();
+        
+        // TODO: add special variables here
 
         return variables;
     }
@@ -151,34 +168,7 @@ public class LogicLoader : MonoBehaviour {
         }
         var value = variableInfo.parameters.Length == 1 ? parsedNodes[variableInfo.parameters[0]].name : "";
 
-        return new KeyValuePair<string, (string, IVariable)>(variableInfo.id, (variableName, GetVariableByType(type, value)));
-    }
-
-    IVariable GetVariableByType(ValueType type, string value) {
-        T DefaultOrConvert<T>(Func<string, T> converter) {
-            return value == "" ? default : converter(value);
-        }
-
-        try {
-            switch (type) {
-                case ValueType.String:
-                    return new Variable<string>(value);
-                case ValueType.Int:
-                    var intValue = DefaultOrConvert(Convert.ToInt32);
-                    return new Variable<int>(intValue);
-                case ValueType.Float:
-                    var floatValue = DefaultOrConvert(Convert.ToSingle);
-                    return new Variable<float>(floatValue);
-                case ValueType.Bool:
-                    var boolValue = DefaultOrConvert(Convert.ToBoolean);
-                    return new Variable<bool>(boolValue);
-                default:
-                    throw new ApplicationException("This should not be possible!");
-            }
-        }
-        catch (FormatException) {
-            throw new ArgumentException("");  // TODO: move to LANG RULES
-        }
+        return new KeyValuePair<string, (string, IVariable)>(variableInfo.id, (variableName, ValueTypeConverter.GetVariableByType(type, value)));
     }
 
     KeyValuePair<string, LogicState> GetStatePair(ParsedNodeInfo stateInfo, LogicObject logicObject,
@@ -307,7 +297,6 @@ public class LogicLoader : MonoBehaviour {
         }
 
         // you know what? this fucking language doesn't have templates nor multiple base classes, so fuck it, I am using reflection now
-        // var prefix = (node.type == NodeType.Action ? nameof(Actions) : nameof(Conditions)) + ".";
         var fullname = node.type + "s." + node.name;
         var type = Type.GetType(fullname);
         if (type == null) {
@@ -377,7 +366,7 @@ public class LogicLoader : MonoBehaviour {
         var possibleValueTypes = constraints[parameterIndex]
             .Where(t => ValueTypeConverter.ValueTypes.Any(t.IsType)) // getting rid of NullValues
             .Select(t => ValueTypeConverter.ValueTypes.First(t.IsType))
-            .Where(vt => GetValueByType(vt, parameter.name) != null)
+            .Where(vt => ValueTypeConverter.GetValueByType(vt, parameter.name) != null)
             .ToArray();
 
         if (possibleValueTypes.Length == 0) {
@@ -387,33 +376,6 @@ public class LogicLoader : MonoBehaviour {
         }
 
         var possibleType = possibleValueTypes[0];
-        return (logicObject, dictionary, values) => GetValueByType(possibleType, parameter.name);
-    }
-
-    IValue GetValueByType(ValueType type, string value) {
-        T DefaultOrConvert<T>(Func<string, T> converter) {
-            return value == "" ? default : converter(value);
-        }
-
-        try {
-            switch (type) {
-                case ValueType.String:
-                    return new ConcreteValue<string>(value);
-                case ValueType.Int:
-                    var intValue = DefaultOrConvert(Convert.ToInt32);
-                    return new ConcreteValue<int>(intValue);
-                case ValueType.Float:
-                    var floatValue = DefaultOrConvert(Convert.ToSingle);
-                    return new ConcreteValue<float>(floatValue);
-                case ValueType.Bool:
-                    var boolValue = DefaultOrConvert(Convert.ToBoolean);
-                    return new ConcreteValue<bool>(boolValue);
-                default:
-                    throw new ApplicationException("This should not be possible!");
-            }
-        }
-        catch (FormatException) {
-            return null;
-        }
+        return (logicObject, dictionary, values) => ValueTypeConverter.GetValueByType(possibleType, parameter.name);
     }
 }
