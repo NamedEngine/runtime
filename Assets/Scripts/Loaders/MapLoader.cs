@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -12,6 +11,7 @@ public class MapLoader : MonoBehaviour {
     [SerializeField] GameObject kinematicObjectPrefab;
     [SerializeField] GameObject mapObject;
     [SerializeField] GraphicsConverter graphicsConverter;
+    [SerializeField] SizePositionConverter sizePositionConverter;
     [SerializeField] FileLoader fileLoader;
     
     static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name)?.Value ?? "";
@@ -96,10 +96,10 @@ public class MapLoader : MonoBehaviour {
                 
                 var sprite = tileset.GetSprite(tileNumber);
 
-                var trueRow = rows - 1 - row;
-                var xPos = column * tileset.TileWidth / graphicsConverter.PixelsPerUnit;
-                var yPos = trueRow * tileset.TileHeight / graphicsConverter.PixelsPerUnit;
-                var pos = new Vector2(xPos, yPos);
+                // var trueRow = rows - 1 - row;
+                var xPos = column * tileset.TileWidth;
+                var yPos = row * tileset.TileHeight;
+                var pos = sizePositionConverter.PositionM2U(new Vector2(xPos, yPos), tileset.TileHeight);
 
                 var tile = Instantiate(staticObjectPrefab, pos, quaternion.identity);
                 var sr = tile.GetComponent<SpriteRenderer>();
@@ -110,8 +110,8 @@ public class MapLoader : MonoBehaviour {
                 foreach (var rect in colliders) {
                     var c = tile.AddComponent<BoxCollider2D>();
                     c.usedByComposite = true;
-                    c.offset = rect.position / graphicsConverter.PixelsPerUnit;
-                    c.size = rect.size / graphicsConverter.PixelsPerUnit;
+                    c.offset = rect.position;
+                    c.size = rect.size;
                 }
                 
                 tileObjects.Add(tile);
@@ -122,30 +122,8 @@ public class MapLoader : MonoBehaviour {
     }
 
     List<MapObjectInfo> LoadObjectLayer(XElement layer, XElement map, int sortingLayer, string mapPath) {
-        // var mapHeight = getIntAttr(map, "height") * getFloatAttr(map, "tileheight");
-        //
-        // Func<XElement, Rect> posSizeFromObject = obj => {
-        //     var width = getFloatAttr(obj, "width");
-        //     var height = getFloatAttr(obj, "height");
-        //     var xPos = getFloatAttr(obj, "x") /*+ width / 2f*/;
-        //     var rawYPos = getFloatAttr(obj, "y");
-        //     
-        //     var yPos =  mapHeight - rawYPos - height /*/ 2f*/;
-        //
-        //     var pos = new Vector2(xPos, yPos) / graphicsConverter.PixelsPerUnit;
-        //     var size = new Vector2(width, height) / graphicsConverter.PixelsPerUnit;
-        //
-        //     return new Rect(pos, size);
-        // };
 
-        Rect GetRect(XElement obj) => RectFromObject(obj, obj, map, "x", "y");
-        //
-        // var objectInfos = layer.Descendants("object").ToArray();
-        // var rects = objectInfos.Select(GetRect).ToArray();
-        //
-        // var objects = rects
-        //     .Select(rect => Instantiate(kinematicObjectPrefab, rect.position, Quaternion.identity))
-        //     .ToList();
+        Rect GetRect(XElement obj) => RectFromObject(obj, obj, "x", "y");
 
         return layer.Descendants("object")
             .Select(obj => (obj, GetRect(obj)))
@@ -163,17 +141,8 @@ public class MapLoader : MonoBehaviour {
         var rawImagePath = getAttr(imageInfo, "source");
         var imagePath = Path.Combine(Path.GetDirectoryName(mapPath), rawImagePath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
-        
-        // var width = getFloatAttr(imageInfo, "width");
-        // var height = getFloatAttr(imageInfo, "height");
-        //
-        // var xPos = getFloatAttr(layer, "offsetx");
-        // var rawYPos = getFloatAttr(layer, "offsety");
-        //
-        // var mapHeight = getIntAttr(map, "height") * getFloatAttr(map, "tileheight");
-        // var yPos =  mapHeight - rawYPos - height;
 
-        var rect = RectFromObject(imageInfo, layer, map, "offsetx", "offsety");
+        var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
         var image = Instantiate(kinematicObjectPrefab, rect.position, quaternion.identity);
         var sr = image.GetComponent<SpriteRenderer>();
         sr.sprite = sprite;
@@ -187,17 +156,14 @@ public class MapLoader : MonoBehaviour {
         } };
     }
 
-    Rect RectFromObject(XElement sizeObj, XElement posObj,XElement map, string xPosName, string yPosName) {
+    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName) {
         var width = getFloatAttr(sizeObj, "width");
         var height = getFloatAttr(sizeObj, "height");
-        var xPos = getFloatAttr(posObj, xPosName) /*+ width / 2f*/;
-        var rawYPos = getFloatAttr(posObj, yPosName);
-        
-        var mapHeight = getIntAttr(map, "height") * getFloatAttr(map, "tileheight");
-        var yPos =  mapHeight - rawYPos - height /*/ 2f*/;
+        var xPos = getFloatAttr(posObj, xPosName);
+        var yPos = getFloatAttr(posObj, yPosName);
 
-        var pos = new Vector2(xPos, yPos) / graphicsConverter.PixelsPerUnit;
-        var size = new Vector2(width, height) / graphicsConverter.PixelsPerUnit;
+        var pos = sizePositionConverter.PositionM2U(new Vector2(xPos, yPos), height);
+        var size = new Vector2(width, height) * sizePositionConverter.SizeM2U;
 
         return new Rect(pos, size);
     }
@@ -257,8 +223,8 @@ public class MapLoader : MonoBehaviour {
 
             var yPos = tileHeight - rawYPos - height / 2f;
 
-            var pos = new Vector2(xPos, yPos);
-            var size = new Vector2(width, height);
+            var pos = new Vector2(xPos, yPos) * sizePositionConverter.SizeM2U;
+            var size = new Vector2(width, height) * sizePositionConverter.SizeM2U;
 
             return new Rect(pos, size);
         };
