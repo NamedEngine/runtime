@@ -9,7 +9,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
         
-        public DummyAnd(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummyAnd(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> && Arguments[1] as Value<bool>;
@@ -22,7 +22,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
 
-        public DummyOr(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummyOr(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> || Arguments[1] as Value<bool>;
@@ -35,7 +35,7 @@ namespace Operators {
             new IValue[]{new Value<int>()},
         };
 
-        public DummyPlus(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummyPlus(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
 
 
         protected override int InternalGet() {
@@ -53,7 +53,7 @@ namespace Operators {
             },
         };
 
-        public DummyToInt(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummyToInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
 
         protected override int InternalGet() {
             switch (Arguments[0]) {
@@ -81,7 +81,7 @@ namespace Operators {
             },
         };
 
-        public DummyToString(GameObject gameObject, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, values, constraintReference) { }
+        public DummyToString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
 
         protected override string InternalGet() {
             switch (Arguments[0]) {
@@ -103,10 +103,94 @@ namespace Operators {
         static readonly IValue[][] ArgTypes = { };
         Random _random = new Random();
         
-        public DummyRandInt(GameObject gameObject, IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, arguments, constraintReference) { }
+        public DummyRandInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments, constraintReference) { }
 
         protected override int InternalGet() {
             return _random.Next(int.MinValue, int.MaxValue);
+        }
+    }
+
+    public class GetVariableByObjName<T> : Operator<T>, IVariable {
+        static readonly IValue[][] ArgTypes = {
+            new [] { new Value<string>() },
+            new [] { new VariableRef() }
+        };
+        
+        class ProxyVariable : Variable<T> {
+            readonly VariableRef _variableRef;
+            readonly GetVariableByObjName<T> _parent;
+
+            public ProxyVariable(VariableRef variableRef, GetVariableByObjName<T> parent) {
+                _variableRef = variableRef;
+                _parent = parent;
+                // CheckReferencedObject(parent.GetReferencedObject());
+            }
+
+            void CheckReferencedObject(LogicObject obj) {   // TODO: remove after testing, i suppose
+                if (obj.@class != _variableRef.ClassRef.ClassName) {
+                    throw new ApplicationException("Programmer did something wrong");
+                }
+
+                if (!obj.LogicVariables.ContainsKey(_variableRef.Name)) {
+                    throw new ApplicationException("Programmer did something wrong");
+                }
+
+                var referencedVariable = obj.LogicVariables[_variableRef.Name];
+                if (referencedVariable.GetValueType() != GetValueType()) {
+                    throw new ApplicationException("Programmer did something wrong");
+                }
+            }
+    
+            protected override T InternalGet() {
+                return _parent.GetReferencedObject().LogicVariables[_variableRef.Name] as Variable<T>;
+            }
+
+            public override void Set(T value) {
+                
+            }
+
+            public override IVariable Clone(GameObject objectToAttachTo) {
+                return new ProxyVariable(_variableRef, _parent);
+            }
+        }
+
+        ProxyVariable _proxy;
+        ProxyVariable Proxy => _proxy ?? (_proxy = new ProxyVariable(Arguments[1] as VariableRef, this));
+
+        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI,
+            IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments,
+            constraintReference) {
+        }
+
+        LogicObject GetReferencedObject() {
+            var objName = (Value<string>) Arguments[0];
+            var variableRef = (VariableRef) Arguments[1];
+            var obj = EngineAPI.GetObjectByName(objName, variableRef.ClassRef.ClassName);
+            if (obj == null) {
+                throw new ArgumentException();  // TODO
+            }
+
+            return obj;
+        }
+        
+        public IVariable Clone(GameObject objectToAttachTo) {
+            throw new NotImplementedException();
+        }
+
+        protected override T InternalGet() {
+            return Proxy.Get();
+        }
+
+        public override bool Cast(IValue value) {
+            return Proxy.Cast(value);
+        }
+
+        public override IValue PrepareForCast() {
+            return Proxy.PrepareForCast();
+        }
+
+        public bool TryTransferValueTo(IVariable other) {
+            return Proxy.TryTransferValueTo(other);
         }
     }
 }

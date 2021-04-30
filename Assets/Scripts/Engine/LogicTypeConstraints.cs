@@ -7,7 +7,7 @@ public class LogicTypeConstraints {
         ArgTypes = argTypes;
     }
 
-    public void CheckArgs(IValue[] arguments, object caller) {
+    public IValue[] CheckArgs(IValue[] arguments, object caller) {
         var mandatoryArgs = ArgTypes
             .Select(types => types.Any(t => t.Cast(null)))
             .Count(nullable => nullable == false);
@@ -48,5 +48,7 @@ public class LogicTypeConstraints {
 
             throw new ArgumentException("Argument type mismatch in " + caller.GetType() + " operator: argument #" + i + " has inappropriate type");
         }
+
+        return arguments.Select(v => v.PrepareForCast()).ToArray();
     }
 }

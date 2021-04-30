@@ -11,13 +11,13 @@ public class LogicObject : MonoBehaviour {
     public string @class;
     
     string _currentState;
-    public void SetState(string state) {  // TODO: maybe reduce scope somehow
+    public void SetState(string state, LogicEngine.LogicEngineAPI engineAPI) {  // TODO: maybe reduce scope somehow
         if (_currentState != "") {
             _logicStates[_currentState].Finish();
         }
         
         _currentState = state;
-        _logicStates[_currentState].Start(this, _logicVariables);
+        _logicStates[_currentState].Start(this, engineAPI, _logicVariables);
         _logicStates[_currentState].ProcessLogic();
     }
     
@@ -30,19 +30,21 @@ public class LogicObject : MonoBehaviour {
     
     public void ProcessLogic() {
         _generalState.ProcessLogic();
-        _logicStates[_currentState].ProcessLogic();
+        if (_currentState != "") {
+            _logicStates[_currentState].ProcessLogic();
+        }
     }
 
-    public LogicObject Clone(GameObject objectToAttachTo, string newClass = null) {
+    public LogicObject Clone(GameObject objectToAttachTo, string newClass = null, LogicEngine.LogicEngineAPI engineAPI = null) {
         var newObject = objectToAttachTo.AddComponent<LogicObject>();
         newObject.@class = newClass ?? @class;
         
         var clonedVariables = _logicVariables.ToDictionary(entry => entry.Key,
             entry => entry.Value.Clone(objectToAttachTo));
         
-        var clonedGeneralState = _generalState.Clone(newObject, clonedVariables, objectToAttachTo);
+        var clonedGeneralState = _generalState.Clone(newObject, engineAPI, clonedVariables, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(newObject, clonedVariables, objectToAttachTo));
+            entry => entry.Value.Clone(newObject, engineAPI, clonedVariables, objectToAttachTo));
         newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables);
         return newObject;
     }

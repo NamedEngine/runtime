@@ -10,11 +10,19 @@
     }
 
     public virtual bool Cast(IValue value) {
-        return value is Value<T>;
+        return value?.PrepareForCast() is Value<T>;
+    }
+
+    public virtual IValue PrepareForCast() {
+        return this;
     }
 
     public bool IsType(ValueType type) {
         return typeof(T) == ValueTypeConverter.GetType(type);
+    }
+
+    public ValueType GetValueType() {
+        return ValueTypeConverter.GetValueType(typeof(T));
     }
 
     public static implicit operator T(Value<T> v) => v.Get();

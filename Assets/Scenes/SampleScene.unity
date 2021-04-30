@@ -365,6 +365,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fileLoader: {fileID: 2082333169}
+  kinematicObjectPrefab: {fileID: 6240062127959290639, guid: 3bc65ce7d23c78c4fbdf264b9f6d11ce,
+    type: 3}
 --- !u!1 &1720382188
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,4 +542,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9ccc18e962a44e8a787310b652fb780, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _graphicsConverter: {fileID: 2082333167}
+  graphicsConverter: {fileID: 2082333167}

@@ -1,5 +1,5 @@
-﻿using OperatorInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+﻿using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicChainInfo {
     public readonly OperatorInstantiator[] OperatorInstantiators;

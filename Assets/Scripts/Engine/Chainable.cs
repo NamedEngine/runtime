@@ -6,24 +6,24 @@ using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
     protected readonly GameObject ThisGameObject;
+    protected readonly LogicEngine.LogicEngineAPI EngineAPI;
     protected readonly IValue[] Arguments;
     // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
-    bool _constraintReference;
+    readonly bool _constraintReference;
     readonly LogicTypeConstraints _constraints;
     public IValue[][] GetConstraints() {
         return _constraints.ArgTypes;
     }
 
-    protected Chainable(IValue[][] argTypes, GameObject gameObject, IValue[] arguments, bool constraintReference) {
+    protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) {
         _constraintReference = constraintReference;
         ThisGameObject = gameObject;
+        EngineAPI = engineAPI;
 
         _constraints = new LogicTypeConstraints(argTypes);
         if (!_constraintReference) {
-            _constraints.CheckArgs(arguments, this);
+            Arguments = _constraints.CheckArgs(arguments, this);
         }
-        
-        Arguments = arguments;
     }
     
     int _parents;

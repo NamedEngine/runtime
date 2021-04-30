@@ -14,7 +14,15 @@ public class NullValue : IValue {
         return value == null;
     }
 
+    public IValue PrepareForCast() {
+        return this;
+    }
+
     public bool IsType(ValueType type) {
         return false;
+    }
+
+    public ValueType GetValueType() {
+        return ValueType.Null;
     }
 }
