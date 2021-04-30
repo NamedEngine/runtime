@@ -18,7 +18,7 @@ public class LogicEngine : MonoBehaviour {
             }
             
             var foundObject = _engine._logicObjects[name];
-            if (className != "" && foundObject.@class != className) {
+            if (!foundObject.IsClass(className)) {
                 return null;
             }
 

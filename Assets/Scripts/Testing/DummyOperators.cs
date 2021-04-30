@@ -127,22 +127,22 @@ namespace Operators {
             }
 
             void CheckReferencedObject(LogicObject obj) {   // TODO: remove after testing, i suppose
-                if (obj.@class != _variableRef.ClassRef.ClassName) {
+                if (obj.Class != _variableRef.ClassRef.ClassName) {
                     throw new ApplicationException("Programmer did something wrong");
                 }
 
-                if (!obj.LogicVariables.ContainsKey(_variableRef.Name)) {
+                if (!obj.Variables.ContainsKey(_variableRef.Name)) {
                     throw new ApplicationException("Programmer did something wrong");
                 }
 
-                var referencedVariable = obj.LogicVariables[_variableRef.Name];
+                var referencedVariable = obj.Variables[_variableRef.Name];
                 if (referencedVariable.GetValueType() != GetValueType()) {
                     throw new ApplicationException("Programmer did something wrong");
                 }
             }
     
             protected override T InternalGet() {
-                return _parent.GetReferencedObject().LogicVariables[_variableRef.Name] as Variable<T>;
+                return _parent.GetReferencedObject().Variables[_variableRef.Name] as Variable<T>;
             }
 
             public override void Set(T value) {
@@ -165,9 +165,10 @@ namespace Operators {
         LogicObject GetReferencedObject() {
             var objName = (Value<string>) Arguments[0];
             var variableRef = (VariableRef) Arguments[1];
-            var obj = EngineAPI.GetObjectByName(objName, variableRef.ClassRef.ClassName);
+            var className = variableRef.ClassRef.ClassName;
+            var obj = EngineAPI.GetObjectByName(objName, className);
             if (obj == null) {
-                throw new ArgumentException();  // TODO
+                throw new ArgumentException("Could not find object with name \"" + objName + "\" and type \"" + className +"\"");
             }
 
             return obj;

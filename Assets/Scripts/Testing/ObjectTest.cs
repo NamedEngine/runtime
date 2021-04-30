@@ -78,7 +78,7 @@ public class ObjectTest : MonoBehaviour {
             {"State 2", state2}
         };
         
-        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables);
+        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables, "");
 
         StartCoroutine(ChangeObject());
     }
