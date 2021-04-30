@@ -5,22 +5,19 @@ using System.Linq;
 using System.Xml.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 public class MapLoader : MonoBehaviour {
     [SerializeField] GameObject staticObjectPrefab;  // TODO: most likely this would be assigned by logic engine
     [SerializeField] GameObject kinematicObjectPrefab;
     [SerializeField] GameObject mapObject;
     [SerializeField] GraphicsConverter graphicsConverter;
+    [SerializeField] SizePositionConverter sizePositionConverter;
     [SerializeField] FileLoader fileLoader;
     
-    static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name).Value;
-    static Func<XElement, string, int> getIntAttr = (element, name) => Convert.ToInt32(getAttr(element, name));
-    static Func<XElement, string, float> getFloatAttr = (element, name) => Convert.ToSingle(getAttr(element, name));
-
-    void Start() {
-        // TODO
-        LoadMap("Resources\\Maps\\testmap.tmx");
-    }
+    static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name)?.Value ?? "";
+    static Func<XElement, string, int> getIntAttr = (element, name) => Convert.ToInt32(getAttr(element, name).IfEmpty("0"));
+    static Func<XElement, string, float> getFloatAttr = (element, name) => Convert.ToSingle(getAttr(element, name).IfEmpty("0"));
 
     void ClearMap() {
         for (int i = 0; i < mapObject.transform.childCount; i++) {
@@ -28,37 +25,51 @@ public class MapLoader : MonoBehaviour {
         }
     }
 
-    public void LoadMap(string mapPath) {
+    public MapObjectInfo[] LoadMap(string mapPath) {
         ClearMap();
         
         // TODO: do something with path handling in this file
 
         var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
         var root = mapDocument.Root;
-        
+        Debug.Assert(root != null, nameof(root) + " != null");
+
         var tilesets = root.Descendants("tileset")
             .Select(d => new { path = getAttr(d, "source"), gid = getIntAttr(d, "firstgid") })
             .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
             .Select(item => LoadTileSet(item.fullPath, item.gid))
             .ToList();
 
-        var layerTypeLoaders = new Dictionary<string, Func<XElement, XElement, int, string, List<TileSet>, List<GameObject>>>();
-        layerTypeLoaders.Add("layer", LoadTileLayer);
-        layerTypeLoaders.Add("objectgroup", LoadObjectLayer);
-        layerTypeLoaders.Add("imagelayer", LoadImageLayer);
+        var layerObjectInfoLoaders = new Dictionary<string, Func<XElement, XElement, int, string, List<MapObjectInfo>>>();
+        layerObjectInfoLoaders.Add("objectgroup", LoadObjectLayer);
+        layerObjectInfoLoaders.Add("imagelayer", LoadImageLayer);
 
+        var objectInfos = new List<MapObjectInfo>();
         int sortingLayer = 0;
         foreach (var descendant in root.Descendants()) {
             var layerType = descendant.Name.ToString();
-            if (layerTypeLoaders.ContainsKey(layerType)) {
-                var layerObject = new GameObject();
-                layerObject.transform.SetParent(mapObject.transform);
-                layerTypeLoaders[layerType](descendant, root, sortingLayer++, mapPath, tilesets).ForEach(o => o.transform.SetParent(layerObject.transform));
+
+            List<GameObject> layerObjects;
+            if (layerType == "layer") {
+                layerObjects = LoadTileLayer(descendant, sortingLayer++, tilesets);
+            } else if (layerObjectInfoLoaders.ContainsKey(layerType)) {
+                var layerObjectInfos = layerObjectInfoLoaders[layerType](descendant, root, sortingLayer++, mapPath);
+                objectInfos.AddRange(layerObjectInfos);
+                
+                layerObjects = layerObjectInfos.Select(info => info.GameObject).ToList();
+            } else {
+                continue;
             }
+            
+            var layerObject = new GameObject();
+            layerObject.transform.SetParent(mapObject.transform);
+            layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
         }
+
+        return objectInfos.ToArray();
     }
 
-    List<GameObject> LoadTileLayer(XElement layer, XElement map, int sortingLayer, string mapPath, List<TileSet> tileSets) {
+    List<GameObject> LoadTileLayer(XElement layer, int sortingLayer, List<TileSet> tileSets) {
         var data = layer.Descendants("data").First().Value;
         
         var tileNumbers = data.Split('\n')
@@ -80,10 +91,10 @@ public class MapLoader : MonoBehaviour {
                 
                 var sprite = tileset.GetSprite(tileNumber);
 
-                var trueRow = rows - 1 - row;
-                var xPos = column * tileset.TileWidth / graphicsConverter.PixelsPerUnit;
-                var yPos = trueRow * tileset.TileHeight / graphicsConverter.PixelsPerUnit;
-                var pos = new Vector2(xPos, yPos);
+                // var trueRow = rows - 1 - row;
+                var xPos = column * tileset.TileWidth;
+                var yPos = row * tileset.TileHeight;
+                var pos = sizePositionConverter.PositionM2U(new Vector2(xPos, yPos), tileset.TileHeight);
 
                 var tile = Instantiate(staticObjectPrefab, pos, quaternion.identity);
                 var sr = tile.GetComponent<SpriteRenderer>();
@@ -94,8 +105,8 @@ public class MapLoader : MonoBehaviour {
                 foreach (var rect in colliders) {
                     var c = tile.AddComponent<BoxCollider2D>();
                     c.usedByComposite = true;
-                    c.offset = rect.position / graphicsConverter.PixelsPerUnit;
-                    c.size = rect.size / graphicsConverter.PixelsPerUnit;
+                    c.offset = rect.position;
+                    c.size = rect.size;
                 }
                 
                 tileObjects.Add(tile);
@@ -105,61 +116,86 @@ public class MapLoader : MonoBehaviour {
         return tileObjects;
     }
 
-    List<GameObject> LoadObjectLayer(XElement layer, XElement map, int sortingLayer, string mapPath, List<TileSet> tileSets) {
-        var mapHeight = getIntAttr(map, "height") * getFloatAttr(map, "tileheight");
-        
-        Func<XElement, Rect> posSizeFromObject = obj => {
-            var width = getFloatAttr(obj, "width");
-            var height = getFloatAttr(obj, "height");
-            var xPos = getFloatAttr(obj, "x") /*+ width / 2f*/;
-            var rawYPos = getFloatAttr(obj, "y");
-            
-            var yPos =  mapHeight - rawYPos - height /*/ 2f*/;
+    List<MapObjectInfo> LoadObjectLayer(XElement layer, XElement map, int sortingLayer, string mapPath) {
 
-            var pos = new Vector2(xPos, yPos) / graphicsConverter.PixelsPerUnit;
-            var size = new Vector2(width, height);
+        Rect GetRect(XElement obj) => RectFromObject(obj, obj, "x", "y");
 
-            return new Rect(pos, size);
-        };
-        
-        var objectInfos = layer.Descendants("object").ToArray();
-        var rects = objectInfos.Select(posSizeFromObject).ToArray();
-        // TEST VERSION OF PROPERTIES TODO REMAKE
-
-        var objects = rects
-            .Select(rect => Instantiate(kinematicObjectPrefab, rect.position, Quaternion.identity))
+        return layer.Descendants("object")
+            .Select(obj => (obj, GetRect(obj)))
+            .Select(pair => new MapObjectInfo {
+                GameObject = Instantiate(kinematicObjectPrefab, pair.Item2.position, Quaternion.identity),
+                Name = getAttr(pair.obj, "name"),
+                Rect = pair.Item2,
+                Parameters = ParametersFromObject(pair.obj)
+            })
             .ToList();
-        return objects;
     }
 
-    List<GameObject> LoadImageLayer(XElement layer, XElement map, int sortingLayer, string mapPath, List<TileSet> tileSets) {
+    List<MapObjectInfo> LoadImageLayer(XElement layer, XElement map, int sortingLayer, string mapPath) {
         var imageInfo = layer.Descendants("image").First();
         var rawImagePath = getAttr(imageInfo, "source");
         var imagePath = Path.Combine(Path.GetDirectoryName(mapPath), rawImagePath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
-        
-        var width = getFloatAttr(imageInfo, "width");
-        var height = getFloatAttr(imageInfo, "height");
-        
-        var xPos = getFloatAttr(layer, "offsetx");
-        var rawYPos = getFloatAttr(layer, "offsety");
 
-        var mapHeight = getIntAttr(map, "height") * getFloatAttr(map, "tileheight");
-        var yPos =  mapHeight - rawYPos - height;
-
-        var pos = new Vector2(xPos, yPos) / graphicsConverter.PixelsPerUnit;
-        var image = Instantiate(kinematicObjectPrefab, pos, quaternion.identity);
+        var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
+        var image = Instantiate(kinematicObjectPrefab, rect.position, quaternion.identity);
         var sr = image.GetComponent<SpriteRenderer>();
         sr.sprite = sprite;
         sr.sortingLayerName = sortingLayer.ToString();
         
-        return new List<GameObject> { image };
+        return new List<MapObjectInfo> { new MapObjectInfo {
+            GameObject = image,
+            Name = getAttr(layer, "name"),
+            Rect = rect,
+            Parameters = ParametersFromObject(layer)
+        } };
+    }
+
+    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName) {
+        var width = getFloatAttr(sizeObj, "width");
+        var height = getFloatAttr(sizeObj, "height");
+        var xPos = getFloatAttr(posObj, xPosName);
+        var yPos = getFloatAttr(posObj, yPosName);
+
+        var pos = sizePositionConverter.PositionM2U(new Vector2(xPos, yPos), height);
+        var size = new Vector2(width, height) * sizePositionConverter.SizeM2U;
+
+        return new Rect(pos, size);
+    }
+
+    MapObjectParameter[] ParametersFromObject(XElement obj) {
+        MapObjectParameter ParameterFromProperty(XElement prop) {
+            var typeString = getAttr(prop, "type").IfEmpty("string");
+            var parsed = Enum.TryParse(typeString.StartWithUpper(), out ValueType type);
+            if (!parsed) {
+                var objNaming = getAttr(obj, "name") != ""
+                    ? "object named \"" + getAttr(obj, "name") + "\""
+                    : "unnamed object";
+                var id = getAttr(obj, "id");
+                throw new ArgumentException("Found unsupported type \"" + typeString + "\" in the " + objNaming +
+                                            " with id " + id); // TODO: move to LANG RULES
+            }
+
+            var paramName = getAttr(prop, "name");
+            var value = getAttr(prop, "value");
+
+            return new MapObjectParameter() {
+                Name = paramName,
+                Type = type,
+                Value = value
+            };
+        }
+
+        return obj.Descendants("property")
+            .Select(ParameterFromProperty)
+            .ToArray();
     }
 
     TileSet LoadTileSet(string tileSetPath, int firstgid) {
         var tileSetDocument = XDocument.Parse(fileLoader.LoadText(tileSetPath));
 
         var root = tileSetDocument.Root;
+        Debug.Assert(root != null, nameof(root) + " != null");
         
         var tileWidth = getFloatAttr(root, "tilewidth");
         var tileHeight = getFloatAttr(root, "tileheight");
@@ -183,8 +219,8 @@ public class MapLoader : MonoBehaviour {
 
             var yPos = tileHeight - rawYPos - height / 2f;
 
-            var pos = new Vector2(xPos, yPos);
-            var size = new Vector2(width, height);
+            var pos = new Vector2(xPos, yPos) * sizePositionConverter.SizeM2U;
+            var size = new Vector2(width, height) * sizePositionConverter.SizeM2U;
 
             return new Rect(pos, size);
         };
@@ -200,5 +236,4 @@ public class MapLoader : MonoBehaviour {
 
         return new TileSet(texture, firstgid, tileWidth, tileHeight, columns, rows, colliders);
     }
-
 }

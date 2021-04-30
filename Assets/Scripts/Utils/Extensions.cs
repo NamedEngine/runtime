@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 public static class Extensions {
     public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null) {
@@ -17,7 +16,7 @@ public static class Extensions {
         }
         
         int oldLen = x.Length;
-        Array.Resize<T>(ref x, x.Length + y.Length);
+        Array.Resize(ref x, x.Length + y.Length);
         Array.Copy(y, 0, x, oldLen, y.Length);
         return x;
     }
@@ -48,5 +47,38 @@ public static class Extensions {
         }
         
         return char.ToUpperInvariant(source[0]) + source.Substring(1);
+    }
+    
+    public static string IfEmpty(this string source, string replacement) {
+        if (source == "") {
+            return replacement;
+        }
+
+        return source;
+    }
+
+    public static void Deconstruct<T1, T2>(this KeyValuePair<T1, T2> source, out T1 val1, out T2 val2) {
+        val1 = source.Key;
+        val2 = source.Value;
+    }
+
+    class OnceWrapper {
+        bool _used;
+
+        public System.Action Wrap(System.Action action) {
+            void Wrapper() {
+                if (_used) {
+                    return;
+                }
+
+                _used = true;
+                action();
+            }
+
+            return Wrapper;
+        }
+    }
+    public static System.Action Once(this System.Action source) {
+        return new OnceWrapper().Wrap(source);
     }
 }

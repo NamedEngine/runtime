@@ -8,6 +8,7 @@ public class LogicObject : MonoBehaviour {
 
     Dictionary<string, IVariable> _logicVariables;
     public Dictionary<string, IVariable> LogicVariables => _logicVariables;
+    public string @class;
     
     string _currentState;
     public void SetState(string state) {  // TODO: maybe reduce scope somehow
@@ -32,11 +33,12 @@ public class LogicObject : MonoBehaviour {
         _logicStates[_currentState].ProcessLogic();
     }
 
-    public LogicObject Clone(GameObject objectToAttachTo) {
+    public LogicObject Clone(GameObject objectToAttachTo, string newClass = null) {
         var newObject = objectToAttachTo.AddComponent<LogicObject>();
+        newObject.@class = newClass ?? @class;
         
         var clonedVariables = _logicVariables.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone());
+            entry => entry.Value.Clone(objectToAttachTo));
         
         var clonedGeneralState = _generalState.Clone(newObject, clonedVariables, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,

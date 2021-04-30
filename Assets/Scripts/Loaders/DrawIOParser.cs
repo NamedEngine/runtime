@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using UnityEngine;
 
 public class DrawIOParser : ILogicParser<string> {
     static readonly Dictionary<string, NodeType> NodeTypesByNotation = Enum
@@ -10,15 +9,15 @@ public class DrawIOParser : ILogicParser<string> {
         .Cast<NodeType>()
         .ToDictionary(t => t.ToString().StartWithLower(), t => t);
     
-    static string GetAttr(XElement element, string name) => element.Attribute(name).Value;
+    static string GetAttr(XElement element, string name) => element.Attribute(name)?.Value;
 
     static KeyValuePair<string, ParsedNodeInfo> ObjectToInfoPair(XElement obj) {
-        string getAttr(string name) => GetAttr(obj, name);
+        string GetObjAttr(string name) => GetAttr(obj, name);
 
         var info = new ParsedNodeInfo {
-            id = getAttr("id"),
-            type = NodeTypesByNotation[getAttr("type")],
-            name = getAttr("label"),
+            id = GetObjAttr("id"),
+            type = NodeTypesByNotation[GetObjAttr("type")],
+            name = GetObjAttr("label"),
             parameters = new string[]{},
             prev = new string[]{},
             next = new string[]{}
@@ -33,9 +32,9 @@ public class DrawIOParser : ILogicParser<string> {
     }
 
     static KeyValuePair<string, string> RelationToPair(XElement relation) {
-        string getAttr(string name) => GetAttr(relation, name);
+        string GetRelAttr(string name) => GetAttr(relation, name);
         
-        return new KeyValuePair<string, string>(getAttr("source"), getAttr("target"));
+        return new KeyValuePair<string, string>(GetRelAttr("source"), GetRelAttr("target"));
     }
         
     public Dictionary<string, ParsedNodeInfo> Parse(string logicSource) {

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
 
 public enum ValueType {
     Int,
@@ -28,5 +26,59 @@ public static class ValueTypeConverter {
 
     public static ValueType GetValueType(Type valueType) {
         return ValueTypesDict[valueType];
+    }
+    
+    public static IVariable GetVariableByType(ValueType type, string value) {
+        T DefaultOrConvert<T>(Func<string, T> converter) {
+            return value == "" ? default : converter(value);
+        }
+
+        try {
+            switch (type) {
+                case ValueType.String:
+                    return new Variable<string>(value);
+                case ValueType.Int:
+                    var intValue = DefaultOrConvert(Convert.ToInt32);
+                    return new Variable<int>(intValue);
+                case ValueType.Float:
+                    var floatValue = DefaultOrConvert(Convert.ToSingle);
+                    return new Variable<float>(floatValue);
+                case ValueType.Bool:
+                    var boolValue = DefaultOrConvert(Convert.ToBoolean);
+                    return new Variable<bool>(boolValue);
+                default:
+                    throw new ApplicationException("This should not be possible!");
+            }
+        }
+        catch (FormatException) {
+            throw new ArgumentException("");  // TODO: move to LANG RULES
+        }
+    }
+    
+    public static IValue GetValueByType(ValueType type, string value) {
+        T DefaultOrConvert<T>(Func<string, T> converter) {
+            return value == "" ? default : converter(value);
+        }
+
+        try {
+            switch (type) {
+                case ValueType.String:
+                    return new ConcreteValue<string>(value);
+                case ValueType.Int:
+                    var intValue = DefaultOrConvert(Convert.ToInt32);
+                    return new ConcreteValue<int>(intValue);
+                case ValueType.Float:
+                    var floatValue = DefaultOrConvert(Convert.ToSingle);
+                    return new ConcreteValue<float>(floatValue);
+                case ValueType.Bool:
+                    var boolValue = DefaultOrConvert(Convert.ToBoolean);
+                    return new ConcreteValue<bool>(boolValue);
+                default:
+                    throw new ApplicationException("This should not be possible!");
+            }
+        }
+        catch (FormatException) {
+            return null;
+        }
     }
 };

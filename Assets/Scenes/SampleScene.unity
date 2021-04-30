@@ -336,6 +336,7 @@ MonoBehaviour:
     type: 3}
   mapObject: {fileID: 1720382188}
   graphicsConverter: {fileID: 2082333167}
+  sizePositionConverter: {fileID: 2082333170}
   fileLoader: {fileID: 2082333169}
 --- !u!4 &1206927320
 Transform:
@@ -404,6 +405,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1765411072}
   - component: {fileID: 1765411073}
+  - component: {fileID: 1765411074}
   m_Layer: 0
   m_Name: Engine
   m_TagString: Untagged
@@ -439,6 +441,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapLoader: {fileID: 1206927319}
   logicLoader: {fileID: 1206927321}
+  classInstantiator: {fileID: 1765411074}
+--- !u!114 &1765411074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1765411071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cc1deb67a6944e4b449212b5f23eda8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2082333165
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,6 +466,7 @@ GameObject:
   - component: {fileID: 2082333166}
   - component: {fileID: 2082333169}
   - component: {fileID: 2082333167}
+  - component: {fileID: 2082333170}
   m_Layer: 0
   m_Name: Utils
   m_TagString: Untagged
@@ -512,3 +528,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pathLimiter: {fileID: 2082333166}
+--- !u!114 &2082333170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2082333165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9ccc18e962a44e8a787310b652fb780, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _graphicsConverter: {fileID: 2082333167}
