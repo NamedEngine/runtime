@@ -358,11 +358,11 @@ public class LogicLoader : MonoBehaviour {
         if (node.type == NodeType.State) {
             // Debug.Log("Returning state setter");
             var setter = stateNameAndSetterById[node.id].Item2;
-            return (logicObject, engineAPI, dictionary, values) => new DummySetState(() => setter(logicObject, engineAPI)) as TOut;
+            return (logicObject, engineAPI, dictionary, values) => new Language.SetState(() => setter(logicObject, engineAPI)) as TOut;
         }
 
         // you know what? this fucking language doesn't have templates nor multiple base classes, so fuck it, I am using reflection now
-        var fullname = node.type + "s." + node.name;
+        var fullname = $"{nameof(Language)}.{node.type}s.{node.name}";
         var type = Type.GetType(fullname) ?? Type.GetType(fullname + "`1");
         if (type == null) {
             throw new ArgumentException("Could not find " + node.type + " with name " + node.name);  // TODO: move to LANG RULES

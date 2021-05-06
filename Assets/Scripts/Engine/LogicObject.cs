@@ -10,14 +10,14 @@ public class LogicObject : MonoBehaviour {
     protected LogicState GeneralState;
     protected Dictionary<string, LogicState> LogicStates = new Dictionary<string, LogicState>();
 
-    protected Dictionary<string, IVariable> LogicVariables = new Dictionary<string, IVariable>();
+    protected Dictionary<string, IVariable> ThisClassVariables = new Dictionary<string, IVariable>();
     public DictionaryWrapper<string, IVariable> Variables {
         get {
             if (!_baseObject) {
-                return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {LogicVariables});
+                return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {ThisClassVariables});
             }
             
-            return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {LogicVariables, _baseObject.Variables});
+            return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {ThisClassVariables, _baseObject.Variables});
         }
     }
 
@@ -48,7 +48,7 @@ public class LogicObject : MonoBehaviour {
         GeneralState = generalState;
         LogicStates = logicStates;
         CurrentState = currentState;
-        LogicVariables = logicVariables;
+        ThisClassVariables = logicVariables;
         ObjectClass = objectClass;
     }
     
@@ -67,9 +67,9 @@ public class LogicObject : MonoBehaviour {
         var newObject = objectToAttachTo.AddComponent<LogicObject>();
         newObject._baseObject = _baseObject ? _baseObject.Clone(objectToAttachTo, engineAPI) : _baseObject;
         
-        var clonedVariables = LogicVariables.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(objectToAttachTo));
-        newObject.LogicVariables = clonedVariables;
+        var clonedVariables = ThisClassVariables.ToDictionary(entry => entry.Key,
+            entry => entry.Value.Clone(objectToAttachTo, engineAPI));
+        newObject.ThisClassVariables = clonedVariables;
         
         var clonedGeneralState = GeneralState?.Clone(newObject, engineAPI, newObject.Variables.ToDictionary(), objectToAttachTo);
         var clonedStates = LogicStates.ToDictionary(entry => entry.Key,
@@ -87,19 +87,19 @@ public class LogicObject : MonoBehaviour {
         // Debug.Log($":{inheritor.Class}: now inherits from :{Class}:");
 
         inheritor._baseObject = Clone(inheritor.gameObject);
-        var inheritorVariableNames = inheritor.LogicVariables.Keys.ToArray();
+        var inheritorVariableNames = inheritor.ThisClassVariables.Keys.ToArray();
         foreach (var variableName in inheritorVariableNames) {
             var got = inheritor._baseObject.Variables.TryGetValue(variableName, out var variable);
             if (!got) {
                 continue;
             }
 
-            var transferred = inheritor.LogicVariables[variableName].TryTransferValueTo(variable);
+            var transferred = inheritor.ThisClassVariables[variableName].TryTransferValueTo(variable);
             if (!transferred) {
-                throw new ArgumentException("");  // TODO: MOVE TO LANG RULES
+                throw new ArgumentException($"Inheritor({inheritor.Class}) variable {variableName} has inappropriate type");  // TODO: MOVE TO LANG RULES
             }
 
-            inheritor.LogicVariables.Remove(variableName);
+            inheritor.ThisClassVariables.Remove(variableName);
         }
     }
     

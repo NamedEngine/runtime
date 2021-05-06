@@ -22,7 +22,7 @@ namespace Variables {
             _renderer.enabled = value;
         }
 
-        public DummyVisible(GameObject gameObject) : base(gameObject) {
+        public DummyVisible(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {
             _setRendererOnce = ((System.Action) SetRenderer).Once();
         }
     }

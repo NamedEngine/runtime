@@ -233,7 +233,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 792881328}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0148557555, y: 1.3135757, z: -1.1601562}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -330,9 +330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 608b6a5ae4cd444f86f8717e4b6d96c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  staticObjectPrefab: {fileID: 6240062127959290639, guid: e5871cf6f9ab7d74ba503028035f0faf,
-    type: 3}
-  kinematicObjectPrefab: {fileID: 6240062127959290639, guid: 3bc65ce7d23c78c4fbdf264b9f6d11ce,
+  tilePrefab: {fileID: 6240062127959290639, guid: e5871cf6f9ab7d74ba503028035f0faf,
     type: 3}
   mapObject: {fileID: 1720382188}
   graphicsConverter: {fileID: 2082333167}
@@ -423,7 +421,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1765411071}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0148557555, y: 1.3135757, z: -1.1601562}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -444,6 +442,11 @@ MonoBehaviour:
   mapLoader: {fileID: 1206927319}
   logicLoader: {fileID: 1206927321}
   classInstantiator: {fileID: 1765411074}
+  sizePositionConverter: {fileID: 0}
+  classPrefabs:
+  - className: 
+    prefab: {fileID: 6240062127959290639, guid: 3bc65ce7d23c78c4fbdf264b9f6d11ce,
+      type: 3}
 --- !u!114 &1765411074
 MonoBehaviour:
   m_ObjectHideFlags: 0

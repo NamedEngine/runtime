@@ -1,5 +1,5 @@
 ﻿public class Value<T> : IValue {
-    public T Get() {
+    public virtual T Get() {
         var val = InternalGet();
         // Debug.Log("Getting value of type " + GetType() + ": " + val);
         return val;
@@ -23,6 +23,15 @@
 
     public ValueType GetValueType() {
         return ValueTypeConverter.GetValueType(typeof(T));
+    }
+
+    public virtual bool TryTransferValueTo(IVariable other) {
+        if (!(other is Variable<T> castedOther)) {
+            return false;
+        }
+        
+        castedOther.Set(Get());
+        return true;
     }
 
     public static implicit operator T(Value<T> v) => v.Get();

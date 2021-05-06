@@ -8,8 +8,7 @@ using UnityEngine;
 using Debug = System.Diagnostics.Debug;
 
 public class MapLoader : MonoBehaviour {
-    [SerializeField] GameObject staticObjectPrefab;  // TODO: most likely this would be assigned by logic engine
-    [SerializeField] GameObject kinematicObjectPrefab;
+    [SerializeField] GameObject tilePrefab;  // TODO: most likely this would be assigned by logic engine
     [SerializeField] GameObject mapObject;
     [SerializeField] GraphicsConverter graphicsConverter;
     [SerializeField] SizePositionConverter sizePositionConverter;
@@ -34,42 +33,42 @@ public class MapLoader : MonoBehaviour {
         var root = mapDocument.Root;
         Debug.Assert(root != null, nameof(root) + " != null");
 
-        var tilesets = root.Descendants("tileset")
+        var tileSets = root.Descendants("tileset")
             .Select(d => new { path = getAttr(d, "source"), gid = getIntAttr(d, "firstgid") })
             .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
             .Select(item => LoadTileSet(item.fullPath, item.gid))
             .ToList();
 
-        var layerObjectInfoLoaders = new Dictionary<string, Func<XElement, XElement, int, string, List<MapObjectInfo>>>();
-        layerObjectInfoLoaders.Add("objectgroup", LoadObjectLayer);
-        layerObjectInfoLoaders.Add("imagelayer", LoadImageLayer);
+        var layerObjectInfoLoaders =
+            new Dictionary<string, Func<XElement, XElement, string, string, List<MapObjectInfo>>> {
+                {"objectgroup", LoadObjectLayer},
+                {"imagelayer", LoadImageLayer}
+            };
 
         var objectInfos = new List<MapObjectInfo>();
         int sortingLayer = 0;
         foreach (var descendant in root.Descendants()) {
             var layerType = descendant.Name.ToString();
-
-            List<GameObject> layerObjects;
             if (layerType == "layer") {
-                layerObjects = LoadTileLayer(descendant, sortingLayer++, tilesets);
-            } else if (layerObjectInfoLoaders.ContainsKey(layerType)) {
-                var layerObjectInfos = layerObjectInfoLoaders[layerType](descendant, root, sortingLayer++, mapPath);
-                objectInfos.AddRange(layerObjectInfos);
+                var layerObjects = LoadTileLayer(descendant, sortingLayer.ToString(), tileSets);
+                sortingLayer++;
                 
-                layerObjects = layerObjectInfos.Select(info => info.GameObject).ToList();
-            } else {
-                continue;
+                var layerObject = new GameObject();
+                layerObject.transform.SetParent(mapObject.transform);
+                layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
+            } else if (layerObjectInfoLoaders.ContainsKey(layerType)) {
+                var layerObjectInfos =
+                    layerObjectInfoLoaders[layerType](descendant, root, sortingLayer.ToString(), mapPath);
+                sortingLayer++;
+                
+                objectInfos.AddRange(layerObjectInfos);
             }
-            
-            var layerObject = new GameObject();
-            layerObject.transform.SetParent(mapObject.transform);
-            layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
         }
 
         return objectInfos.ToArray();
     }
 
-    List<GameObject> LoadTileLayer(XElement layer, int sortingLayer, List<TileSet> tileSets) {
+    List<GameObject> LoadTileLayer(XElement layer, string sortingLayer, List<TileSet> tileSets) {
         var data = layer.Descendants("data").First().Value;
         
         var tileNumbers = data.Split('\n')
@@ -96,10 +95,10 @@ public class MapLoader : MonoBehaviour {
                 var yPos = row * tileset.TileHeight;
                 var pos = sizePositionConverter.PositionM2U(new Vector2(xPos, yPos), tileset.TileHeight);
 
-                var tile = Instantiate(staticObjectPrefab, pos, quaternion.identity);
+                var tile = Instantiate(tilePrefab, pos, quaternion.identity);
                 var sr = tile.GetComponent<SpriteRenderer>();
                 sr.sprite = sprite;
-                sr.sortingLayerName = sortingLayer.ToString();
+                sr.sortingLayerName = sortingLayer;
 
                 var colliders = tileset.GetCollider(tileNumber);
                 foreach (var rect in colliders) {
@@ -116,37 +115,34 @@ public class MapLoader : MonoBehaviour {
         return tileObjects;
     }
 
-    List<MapObjectInfo> LoadObjectLayer(XElement layer, XElement map, int sortingLayer, string mapPath) {
+    List<MapObjectInfo> LoadObjectLayer(XElement layer, XElement map, string sortingLayer, string mapPath) {
 
         Rect GetRect(XElement obj) => RectFromObject(obj, obj, "x", "y");
 
         return layer.Descendants("object")
             .Select(obj => (obj, GetRect(obj)))
             .Select(pair => new MapObjectInfo {
-                GameObject = Instantiate(kinematicObjectPrefab, pair.Item2.position, Quaternion.identity),
                 Name = getAttr(pair.obj, "name"),
                 Rect = pair.Item2,
+                SortingLayer = sortingLayer,
+                Sprite = null,
                 Parameters = ParametersFromObject(pair.obj)
             })
             .ToList();
     }
 
-    List<MapObjectInfo> LoadImageLayer(XElement layer, XElement map, int sortingLayer, string mapPath) {
+    List<MapObjectInfo> LoadImageLayer(XElement layer, XElement map, string sortingLayer, string mapPath) {
         var imageInfo = layer.Descendants("image").First();
         var rawImagePath = getAttr(imageInfo, "source");
         var imagePath = Path.Combine(Path.GetDirectoryName(mapPath), rawImagePath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
-
         var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
-        var image = Instantiate(kinematicObjectPrefab, rect.position, quaternion.identity);
-        var sr = image.GetComponent<SpriteRenderer>();
-        sr.sprite = sprite;
-        sr.sortingLayerName = sortingLayer.ToString();
         
         return new List<MapObjectInfo> { new MapObjectInfo {
-            GameObject = image,
             Name = getAttr(layer, "name"),
             Rect = rect,
+            SortingLayer = sortingLayer,
+            Sprite = sprite,
             Parameters = ParametersFromObject(layer)
         } };
     }

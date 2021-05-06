@@ -149,7 +149,7 @@ namespace Operators {
                 
             }
 
-            public override IVariable Clone(GameObject objectToAttachTo) {
+            public override IVariable Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI) {
                 return new ProxyVariable(_variableRef, _parent);
             }
         }
@@ -174,7 +174,7 @@ namespace Operators {
             return obj;
         }
         
-        public IVariable Clone(GameObject objectToAttachTo) {
+        public IVariable Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI) {
             throw new NotImplementedException();
         }
 
@@ -190,7 +190,7 @@ namespace Operators {
             return Proxy.PrepareForCast();
         }
 
-        public bool TryTransferValueTo(IVariable other) {
+        public override bool TryTransferValueTo(IVariable other) {
             return Proxy.TryTransferValueTo(other);
         }
     }

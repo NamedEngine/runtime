@@ -21,14 +21,13 @@ public abstract class Operator<T> : Value<T>, IConstrainable {
         if (!_constraintReference) {
             Arguments = _constraints.CheckArgs(arguments, this);
         }
-        
-        
     }
 
-    protected override T InternalGet() {
+    public override T Get() {
         if (_constraintReference) {
             throw new ApplicationException("This object is only a constraints reference");
         }
-        return base.InternalGet();
+
+        return InternalGet();
     }
 }
