@@ -6,7 +6,8 @@ public enum ValueType {
     Int,
     Float,
     Bool,
-    String
+    String,
+    Null
 }
 
 public static class ValueTypeConverter {

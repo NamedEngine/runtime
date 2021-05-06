@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 
 public class ClassInstantiator : MonoBehaviour {
-    public Dictionary<string, LogicObject> InstantiateClasses(Dictionary<string, LogicObject> classes, MapObjectInfo[] objectInfos) {
+    public Dictionary<string, LogicObject> InstantiateClasses(Dictionary<string, LogicObject> classes, MapObjectInfo[] objectInfos, LogicEngine.LogicEngineAPI engineAPI) {
         MapObjectParameter emptyClassParameter = new MapObjectParameter {
             Name = "Class",
             Type = ValueType.String,
@@ -28,19 +28,19 @@ public class ClassInstantiator : MonoBehaviour {
                 throw new ArgumentException("");  // TODO
             }
 
-            var newObject = classes[className].Clone(objectInfo.GameObject, className);
+            var newObject = classes[className].Clone(objectInfo.GameObject, engineAPI);
             var size = objectInfo.GameObject.GetComponent<Size>();
             size.value = objectInfo.Rect.size;
 
             var parameters = objectInfo.Parameters
                 .Where(p => p.Name != emptyClassParameter.Name);
             foreach (var parameter in parameters) {
-                if (!newObject.LogicVariables.ContainsKey(parameter.Name)) {
+                if (!newObject.Variables.ContainsKey(parameter.Name)) {
                     throw new ArgumentException("");  // TODO
                 }
                 
                 var variable = ValueTypeConverter.GetVariableByType(parameter.Type, parameter.Value);
-                var transferred = variable.TryTransferValueTo(newObject.LogicVariables[parameter.Name]);
+                var transferred = variable.TryTransferValueTo(newObject.Variables[parameter.Name]);
                 if (!transferred) {
                     throw new ArgumentException("");  // TODO
                 }

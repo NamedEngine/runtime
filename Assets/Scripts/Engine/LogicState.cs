@@ -18,9 +18,9 @@ public class LogicState {
         }
     }
 
-    public void Start(LogicObject thisObject, VariableDictionary variableDictionary) {
+    public void Start(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary) {
         foreach (var logicChain in _logicChains) {
-            logicChain.ResetChain(thisObject, variableDictionary);
+            logicChain.ResetChain(thisObject, engineAPI, variableDictionary);
         }
     }
 
@@ -36,9 +36,9 @@ public class LogicState {
         }
     }
 
-    public LogicState Clone(LogicObject newObject, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
+    public LogicState Clone(LogicObject newObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
         var clonedChains = _logicChains
-            .Select(chain => chain.Clone(newObject, variableDictionary, objectToAttachTo))
+            .Select(chain => chain.Clone(newObject, engineAPI, variableDictionary, objectToAttachTo))
             .ToArray();
         return new LogicState(clonedChains);
     }

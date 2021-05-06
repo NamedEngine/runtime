@@ -4,8 +4,8 @@ using Conditions;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class ChainTest : MonoBehaviour {
     LogicChain _chain;
@@ -14,11 +14,11 @@ public class ChainTest : MonoBehaviour {
         
         // ConstructorInfo GC(Type[] params) => Type.GetType("Operators.DummySum")
 
-        ChainableInstantiator c0 = (logicObject, variables, values) => new DummyTrueCondition(null, new IValue[] { }, false);
-        ChainableInstantiator c1 = (logicObject, variables, values) => new DummySyncAction1(null, new IValue[] { }, false);
-        ChainableInstantiator c2 = (logicObject, variables, values) => new DummyAsyncAction1(null, new IValue[] { }, false);
-        ChainableInstantiator c3 = (logicObject, variables, values) => new DummyFalseCondition(null, new IValue[] { }, false);
-        ChainableInstantiator c4 = (logicObject, variables, values) => new DummySyncAction2(null, new IValue[] { }, false);
+        ChainableInstantiator c0 = (logicObject, engineAPI, variables, values) => new DummyTrueCondition(null, null, new IValue[] { }, false);
+        ChainableInstantiator c1 = (logicObject, engineAPI, variables, values) => new DummySyncAction1(null, null, new IValue[] { }, false);
+        ChainableInstantiator c2 = (logicObject, engineAPI, variables, values) => new DummyAsyncAction1(null, null, new IValue[] { }, false);
+        ChainableInstantiator c3 = (logicObject, engineAPI, variables, values) => new DummyFalseCondition(null, null, new IValue[] { }, false);
+        ChainableInstantiator c4 = (logicObject, engineAPI, variables, values) => new DummySyncAction2(null, null, new IValue[] { }, false);
         
         // oh god forgive me for i MOST LIKELY will use this monstrosity to do shit
         // ChainableInstantiator c5 = (logicObject, variables, values) => 
@@ -45,7 +45,7 @@ public class ChainTest : MonoBehaviour {
         };
 
         var chainInfo = new LogicChainInfo(new OperatorInstantiator[]{}, instantiators, relations);
-        _chain.SetupChain(null, new VariableDictionary(), chainInfo);
+        _chain.SetupChain(null, null,new VariableDictionary(), chainInfo);
         _chain.Execute();
 
         StartCoroutine(CopyTest());
@@ -54,7 +54,7 @@ public class ChainTest : MonoBehaviour {
     IEnumerator CopyTest() {
         yield return new WaitForSeconds(3);
         Debug.Log("LESS COPY");
-        var chainCopy = _chain.Clone(null, new VariableDictionary(), gameObject);
+        var chainCopy = _chain.Clone(null, null, new VariableDictionary(), gameObject);
         chainCopy.Execute();
     }
 }

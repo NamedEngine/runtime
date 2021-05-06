@@ -16,7 +16,7 @@ public class Variable<T> : Value<T>, IVariable {
     }
 
     public override bool Cast(IValue value) {
-        return value is Variable<T>;
+        return value?.PrepareForCast() is Variable<T>;
     }
 
     public virtual IVariable Clone(GameObject objectToAttachTo) {
