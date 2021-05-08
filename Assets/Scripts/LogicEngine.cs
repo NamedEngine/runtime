@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
+    [SerializeField] PathLimiter pathLimiter;
     [SerializeField] MapLoader mapLoader;
     [SerializeField] LogicLoader logicLoader;
     [SerializeField] ClassInstantiator classInstantiator;
@@ -74,7 +76,8 @@ public class LogicEngine : MonoBehaviour {
         
         _logicClasses = logicLoader.LoadLogicClasses();
 
-        var objectInfos = mapLoader.LoadMap("Resources\\Maps\\main.tmx");  // TODO
+        var mapPath = Path.Combine(pathLimiter.Root, "Maps", "main.tmx");
+        var objectInfos = mapLoader.LoadMap(mapPath);  // TODO
         _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs, new LogicEngineAPI(this), _objectNameGenerator);
     }
 

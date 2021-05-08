@@ -512,6 +512,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bf3a15e14dd64348a6565eb97b04dc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pathLimiter: {fileID: 2082333166}
   mapLoader: {fileID: 1206927319}
   logicLoader: {fileID: 1206927321}
   classInstantiator: {fileID: 1765411074}
@@ -564,7 +565,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e90a37fddd4730932d4dc546fb7e27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  root: .\Resources\
+  root: Resources
 --- !u!114 &2082333167
 MonoBehaviour:
   m_ObjectHideFlags: 0

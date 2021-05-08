@@ -17,7 +17,7 @@ public class ParserTest : MonoBehaviour {
         }
 
         Debug.Log("Saving and loading");
-        var path = "Resources\\all.classes";
+        var path = Path.Combine("Resources", "all.classes");
         var binaryParser = new BinaryParser();
         
         File.WriteAllBytes(path, binaryParser.Save(parsedNodes));

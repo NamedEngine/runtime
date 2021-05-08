@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 public enum ValueType {
@@ -30,8 +31,8 @@ public static class ValueTypeConverter {
     }
     
     public static IVariable GetVariableByType(ValueType type, string value) {
-        T DefaultOrConvert<T>(Func<string, T> converter) {
-            return value == "" ? default : converter(value);
+        T DefaultOrConvert<T>(Func<string, IFormatProvider, T> converter) {
+            return value == "" ? default : converter(value, new ProjectFormatProvider());
         }
 
         try {
@@ -52,7 +53,7 @@ public static class ValueTypeConverter {
             }
         }
         catch (FormatException) {
-            throw new ArgumentException("");  // TODO: move to LANG RULES
+            throw new ArgumentException($"Can't convert \"{value}\" to type {type}");  // TODO: move to LANG RULES
         }
     }
     

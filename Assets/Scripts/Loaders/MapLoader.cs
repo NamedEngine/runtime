@@ -16,7 +16,7 @@ public class MapLoader : MonoBehaviour {
     
     static Func<XElement, string, string> getAttr = (element, name) => element.Attribute(name)?.Value ?? "";
     static Func<XElement, string, int> getIntAttr = (element, name) => Convert.ToInt32(getAttr(element, name).IfEmpty("0"));
-    static Func<XElement, string, float> getFloatAttr = (element, name) => Convert.ToSingle(getAttr(element, name).IfEmpty("0"));
+    static Func<XElement, string, float> getFloatAttr = (element, name) => Convert.ToSingle(getAttr(element, name).IfEmpty("0"), new ProjectFormatProvider());
 
     void ClearMap() {
         for (int i = 0; i < mapObject.transform.childCount; i++) {
