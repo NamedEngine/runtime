@@ -1,6 +1,9 @@
 ﻿#IDE
 .idea/
 
+#Builds
+Build*
+
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
