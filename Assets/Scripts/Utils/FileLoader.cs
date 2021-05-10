@@ -17,7 +17,7 @@ public class FileLoader : MonoBehaviour {
         return File.ReadAllText(path);
     }
 
-    public T[] LoadAllWithExtension<T>(Func<string, T> loaderMethod, string extension) {
+    public (T, string)[] LoadAllWithExtensionAndNames<T>(Func<string, T> loaderMethod, string extension) {
         var files = new List<string>();
         var directories = new Queue<string>();
         directories.Enqueue(pathLimiter.Root);
@@ -35,9 +35,15 @@ public class FileLoader : MonoBehaviour {
 
         var loadedFiles = files
             .Where(f => f.EndsWith(extension))
-            .Select(loaderMethod)
+            .Select(f => (loaderMethod(f), f))
             .ToArray();
         
         return loadedFiles;
+    }
+    
+    public T[] LoadAllWithExtension<T>(Func<string, T> loaderMethod, string extension) {
+        return LoadAllWithExtensionAndNames(loaderMethod, extension)
+            .Select(filePair => filePair.Item1)
+            .ToArray();
     }
 }

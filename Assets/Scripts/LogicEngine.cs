@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Rules;
 using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
@@ -10,6 +12,8 @@ public class LogicEngine : MonoBehaviour {
     [SerializeField] LogicLoader logicLoader;
     [SerializeField] ClassInstantiator classInstantiator;
     [SerializeField] SizePositionConverter sizePositionConverter;
+
+    [SerializeField] LogicExceptionHandler logicExceptionHandler;
 
     [Serializable]
     public struct ClassPrefab {
@@ -72,13 +76,27 @@ public class LogicEngine : MonoBehaviour {
     Dictionary<string, LogicObject> _logicObjects;
 
     void Start() {
-        _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
+        void OnLogicError(Exception e) {
+            logicExceptionHandler.DisplayError(e.Message);
+            enabled = false;
+        }
         
-        _logicClasses = logicLoader.LoadLogicClasses();
+        try {
+            _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
-        var mapPath = Path.Combine(pathLimiter.Root, "Maps", "main.tmx");
-        var objectInfos = mapLoader.LoadMap(mapPath);  // TODO
-        _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs, new LogicEngineAPI(this), _objectNameGenerator);
+            _logicClasses = logicLoader.LoadLogicClasses();
+
+            var mapPath = Path.Combine(pathLimiter.Root, "Maps", "main.tmx");
+            var objectInfos = mapLoader.LoadMap(mapPath); // TODO
+            _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
+                new LogicEngineAPI(this), _objectNameGenerator);
+        }
+        catch (TargetInvocationException e) when (e.InnerException is LogicParseException) {
+            OnLogicError(e.InnerException);
+        }
+        catch (LogicParseException e) {
+            OnLogicError(e);
+        }
     }
 
     void Update() {

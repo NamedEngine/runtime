@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -15,13 +16,27 @@ public class LogicLoader : MonoBehaviour {
         _idGenerator.Reset();
         var parser = new DrawIOParser();
 
-        var parsedNodes = fileLoader
-            .LoadAllWithExtension(fileLoader.LoadText, ".xml")
-            .Select(logicText => parser.Parse(logicText))  // TODO: replace ids by new ones from shared pool before merging into one dict (problem: same ids in different files) 
+        var filePairs = fileLoader
+            .LoadAllWithExtensionAndNames(fileLoader.LoadText, ".xml")
+            .ToList();
+
+        filePairs.ForEach(pair =>
+            Rules.RuleChecker.Check(typeof(Rules.Parsing.DrawIO), new object[] {pair.Item1, pair.Item2})
+        );
+
+        var parsedNodes = filePairs
+            .Select(filePair => parser.Parse(filePair.Item1)) // TODO: replace ids by new ones from shared pool before merging into one dict (problem: same ids in different files) 
             .SelectMany(x => x)
             .ToDictionary();
 
-        // TODO: APPLY LANGUAGE RULES
+        var idToFile = filePairs
+            .Select(filePair => (parser.Parse(filePair.Item1), filePair.Item2))
+            .Select(dictPair => 
+                dictPair.Item1.ToDictionary(kv => kv.Key, kv => dictPair.Item2))
+            .SelectMany(x => x)
+            .ToDictionary();
+        
+        Rules.RuleChecker.CheckLogic(new object[] {parsedNodes, idToFile});
 
         // foreach (var node in parsedNodes.Values) {
         //     Debug.Log(node);

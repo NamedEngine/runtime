@@ -7,6 +7,9 @@ using System.Net.Mime;
 using UnityEngine;
 
 public class ErrorLogger : MonoBehaviour {
+    [SerializeField] bool isLogging; 
+    [SerializeField] bool isSending; 
+    
     const string LogPath = "Logs";
     const string Format = "yyyy-MM-dd HH-mm-ss";
     
@@ -15,6 +18,10 @@ public class ErrorLogger : MonoBehaviour {
     bool _enabled;
     bool Enabled {
         set {
+            if (!isLogging) {
+                return;
+            }
+
             if (_enabled == value) {
                 return;
             }
@@ -58,13 +65,11 @@ public class ErrorLogger : MonoBehaviour {
         }
         
         Enabled = false;
-        SendMail(datetime);
+        if (isSending) {
+            SendMail(datetime);
+        }
         
-        #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-        #else
-        Application.Quit();
-        #endif
+        Quitter.Quit();
     }
 
     void SendMail(string crashTime) {
