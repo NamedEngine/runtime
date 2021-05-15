@@ -46,6 +46,10 @@ public class LogicEngine : MonoBehaviour {
         }
 
         public LogicObject CreateObject(string name, string className) {
+            if (_engine._logicObjects.ContainsKey(name)) {
+                throw new ArgumentException("Object with name \"{name}\" already exists!");
+            }
+            
             var newObject = _engine.classInstantiator.CreateObject(className, _engine._logicClasses,
                 MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
             _engine._logicObjects.Add(name, newObject);
@@ -90,9 +94,6 @@ public class LogicEngine : MonoBehaviour {
             var objectInfos = mapLoader.LoadMap(mapPath); // TODO
             _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
                 new LogicEngineAPI(this), _objectNameGenerator);
-        }
-        catch (TargetInvocationException e) when (e.InnerException is LogicParseException) {
-            OnLogicError(e.InnerException);
         }
         catch (LogicParseException e) {
             OnLogicError(e);

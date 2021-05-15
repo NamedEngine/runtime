@@ -53,7 +53,7 @@ public static class ValueTypeConverter {
             }
         }
         catch (FormatException) {
-            throw new ArgumentException($"Can't convert \"{value}\" to type {type}");  // TODO: move to LANG RULES
+            return null;
         }
     }
     
