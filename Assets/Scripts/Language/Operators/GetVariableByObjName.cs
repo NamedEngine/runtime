@@ -22,7 +22,7 @@ namespace Language.Operators {
             }
 
             public override void Set(T value) {
-                
+                ((Variable<T>) _parent.GetReferencedObject().Variables[_variableRef.Name]).Set(value);
             }
 
             public override IVariable Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI) {
@@ -59,10 +59,13 @@ namespace Language.Operators {
         }
 
         public override bool Cast(IValue value) {
-            return Proxy.Cast(value);
+            return value?.PrepareForCast() is Variable<T>;
         }
 
         public override IValue PrepareForCast() {
+            if (ConstraintReference) {
+                return new Variable<T>();
+            }
             return Proxy.PrepareForCast();
         }
 

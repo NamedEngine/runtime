@@ -1223,6 +1223,7 @@ GameObject:
   - component: {fileID: 1206927320}
   - component: {fileID: 1206927319}
   - component: {fileID: 1206927321}
+  - component: {fileID: 1206927322}
   m_Layer: 0
   m_Name: Loader
   m_TagString: Untagged
@@ -1275,8 +1276,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fileLoader: {fileID: 2082333169}
+  temporaryInstantiator: {fileID: 1206927322}
   kinematicObjectPrefab: {fileID: 6240062127959290639, guid: 3bc65ce7d23c78c4fbdf264b9f6d11ce,
     type: 3}
+--- !u!114 &1206927322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1206927318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f165552a05334a19a5dcc1d63a2e8b69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1720382188
 GameObject:
   m_ObjectHideFlags: 0

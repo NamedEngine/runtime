@@ -17,4 +17,8 @@ public struct ParsedNodeInfo {
             $"Prev: {String.Join(", ", prev)}\n" +
             $"Next: {String.Join(", ", next)}"; 
     }
+
+    public string ToNameAndType() {
+        return $"\"{name}\" block of \"{type}\" type";
+    }
 }

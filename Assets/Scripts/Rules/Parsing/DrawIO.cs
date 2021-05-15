@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace Rules.Parsing {
-    public static class DrawIO {
+    public class DrawIO : IParsingChecker<string> {
         public static void CheckBlocks(string logicSource, string file) {
             var document = XDocument.Parse(logicSource);
             var root = document.Descendants("root").First();
@@ -76,6 +78,13 @@ namespace Rules.Parsing {
                 
                 throw new LogicParseException(file, message);
             }
+        }
+
+        public List<Action<string, string>> GetCheckerMethods() {
+            return new List<Action<string, string>> {
+                CheckBlocks,
+                CheckArrows
+            };
         }
     }
 }
