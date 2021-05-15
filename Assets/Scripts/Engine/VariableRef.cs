@@ -25,4 +25,8 @@
     public ValueType GetValueType() {
         return ValueType.Null;
     }
+
+    public bool TryTransferValueTo(IVariable other) {
+        return false;
+    }
 }

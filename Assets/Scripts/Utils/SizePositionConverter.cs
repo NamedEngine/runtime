@@ -14,4 +14,12 @@ public class SizePositionConverter : MonoBehaviour {
     }
     
     public float SizeM2U => 1 / graphicsConverter.PixelsPerUnit;
+
+    public Vector2 DirectionM2U(Vector2 dirOnMap) {
+        return dirOnMap * VerticalFlip * SizeM2U;
+    }
+    
+    public Vector2 DirectionU2M(Vector2 dirInUnity) {
+        return dirInUnity * VerticalFlip / SizeM2U;
+    }
 }

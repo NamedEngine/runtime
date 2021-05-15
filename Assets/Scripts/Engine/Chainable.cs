@@ -5,7 +5,8 @@ using UnityEngine;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
-    protected readonly GameObject ThisGameObject;
+    protected readonly GameObject BoundGameObject;
+    protected readonly DictionaryWrapper<string, IVariable> VariableDict;
     protected readonly LogicEngine.LogicEngineAPI EngineAPI;
     protected readonly IValue[] Arguments;
     // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
@@ -17,7 +18,8 @@ public abstract class Chainable : IConstrainable {
 
     protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) {
         _constraintReference = constraintReference;
-        ThisGameObject = gameObject;
+        BoundGameObject = gameObject;
+        VariableDict = gameObject?.GetComponent<LogicObject>().Variables;
         EngineAPI = engineAPI;
 
         _constraints = new LogicTypeConstraints(argTypes);

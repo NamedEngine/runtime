@@ -1,13 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Rules;
 using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
+    [SerializeField] PathLimiter pathLimiter;
     [SerializeField] MapLoader mapLoader;
     [SerializeField] LogicLoader logicLoader;
     [SerializeField] ClassInstantiator classInstantiator;
+    [SerializeField] SizePositionConverter sizePositionConverter;
+
+    [SerializeField] LogicExceptionHandler logicExceptionHandler;
+
+    [Serializable]
+    public struct ClassPrefab {
+        public string className;
+        public GameObject prefab;
+    }
+    [SerializeField] List<ClassPrefab> classPrefabs;
+    Dictionary<string, GameObject> _classPrefabs;
+
+    IdGenerator _objectNameGenerator = new IdGenerator();
     
     public class LogicEngineAPI {
-        LogicEngine _engine;
+        readonly LogicEngine _engine;
+
         public LogicEngineAPI(LogicEngine engine) {
             _engine = engine;
         }
@@ -24,16 +44,60 @@ public class LogicEngine : MonoBehaviour {
 
             return foundObject;
         }
+
+        public LogicObject CreateObject(string name, string className) {
+            if (_engine._logicObjects.ContainsKey(name)) {
+                throw new ArgumentException("Object with name \"{name}\" already exists!");
+            }
+            
+            var newObject = _engine.classInstantiator.CreateObject(className, _engine._logicClasses,
+                MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
+            _engine._logicObjects.Add(name, newObject);
+
+            return newObject;
+        }
+
+        public SizePositionConverter GetSizePosConverter() {
+            return _engine.sizePositionConverter;
+        }
+
+        public bool DestroyObject(string name, string className) {
+            if (!_engine._logicObjects.ContainsKey(name)) {
+                return false;
+            }
+            
+            var foundObject = _engine._logicObjects[name];
+            if (!foundObject.IsClass(className)) {
+                return false;
+            }
+
+            Destroy(foundObject.gameObject);
+            return true;
+        }
     }
     
     Dictionary<string, LogicObject> _logicClasses;
     Dictionary<string, LogicObject> _logicObjects;
 
     void Start() {
-        _logicClasses = logicLoader.LoadLogicClasses();
+        void OnLogicError(Exception e) {
+            logicExceptionHandler.DisplayError(e.Message);
+            enabled = false;
+        }
+        
+        try {
+            _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
-        var objectInfos = mapLoader.LoadMap("Resources\\Maps\\main.tmx");  // TODO
-        _logicObjects = classInstantiator.InstantiateClasses(_logicClasses, objectInfos, new LogicEngineAPI(this));
+            _logicClasses = logicLoader.LoadLogicClasses();
+
+            var mapPath = Path.Combine(pathLimiter.Root, "Maps", "main.tmx");
+            var objectInfos = mapLoader.LoadMap(mapPath); // TODO
+            _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
+                new LogicEngineAPI(this), _objectNameGenerator);
+        }
+        catch (LogicParseException e) {
+            OnLogicError(e);
+        }
     }
 
     void Update() {

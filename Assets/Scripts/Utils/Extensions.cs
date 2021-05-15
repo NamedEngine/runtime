@@ -81,4 +81,21 @@ public static class Extensions {
     public static System.Action Once(this System.Action source) {
         return new OnceWrapper().Wrap(source);
     }
+
+    public static string TypeToString(this IValue value) {
+        string type;
+        if (value.GetValueType() != ValueType.Null) {
+            if (value is IVariable) {
+                type = "Variable";
+            } else {
+                type = "Value";
+            }
+
+            type += $"[{value.GetValueType()}]";
+        } else {
+            type = value.GetType().ToString();
+        }
+
+        return type;
+    }
 }

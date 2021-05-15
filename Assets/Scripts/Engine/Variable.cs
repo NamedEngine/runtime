@@ -19,16 +19,7 @@ public class Variable<T> : Value<T>, IVariable {
         return value?.PrepareForCast() is Variable<T>;
     }
 
-    public virtual IVariable Clone(GameObject objectToAttachTo) {
+    public virtual IVariable Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI) {
         return new Variable<T>(_value);
-    }
-
-    public bool TryTransferValueTo(IVariable other) {
-        if (!(other is Variable<T> castedOther)) {
-            return false;
-        }
-        
-        castedOther.Set(Get());
-        return true;
     }
 }

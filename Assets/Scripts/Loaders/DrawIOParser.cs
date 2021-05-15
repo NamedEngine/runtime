@@ -4,11 +4,6 @@ using System.Linq;
 using System.Xml.Linq;
 
 public class DrawIOParser : ILogicParser<string> {
-    static readonly Dictionary<string, NodeType> NodeTypesByNotation = Enum
-        .GetValues(typeof(NodeType))
-        .Cast<NodeType>()
-        .ToDictionary(t => t.ToString().StartWithLower(), t => t);
-    
     static string GetAttr(XElement element, string name) => element.Attribute(name)?.Value;
 
     static KeyValuePair<string, ParsedNodeInfo> ObjectToInfoPair(XElement obj) {
@@ -16,7 +11,7 @@ public class DrawIOParser : ILogicParser<string> {
 
         var info = new ParsedNodeInfo {
             id = GetObjAttr("id"),
-            type = NodeTypesByNotation[GetObjAttr("type")],
+            type = NodeTypeConverter.NodeTypesByNotation[GetObjAttr("type")],
             name = GetObjAttr("label"),
             parameters = new string[]{},
             prev = new string[]{},
