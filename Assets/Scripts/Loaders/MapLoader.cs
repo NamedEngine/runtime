@@ -230,6 +230,6 @@ public class MapLoader : MonoBehaviour {
             .Zip(tileColliders, (id, rects) => new {id, rects})
             .ToDictionary(item => item.id, item => item.rects);
 
-        return new TileSet(texture, firstgid, tileWidth, tileHeight, columns, rows, colliders);
+        return new TileSet(graphicsConverter, texture, firstgid, tileWidth, tileHeight, columns, rows, colliders);
     }
 }

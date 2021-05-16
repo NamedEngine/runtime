@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TileSet {
+    readonly GraphicsConverter _converter;
     readonly Texture2D _texture;
     readonly int _firstgid;
     float _tileWidth;
@@ -14,7 +15,9 @@ public class TileSet {
 
     Dictionary<int, Rect[]> _colliders;
 
-    public TileSet(Texture2D texture, int firstgid, float tileWidth, float tileHeight, int columns, int rows, Dictionary<int, Rect[]> colliders = null) {
+    public TileSet(GraphicsConverter converter, Texture2D texture, int firstgid, float tileWidth, float tileHeight, int columns, int rows,
+        Dictionary<int, Rect[]> colliders = null) {
+        _converter = converter;
         _texture = texture;
         _firstgid = firstgid;
         _tileWidth = tileWidth;
@@ -44,7 +47,7 @@ public class TileSet {
         var size = new Vector2(_tileWidth, _tileHeight);
         
         var rect = new Rect(pos, size);
-        return Sprite.Create(_texture, rect, Vector2.zero);
+        return Sprite.Create(_texture, rect, Vector2.zero, _converter.PixelsPerUnit);
     }
 
     public Rect[] GetCollider(int tile) {
