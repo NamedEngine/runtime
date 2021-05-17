@@ -86,7 +86,6 @@ public class SpriteAnimator : MonoBehaviour {
     // TODO: something about sprite size?
 
     public void SetDefaultSprite(bool flipX = false, bool flipY = false) {
-        Debug.Log($"Setting default sprite with flips: {flipX}|{flipY}");
         InternalSetSprite(_defaultSprite, flipX, flipY);
     }
 
@@ -114,7 +113,6 @@ public class SpriteAnimator : MonoBehaviour {
     }
 
     IEnumerator PlayAnimationCoro(string dirPath, float time, int repeats, bool flipX, bool flipY) {
-        Debug.Log($"Setting animation \"{dirPath}\" with flips: {flipX}|{flipY}");
         _spriteRenderer.flipX = flipX;
         _spriteRenderer.flipY = flipY;
 
