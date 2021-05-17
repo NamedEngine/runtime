@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -58,7 +57,7 @@ public class DrawIOParser : ILogicParser<string> {
 
         var relArray = root
             .Elements("mxCell")
-            .Where(rel => rel.HasElements)  // filtering empty cells without geometry
+            .Where(rel => rel.Attributes().Any(attr => attr.Name == "edge"))  // filtering anything but edges (arrows)
             .Select(RelationToPair)
             .ToArray();
         

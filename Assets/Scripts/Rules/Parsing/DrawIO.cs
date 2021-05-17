@@ -5,13 +5,22 @@ using System.Xml.Linq;
 
 namespace Rules.Parsing {
     public class DrawIO : IParsingChecker<string> {
-        public static void CheckBlocks(string logicSource, string file) {
+        static bool IsNamedLanguageBlock(XElement block) {
+            return NodeTypeConverter.NodeTypesByNotation.ContainsKey(block.Attribute("type")?.Value ?? "");
+        }
+
+        static XElement GetById(XElement root, XAttribute id) {
+            return root.Elements()
+                .First(obj => obj.Attribute("id").Value == id.Value);
+        }
+        
+        static void CheckBlocks(string logicSource, string file) {
             var document = XDocument.Parse(logicSource);
             var root = document.Descendants("root").First();
             
             var objects = root
                 .Elements("object")
-                .Where(obj => !NodeTypeConverter.NodeTypesByNotation.ContainsKey(obj.Attribute("type")?.Value ?? ""))
+                .Where(obj => !IsNamedLanguageBlock(obj))
                 .ToArray();
 
             foreach (var obj in objects) {
@@ -25,14 +34,14 @@ namespace Rules.Parsing {
                 throw new LogicParseException(file, message);
             }
         }
-        
-        public static void CheckArrows(string logicSource, string file) {
+
+        static void CheckArrows(string logicSource, string file) {
             var document = XDocument.Parse(logicSource);
             var root = document.Descendants("root").First();
 
             var arrows = root
                 .Elements("mxCell")
-                .Where(rel => rel.HasElements)
+                .Where(rel => rel.Attributes().Any(attr => attr.Name == "edge"))  // filtering anything but edges (arrows)
                 .ToArray();
 
             foreach (var arrow in arrows) {
@@ -40,6 +49,18 @@ namespace Rules.Parsing {
                 var targetId = arrow.Attribute("target");
                 
                 if (sourceId != null && targetId != null) {
+                    var blocksToCheck = new [] {GetById(root, sourceId), GetById(root, targetId)};
+                    foreach (var block in blocksToCheck) {
+                        if (IsNamedLanguageBlock(block)) {
+                            continue;
+                        }
+
+                        var connectedCommentMessage = "One of arrows is connected to a commentary block!" +
+                                      $"\nText: {block.Attribute("value")?.Value}";
+                        
+                        throw new LogicParseException(file, connectedCommentMessage);
+                    }
+                    
                     continue;
                 }
 
@@ -62,20 +83,19 @@ namespace Rules.Parsing {
                 }
                 
                 var connectedId = sourceId ?? targetId;
-                var connectedObject = root.Elements("object")
-                    .First(obj => obj.Attribute("id").Value == connectedId.Value);
+                var connectedObject = GetById(root, connectedId);
                 
                 var message = "One of arrows is connected to only one object;\nObject ";
-                    
-                var typeString = connectedObject.Attribute("type")?.Value;
-                if (typeString != null && NodeTypeConverter.NodeTypesByNotation.ContainsKey(typeString)) {
-                    var type = NodeTypeConverter.NodeTypesByNotation[typeString];
-                    message += $"type: {type}, ";
+
+                if (IsNamedLanguageBlock(connectedObject)) {
+                    var type = NodeTypeConverter.NodeTypesByNotation[connectedObject.Attribute("type").Value];
+                    var label = connectedObject.Attribute("label").Value;
+                    message += $"type: {type}, label: \"{label}\"";
+                } else {
+                    var text = connectedObject.Attribute("value").Value;;
+                    message += $"text: {text}";
                 }
-                
-                var label = connectedObject.Attribute("label").Value;
-                message += $"label: \"{label}\"";
-                
+
                 throw new LogicParseException(file, message);
             }
         }
