@@ -7,7 +7,7 @@ namespace Player {
         readonly HashSet<InteractableComponent> _interactables = new HashSet<InteractableComponent>();
         Size _size;
 
-        void Start() {
+        void Awake() {
             _size = GetComponent<Size>();
         }
 

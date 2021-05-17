@@ -8,41 +8,42 @@ public class FileLoader : MonoBehaviour {
     [SerializeField] PathLimiter pathLimiter;
 
     public byte[] LoadBytes(string path) {
-        pathLimiter.CheckRange(path);
-        return File.ReadAllBytes(path);
+        return File.ReadAllBytes(pathLimiter.CompleteAndCheckRange(path));
     }
     
     public string LoadText(string path) {
-        pathLimiter.CheckRange(path);
-        return File.ReadAllText(path);
+        return File.ReadAllText(pathLimiter.CompleteAndCheckRange(path));
     }
 
-    public (T, string)[] LoadAllWithExtensionAndNames<T>(Func<string, T> loaderMethod, string extension) {
+    public (T, string)[] LoadAllWithExtensionAndNames<T>(Func<string, T> loaderMethod, string extension = null, string root = null) {
         var files = new List<string>();
         var directories = new Queue<string>();
-        directories.Enqueue(pathLimiter.Root);
+
+        var startingDir = root ?? "";
+        var shouldEndWith = extension ?? "";
+        directories.Enqueue(startingDir);
         while (directories.Count != 0) {
-            var currenDirectory = directories.Dequeue();
+            var currentDirectory = pathLimiter.CompleteAndCheckRange(directories.Dequeue());
             
-            var newFiles = Directory.GetFiles(currenDirectory);
+            var newFiles = Directory.GetFiles(currentDirectory);
             files.AddRange(newFiles);
             
-            var newDirectories = Directory.GetDirectories(currenDirectory);
+            var newDirectories = Directory.GetDirectories(currentDirectory);
             foreach (var newDirectory in newDirectories) {
                 directories.Enqueue(newDirectory);
             }
         }
 
         var loadedFiles = files
-            .Where(f => f.EndsWith(extension))
+            .Where(f => f.EndsWith(shouldEndWith))
             .Select(f => (loaderMethod(f), f))
             .ToArray();
         
         return loadedFiles;
     }
     
-    public T[] LoadAllWithExtension<T>(Func<string, T> loaderMethod, string extension) {
-        return LoadAllWithExtensionAndNames(loaderMethod, extension)
+    public T[] LoadAllWithExtension<T>(Func<string, T> loaderMethod, string extension = null, string root = null) {
+        return LoadAllWithExtensionAndNames(loaderMethod, extension, root)
             .Select(filePair => filePair.Item1)
             .ToArray();
     }

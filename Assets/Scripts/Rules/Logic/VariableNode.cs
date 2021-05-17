@@ -102,32 +102,14 @@ namespace Rules.Logic {
         static void CheckChildren(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {
             var improperNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Variable)
-                .Where(info => info.parameters.Length != 1
+                .Where(info => info.parameters.Length > 1
                                || info.parameters.Any(id => parsedNodes[id].type != NodeType.Parameter));
 
             foreach (var nodeInfo in improperNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} should have have exactly 1\nchild of \"Parameter\" type";
+                var message = $"{nodeInfo.ToNameAndType()} should have have 0 or 1\nchild node of \"Parameter\" type";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
-            
-            // TODO: move to ParameterNode
-            /*var improperValueNodes = parsedNodes.Values
-                .Where(info => info.type == NodeType.Variable)
-                .Where(info => {
-                    var parameterValue = parsedNodes[info.parameters.First()].name;
-                    var type = LogicUtils.GetVariableTypeAndName(info.name).Value.Item1;
-                    var casted = ValueTypeConverter.GetVariableByType(type, parameterValue);
-                    return casted is null;
-                });
-            
-            foreach (var nodeInfo in improperValueNodes) {
-                var parameterValue = parsedNodes[nodeInfo.parameters.First()].name;
-                var type = LogicUtils.GetVariableTypeAndName(nodeInfo.name).Value.Item1;
-                var message = $"{nodeInfo.ToNameAndType()} has incorrect parameter value:\ncan't cast \"{parameterValue}\" to type \"{type}\"";
-
-                throw new LogicParseException(idToFile[nodeInfo.id], message);
-            }*/
         }
 
         public List<Action<Dictionary<string, ParsedNodeInfo>, Dictionary<string, string>, TemporaryInstantiator>> GetCheckerMethods() {

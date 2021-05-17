@@ -6,12 +6,14 @@ public class PathLimiter : MonoBehaviour {
     [SerializeField] string root;
     public string Root => root;
 
-    public void CheckRange(string path) {  // TODO: maybe also return modified path
+    public string CompleteAndCheckRange(string path) {
         var fullRootPath = Path.GetFullPath(root);
-        var fullPath = Path.GetFullPath(path);
+        var resultingPath = Path.GetFullPath(Path.Combine(root, path));
 
-        if (!fullPath.StartsWith(fullRootPath)) {
-            throw new ArgumentOutOfRangeException("Path \"" + fullPath + "\" is not in root path: \"" + fullRootPath + "\"");
+        if (!resultingPath.StartsWith(fullRootPath)) {
+            throw new ArgumentOutOfRangeException("Path \"" + resultingPath + "\" is not in root path: \"" + fullRootPath + "\"");
         }
+
+        return resultingPath;
     }
 }

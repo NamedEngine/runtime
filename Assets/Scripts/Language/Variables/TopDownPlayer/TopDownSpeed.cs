@@ -1,7 +1,7 @@
 ﻿using Player;
 using UnityEngine;
 
-namespace Language.Variables {
+namespace Language.Variables.TopDownPlayer {
     public class TopDownSpeed : SpecialVariable<float> {
         PlayerTopDownMove _playerMove;
 

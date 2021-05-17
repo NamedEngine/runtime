@@ -64,6 +64,16 @@ public class LogicObject : MonoBehaviour {
         Class = objectClass;
         EngineAPI = engineAPI;
     }
+
+    public void BeforeStartProcessing() {
+        if (_baseObject) {
+            _baseObject.BeforeStartProcessing();
+        }
+        
+        BeforeStartProcessingInternal();
+    }
+
+    protected virtual void BeforeStartProcessingInternal() { }
     
     public void ProcessLogic() {
         _generalState?.ProcessLogic();

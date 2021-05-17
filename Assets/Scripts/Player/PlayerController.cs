@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Language.Variables;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace Player {
         PlayerInput _playerInput;
         PlayerMove _playerMove;
         PlayerInteract _playerInteract;
+        PlayerAnimation _playerAnimation;
 
         VelocityX _velocityX;
         VelocityY _velocityY;
@@ -18,24 +20,32 @@ namespace Player {
             _velocityX = variables[nameof(VelocityX)] as VelocityX;
             _velocityY = variables[nameof(VelocityY)] as VelocityY;
             _converter = engineAPI.GetSizePosConverter();
+            
+            _playerAnimation.Setup(Vector2.down);
+            
             _isSet = true;
         }
 
-        void Start() {
+        void Awake() {
             _playerInput = GetComponent<PlayerInput>();
             _playerMove = GetComponent<PlayerMove>();
             _playerInteract = GetComponent<PlayerInteract>();
+            _playerAnimation = GetComponent<PlayerAnimation>();
         }
 
         void FixedUpdate() {
             if (!_isSet) {
                 return;
             }
+
+            var directionInput = _playerInput.DirectionInput;
             
-            _playerMove.Move(_playerInput.DirectionInput, _playerInput.JumpInput, _converter, _velocityX, _velocityY);
+            _playerMove.Move(directionInput, _playerInput.JumpInput, _converter, _velocityX, _velocityY);
             if (_playerInput.InteractInput) {
                  _playerInteract.Interact();   
             }
+            
+            _playerAnimation.Animate(directionInput);
         }
     }
 }

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using Rules;
 using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
-    [SerializeField] PathLimiter pathLimiter;
     [SerializeField] MapLoader mapLoader;
     [SerializeField] LogicLoader logicLoader;
     [SerializeField] ClassInstantiator classInstantiator;
@@ -90,10 +87,11 @@ public class LogicEngine : MonoBehaviour {
 
             _logicClasses = logicLoader.LoadLogicClasses();
 
-            var mapPath = Path.Combine(pathLimiter.Root, "Maps", "main.tmx");
+            var mapPath = "Maps/main.tmx".ToProperPath();
             var objectInfos = mapLoader.LoadMap(mapPath); // TODO
             _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
                 new LogicEngineAPI(this), _objectNameGenerator);
+            _logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
         }
         catch (LogicParseException e) {
             OnLogicError(e);

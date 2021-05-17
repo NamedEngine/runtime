@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Linq;
 using Language.Variables;
+using Language.Variables.TopDownPlayer;
 using Player;
 using UnityEngine;
 using static LogicUtils;
 
 namespace Language.Classes {
     public class TopDownPlayer : BaseClass {
-        void Start() {
+        protected override void BeforeStartProcessingInternal() {
             if (EngineAPI == null) {
                 return;
             }
@@ -27,7 +28,6 @@ namespace Language.Classes {
             
             AdjustColliders();
             GetComponent<Size>().AfterResize.Add(AdjustColliders);
-            
         }
 
         public override string ShouldInheritFrom() {
@@ -40,8 +40,20 @@ namespace Language.Classes {
 
         public override (string, Func<GameObject, LogicEngine.LogicEngineAPI, IVariable>)[] BaseVariables() {
             return new [] {
-                GetSpecialVariablePair<TopDownSpeed>(),
                 GetSpecialVariablePair<Collidable, bool>(true),
+                GetSpecialVariablePair<TopDownSpeed>(),
+                GetSpecialVariablePair<AnimationTime>(),
+                GetSpecialVariablePair<IsXMoreImportant>(),
+                GetSpecialVariablePair<FlipXIfNotPresent>(),
+                GetSpecialVariablePair<FlipYIfNotPresent>(),
+                GetSpecialVariablePair<MoveAnimationRight>(),
+                GetSpecialVariablePair<MoveAnimationLeft>(),
+                GetSpecialVariablePair<MoveAnimationUp>(),
+                GetSpecialVariablePair<MoveAnimationDown>(),
+                GetSpecialVariablePair<StandAnimationRight>(),
+                GetSpecialVariablePair<StandAnimationLeft>(),
+                GetSpecialVariablePair<StandAnimationUp>(),
+                GetSpecialVariablePair<StandAnimationDown>(),
             };
         }
     }
