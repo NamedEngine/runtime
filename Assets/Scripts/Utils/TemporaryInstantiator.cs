@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TemporaryInstantiator : MonoBehaviour {
+public class TemporaryInstantiator : MonoBehaviour, IInstantiator {
     readonly List<Component> _instantiated = new List<Component>();
     
     public Component GetInstance(Type t) {

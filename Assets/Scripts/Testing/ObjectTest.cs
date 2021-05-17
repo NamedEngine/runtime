@@ -78,7 +78,7 @@ public class ObjectTest : MonoBehaviour {
             {"State 2", state2}
         };
         
-        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables, "");
+        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables, "", null);
 
         StartCoroutine(ChangeObject());
     }
@@ -91,7 +91,7 @@ public class ObjectTest : MonoBehaviour {
     IEnumerator ChangeObject() {
         yield return new WaitForSeconds(10);
         Debug.Log("SETUPING SECOND");
-        var newObject = _logicObject.Clone(gameObject);
+        var newObject = _logicObject.Clone(gameObject, null);
         var tempObj = _logicObject;
         _logicObject = null;
         
@@ -109,7 +109,7 @@ public class ObjectTest : MonoBehaviour {
         
         yield return new WaitForSeconds(10);
         Debug.Log("SETUPING THIRD");
-        newObject = _logicObject.Clone(gameObject);
+        newObject = _logicObject.Clone(gameObject, null);
         tempObj = _logicObject;
         _logicObject = null;
         

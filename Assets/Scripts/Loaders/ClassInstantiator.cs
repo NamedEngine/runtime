@@ -7,7 +7,7 @@ public class ClassInstantiator : MonoBehaviour {
     static readonly MapObjectParameter EmptyClassParameter = new MapObjectParameter {
         Name = "Class",
         Type = ValueType.String,
-        Value = ""
+        Value = nameof(Language.Classes.Empty)
     };
     
     public Dictionary<string, LogicObject> InstantiateMapObjects(Dictionary<string, LogicObject> classes,
@@ -42,9 +42,25 @@ public class ClassInstantiator : MonoBehaviour {
             throw new ArgumentException("");  // TODO
         }
 
-        var prefab = classPrefabs.First(pair => classes[className].IsClass(pair.Key)).Value;
-        var newGameObject = Instantiate(prefab, objectInfo.Rect.position, Quaternion.identity);
-        var newObject = classes[className].Clone(newGameObject, engineAPI);
+        var @class = classes[className];
+        
+        GameObject prefab = null;
+        foreach (var classInChain in @class.GetInheritanceChain()) {
+            if (!classPrefabs.ContainsKey(classInChain)) {
+                continue;
+            }
+            
+            prefab = classPrefabs[classInChain];
+            break;
+        }
+        
+        // var prefab = classPrefabs.First(pair => classes[className].IsClass(pair.Key)).Value;
+        var newGameObject = Instantiate(prefab, new Vector3(), Quaternion.identity);
+        
+        var newObject = @class.Clone(newGameObject, engineAPI);
+
+        newObject.transform.position = objectInfo.Rect.position;
+        
         var size = newGameObject.GetComponent<Size>();
         if (size != null) {
             size.Value = objectInfo.Rect.size;
@@ -57,9 +73,11 @@ public class ClassInstantiator : MonoBehaviour {
                 spriteRenderer.sprite = objectInfo.Sprite;
             }
         }
-
+        
         var parameters = objectInfo.Parameters
-            .Where(p => p.Name != EmptyClassParameter.Name);
+            .Where(p => p.Name != EmptyClassParameter.Name)
+            .ToList();
+        
         foreach (var parameter in parameters) {
             if (!newObject.Variables.ContainsKey(parameter.Name)) {
                 throw new ArgumentException("");  // TODO

@@ -13,3 +13,5 @@ public interface IValue {
 public interface IVariable : IValue {
     IVariable Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI);
 }
+
+public interface ISpecialVariable : IVariable { }

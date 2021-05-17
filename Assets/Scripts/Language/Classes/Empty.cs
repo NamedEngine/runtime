@@ -1,27 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using Language.Variables;
-using Variables;
+using UnityEngine;
+using static LogicUtils;
 
 namespace Language.Classes {
-    public class Empty : LogicObject {
-        public const string EmptyClassName = "";
+    public class Empty : BaseClass {
+        public override string ShouldInheritFrom() {
+            return null;
+        }
 
-        public Empty() {
-            ThisClassVariables = new Dictionary<string, IVariable> {
-                {nameof(Visible), new Visible(null, null)},
-                {nameof(Collidable), new Collidable(null, null)},
-                {nameof(X), new X(null, null)},
-                {nameof(Y), new Y(null, null)},
-                {nameof(Rotation), new Rotation(null, null)},
-                {nameof(ScaleX), new ScaleX(null, null)},
-                {nameof(ScaleY), new ScaleY(null, null)},
-                {nameof(SizeX), new SizeX(null, null)},
-                {nameof(SizeY), new SizeY(null, null)},
-                {nameof(VelocityX), new VelocityX(null, null)},
-                {nameof(VelocityY), new VelocityY(null, null)},
+        public override string BaseClassName() {
+            return nameof(Empty);
+        }
+
+        public override (string, Func<GameObject, LogicEngine.LogicEngineAPI, IVariable>)[] BaseVariables() {
+            return new [] {
+                GetSpecialVariablePair<Visible, bool>(true),
+                GetSpecialVariablePair<Collidable, bool>(false),
+                GetSpecialVariablePair<Interactable, bool>(false),
+                GetSpecialVariablePair<X>(),
+                GetSpecialVariablePair<Y>(),
+                GetSpecialVariablePair<Rotation>(),
+                GetSpecialVariablePair<SizeX>(),
+                GetSpecialVariablePair<SizeY>(),
+                GetSpecialVariablePair<VelocityX>(),
+                GetSpecialVariablePair<VelocityY>(),
             };
-            
-            ObjectClass = EmptyClassName;
         }
     }
 }

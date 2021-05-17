@@ -10,13 +10,13 @@ namespace Language.Variables {
 
         readonly System.Action _setSizeOnce;
         
-        protected override float InternalGet() {
+        protected override float SpecialGet() {
             _setSizeOnce();
 
             return EngineAPI.GetSizePosConverter().PositionU2M(BoundGameObject.transform.position, _size.Height).x;
         }
 
-        public override void Set(float value) {
+        protected override void SpecialSet(float value) {
             _setSizeOnce();
 
             var x = EngineAPI.GetSizePosConverter().PositionM2U(new Vector2(value, 0), _size.Height).x;

@@ -37,7 +37,9 @@ namespace Language.Actions {
             var format = (Value<string>) Arguments[0];
             var other = Arguments
                 .Skip(1)
+                .Where(arg => arg != null)
                 .Select(ValueToString)
+                .Select(param => (object) param)
                 .ToArray();
             var message = string.Format(format, other);
             Debug.Log(message);

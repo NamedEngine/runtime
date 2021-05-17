@@ -83,10 +83,14 @@ namespace Rules.Logic {
             }
         }
 
-        static void CheckName(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {
+        static void CheckName(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+            var baseClassNames = LogicUtils.InstantiateBaseClasses(() => instantiator)
+                .Select(baseClass => baseClass.Class)
+                .ToHashSet();
+            
             var improperNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.ClassRef)
-                .Where(info => info.name != ""
+                .Where(info => !baseClassNames.Contains(info.name)
                                && parsedNodes.Values.Count(i => i.type == NodeType.Class && i.name == info.name) == 0);
 
             foreach (var nodeInfo in improperNodes) {
@@ -102,7 +106,7 @@ namespace Rules.Logic {
                 (parsedNodes, idToFile, instantiator) => CheckPrev(parsedNodes, idToFile),
                 (parsedNodes, idToFile, instantiator) => CheckParents(parsedNodes, idToFile),
                 (parsedNodes, idToFile, instantiator) => CheckChildren(parsedNodes, idToFile),
-                (parsedNodes, idToFile, instantiator) => CheckName(parsedNodes, idToFile),
+                CheckName,
             };
         }
     }
