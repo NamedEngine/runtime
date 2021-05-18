@@ -9,10 +9,6 @@ using static LogicUtils;
 namespace Language.Classes {
     public class TopDownPlayer : BaseClass {
         protected override void BeforeStartProcessingInternal() {
-            if (EngineAPI == null) {
-                return;
-            }
-
             GetComponents<BoxCollider2D>()
                 .Where(coll => !coll.isTrigger)
                 .ToList()
@@ -28,6 +24,8 @@ namespace Language.Classes {
             
             AdjustColliders();
             GetComponent<Size>().AfterResize.Add(AdjustColliders);
+            
+            Camera.main.GetComponent<CameraController>().AddPlayer(this);
         }
 
         public override string ShouldInheritFrom() {

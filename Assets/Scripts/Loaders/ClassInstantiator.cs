@@ -54,7 +54,6 @@ public class ClassInstantiator : MonoBehaviour {
             break;
         }
         
-        // var prefab = classPrefabs.First(pair => classes[className].IsClass(pair.Key)).Value;
         var newGameObject = Instantiate(prefab, new Vector3(), Quaternion.identity);
         
         var newObject = @class.Clone(newGameObject, engineAPI);
@@ -68,7 +67,9 @@ public class ClassInstantiator : MonoBehaviour {
 
         if (objectInfo.SortingLayer != null) {
             var spriteRenderer = newGameObject.GetComponent<SpriteRenderer>();
-            spriteRenderer.sortingLayerName = objectInfo.SortingLayer;
+            if (spriteRenderer) {
+                spriteRenderer.sortingLayerName = objectInfo.SortingLayer;
+            }
             if (objectInfo.Sprite != null) {
                 spriteRenderer.sprite = objectInfo.Sprite;
             }
