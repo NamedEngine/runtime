@@ -76,13 +76,13 @@ public class LogicObject : MonoBehaviour {
     protected virtual void BeforeStartProcessingInternal() { }
     
     public void ProcessLogic() {
+        if (_baseObject) {
+            _baseObject.ProcessLogic();
+        }
+        
         _generalState?.ProcessLogic();
         if (!string.IsNullOrEmpty(_currentState)) {
             _logicStates[_currentState].ProcessLogic();
-        }
-
-        if (_baseObject) {
-            _baseObject.ProcessLogic();
         }
     }
 
