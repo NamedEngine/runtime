@@ -11,8 +11,8 @@ namespace Language.Actions {
             },
         };
         
-        public Wait(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Wait(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         protected override IEnumerator ActionLogic() {
             switch (Arguments[0]) {
                 case Value<int> intVal:

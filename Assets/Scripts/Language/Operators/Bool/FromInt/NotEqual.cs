@@ -7,8 +7,8 @@ namespace Language.Operators {
             new IValue[] {new Value<int>()},
         };
 
-        public NotEqual(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public NotEqual(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return ((Value<int>) Arguments[0]).Get() != ((Value<int>) Arguments[1]).Get();

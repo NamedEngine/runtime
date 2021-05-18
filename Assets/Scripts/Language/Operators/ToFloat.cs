@@ -12,8 +12,8 @@ namespace Language.Operators {
             },
         };
 
-        public ToFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public ToFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override float InternalGet() {
             switch (Arguments[0]) {

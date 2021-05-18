@@ -49,7 +49,7 @@ public class LogicObject : MonoBehaviour {
         }
         
         _currentState = state;
-        _logicStates[_currentState].Start(this, engineAPI, Variables.ToDictionary());
+        _logicStates[_currentState].Start(this, engineAPI, Variables);
         _logicStates[_currentState].ProcessLogic();
     }
 
@@ -96,9 +96,9 @@ public class LogicObject : MonoBehaviour {
             entry => entry.Value.Clone(objectToAttachTo, engineAPI));
         newObject._thisClassVariables = clonedVariables;
         
-        var clonedGeneralState = _generalState?.Clone(newObject, engineAPI, newObject.Variables.ToDictionary(), objectToAttachTo);
+        var clonedGeneralState = _generalState?.Clone(newObject, engineAPI, newObject.Variables, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(newObject, engineAPI, newObject.Variables.ToDictionary(), objectToAttachTo));
+            entry => entry.Value.Clone(newObject, engineAPI, newObject.Variables, objectToAttachTo));
         newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables, Class, engineAPI);
         
         return newObject;
@@ -121,7 +121,7 @@ public class LogicObject : MonoBehaviour {
 
             var transferred = inheritor._thisClassVariables[variableName].TryTransferValueTo(variable);
             if (!transferred) {
-                throw new ArgumentException($"Inheritor({inheritor.Class}) variable {variableName} has inappropriate type");  // TODO: MOVE TO LANG RULES
+                throw new ArgumentException($"Inheritor({inheritor.Class}) variable {variableName} has inappropriate type");
             }
 
             inheritor._thisClassVariables.Remove(variableName);

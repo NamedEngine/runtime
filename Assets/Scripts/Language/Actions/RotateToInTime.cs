@@ -12,8 +12,8 @@ namespace Language.Actions {
 
         const float DeltaTime = 0.02f;
         
-        public RotateToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public RotateToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
             var newRotation = ((Value<float>) Arguments[0]).Get();

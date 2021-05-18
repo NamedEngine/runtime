@@ -6,8 +6,8 @@ namespace Language.Conditions {
             new IValue[] {new Value<bool>()}
         };
         
-        public IsTrue(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public IsTrue(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         protected override bool ConditionLogic() {
             return Arguments[0] as Value<bool>;

@@ -11,8 +11,8 @@ namespace Language.Actions {
 
         readonly SpriteAnimator _animation;
 
-        public PlayAnimation(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) {
+        public PlayAnimation(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
             _animation = gameObject?.GetComponent<SpriteAnimator>();
         }
         

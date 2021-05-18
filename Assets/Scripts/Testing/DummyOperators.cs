@@ -9,7 +9,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
         
-        public DummyAnd(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyAnd(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> && Arguments[1] as Value<bool>;
@@ -22,7 +22,7 @@ namespace Operators {
             new IValue[]{new Value<bool>()},
         };
 
-        public DummyOr(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyOr(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override bool InternalGet() {
             return Arguments[0] as Value<bool> || Arguments[1] as Value<bool>;
@@ -35,7 +35,7 @@ namespace Operators {
             new IValue[]{new Value<int>()},
         };
 
-        public DummyPlus(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyPlus(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
 
         protected override int InternalGet() {
@@ -53,7 +53,7 @@ namespace Operators {
             },
         };
 
-        public DummyToInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyToInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override int InternalGet() {
             switch (Arguments[0]) {
@@ -81,7 +81,7 @@ namespace Operators {
             },
         };
 
-        public DummyToString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyToString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override string InternalGet() {
             switch (Arguments[0]) {
@@ -103,7 +103,7 @@ namespace Operators {
         static readonly IValue[][] ArgTypes = { };
         Random _random = new Random();
         
-        public DummyRandInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments, constraintReference) { }
+        public DummyRandInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override int InternalGet() {
             return _random.Next(int.MinValue, int.MaxValue);
@@ -157,9 +157,8 @@ namespace Operators {
         ProxyVariable _proxy;
         ProxyVariable Proxy => _proxy ?? (_proxy = new ProxyVariable(Arguments[1] as VariableRef, this));
 
-        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI,
-            IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments,
-            constraintReference) {
+        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
         }
 
         LogicObject GetReferencedObject() {

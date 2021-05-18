@@ -10,8 +10,8 @@ namespace Language.Operators {
         };
         readonly Random _random = new Random();
         
-        public RandFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments, constraintReference) { }
+        public RandFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override float InternalGet() {
             var minValue = Arguments[0] as Value<float> ?? float.MinValue;

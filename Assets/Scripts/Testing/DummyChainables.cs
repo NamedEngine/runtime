@@ -11,7 +11,7 @@ namespace Actions {
             return null;
         }
 
-        public DummySyncAction1(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummySyncAction1(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
     public class DummySyncAction2 : Action {
         static readonly IValue[][] ArgTypes = { };
@@ -20,7 +20,7 @@ namespace Actions {
             return null;
         }
 
-        public DummySyncAction2(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummySyncAction2(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
 
     public class DummyAsyncAction1 : Action {
@@ -30,7 +30,7 @@ namespace Actions {
             yield return new WaitForSeconds(1);
         }
 
-        public DummyAsyncAction1(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyAsyncAction1(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
 
     public class DummyAsyncAction2 : Action {
@@ -40,7 +40,7 @@ namespace Actions {
             yield return new WaitForSeconds(2);
         }
 
-        public DummyAsyncAction2(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyAsyncAction2(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
 
     public class DummyLog : Action {
@@ -54,7 +54,7 @@ namespace Actions {
             new NullValue(),
         }, 100).ToArray());
         
-        public DummyLog(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyLog(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         // ReSharper disable Unity.PerformanceAnalysis
         protected override IEnumerator ActionLogic() {
@@ -93,7 +93,7 @@ namespace Actions {
             },
         };
         
-        public DummyWait(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyWait(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         protected override IEnumerator ActionLogic() {
             switch (Arguments[0]) {
                 case Value<int> intVal:
@@ -114,7 +114,7 @@ namespace Actions {
             new IValue[] {new Variable<bool>()},
         };
 
-        public DummySetBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummySetBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             ((Variable<bool>) Arguments[1]).Set((Value<bool>) Arguments[0]);
@@ -127,7 +127,7 @@ public class DummySetState : Action {
     static readonly IValue[][] ArgTypes = { };
     readonly System.Action _stateSetter;
 
-    public DummySetState(System.Action stateSetter) : base(ArgTypes,null,  null, new IValue[] {}, false) {
+    public DummySetState(System.Action stateSetter) : base(ArgTypes,null,  null, null, new IValue[] {}, false) {
         _stateSetter = stateSetter;
     }
     protected override IEnumerator ActionLogic() {
@@ -144,7 +144,7 @@ namespace Conditions {
             return true;
         }
 
-        public DummyTrueCondition(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyTrueCondition(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
 
     public class DummyFalseCondition : Condition {
@@ -154,7 +154,7 @@ namespace Conditions {
             return false;
         }
 
-        public DummyFalseCondition(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DummyFalseCondition(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
     }
 
     public class DummyNce : Condition {
@@ -164,7 +164,7 @@ namespace Conditions {
 
         int _activationsLeft;
 
-        public DummyNce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) {
+        public DummyNce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
             _activationsLeft = (Value<int>) values[0];
         }
 
@@ -174,5 +174,3 @@ namespace Conditions {
         }
     }
 }
-
-

@@ -10,8 +10,8 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public MoveToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public MoveToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
             var newX = ((Value<float>) Arguments[0]).Get();

@@ -12,8 +12,8 @@ namespace Language.Conditions {
 
         readonly System.Action _setInteractComponentOnce;
         
-        public Interact(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { 
+        public Interact(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { 
             _setInteractComponentOnce = ((System.Action) SetInteractComponent).Once();
         }
         

@@ -3,9 +3,8 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 
-using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], Chainable>;
 
 public class LogicChain : MonoBehaviour {
     int _coroCount;
@@ -15,11 +14,11 @@ public class LogicChain : MonoBehaviour {
 
     LogicChainInfo _info;
 
-    public void ResetChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary) {
+    public void ResetChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary) {
         SetupChain(thisObject, engineAPI, variableDictionary, _info);    
     }
     
-    public void SetupChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary, LogicChainInfo info) { // TODO: thb this stinks
+    public void SetupChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary, LogicChainInfo info) { // TODO: thb this stinks
         if (IsRunning) {
             throw new Exception("Should not setup chain when running");
         }
@@ -90,7 +89,7 @@ public class LogicChain : MonoBehaviour {
         _coroCount = 0;
     }
     
-    public LogicChain Clone(LogicObject newObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
+    public LogicChain Clone(LogicObject newObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary, GameObject objectToAttachTo) {
         var newChain = objectToAttachTo.AddComponent<LogicChain>();
         newChain.SetupChain(newObject, engineAPI, variableDictionary, _info);
         return newChain;

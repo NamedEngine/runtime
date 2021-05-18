@@ -180,7 +180,7 @@ public class LogicLoader : MonoBehaviour {
             .ToArray();
         
         if (currentStates.Length > 1) {
-            throw new ArgumentException("");  // TODO: move to LANG RULES
+            throw new ArgumentException("");  // TODO
         }
         
         var currentState = currentStates.FirstOrDefault() ?? "";
@@ -209,7 +209,7 @@ public class LogicLoader : MonoBehaviour {
         }
         
         if (variableInfo.parameters.Length > 1) {
-            throw new ArgumentException("");  // TODO: move to LANG RULES
+            throw new ArgumentException("");  // TODO
         }
         var value = variableInfo.parameters.Length == 1 ? parsedNodes[variableInfo.parameters[0]].name : "";
 
@@ -331,7 +331,7 @@ public class LogicLoader : MonoBehaviour {
         return chain;
     }
 
-    Func<LogicObject, LogicEngine.LogicEngineAPI, Dictionary<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut>(ParsedNodeInfo node,
+    Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut>(ParsedNodeInfo node,
         Dictionary<string, (string, Action<LogicObject, LogicEngine.LogicEngineAPI>)> stateNameAndSetterById, VariableIdDict variables,
         AllClassesVariables allVariables, Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where TOut : class {
@@ -356,14 +356,14 @@ public class LogicLoader : MonoBehaviour {
                 .ToArray();
             
             var instance = LogicUtils.GetConstrainable(node, parsedNodes, null, temporaryInstantiator,
-                logicObject.gameObject, engineAPI, usedValues, false) as TOut;
+                logicObject.gameObject, engineAPI, dictionary, usedValues, false) as TOut;
             temporaryInstantiator.Clear();
 
             return instance;
         };
     }
 
-    static Func<LogicObject, LogicEngine.LogicEngineAPI, Dictionary<string, IVariable>, IValue[], IValue> GetValueLocator(ParsedNodeInfo parameter,
+    static Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue> GetValueLocator(ParsedNodeInfo parameter,
         IValue[][] constraints, VariableIdDict variables, AllClassesVariables allVariables, Dictionary<string, int> operatorPositions,
         Dictionary<string, ParsedNodeInfo> parsedNodes) {
         var sourceId = parameter.prev.FirstOrDefault() ?? "";
@@ -398,7 +398,7 @@ public class LogicLoader : MonoBehaviour {
         }
     }
 
-    static Func<LogicObject, LogicEngine.LogicEngineAPI, Dictionary<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator(ParsedNodeInfo parameter,
+    static Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator(ParsedNodeInfo parameter,
         IValue[][] constraints, Dictionary<string, ParsedNodeInfo> parsedNodes) {
         var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);
         var possibleValueTypes = constraints[parameterIndex]
@@ -409,8 +409,7 @@ public class LogicLoader : MonoBehaviour {
 
         if (possibleValueTypes.Length == 0) {
             throw new ArgumentException("Can't convert value \"" + parameter.name +
-                                        "\" to any possible types of parameter #" + parameterIndex + " of node " /*+
-                                        parentConstructor.ReflectedType*/);  // TODO: move to LANG RULES
+                                        "\" to any possible types of parameter #" + parameterIndex + " of node ");
         }
 
         var possibleType = possibleValueTypes[0];

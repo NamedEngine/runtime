@@ -6,8 +6,8 @@ using Operators;
 using UnityEngine;
 
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue>;
+using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], Chainable>;
 
 public class ObjectTest : MonoBehaviour {
     LogicObject _logicObject;
@@ -27,16 +27,16 @@ public class ObjectTest : MonoBehaviour {
             {"y", ToVar(3)},
         };
 
-        OperatorInstantiator plusInst = (logicObject, engineAPI, dictionary, values) => new DummyPlus(null, null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
-        OperatorInstantiator toString = (logicObject, engineAPI, dictionary, values) => new DummyToString(null, null, new [] {values[0]}, false);
-        ChainableInstantiator wait3 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, new IValue[] { ToVal(3f)}, false);
-        ChainableInstantiator wait05 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, new IValue[] { ToVal(0.5f)}, false);
-        ChainableInstantiator log1 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, new [] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
-        ChainableInstantiator logImpatince = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, new IValue[] {ToVal("IMPATIENCE!")}, false);
-        ChainableInstantiator log2 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, new IValue[] {ToVal("Log from STATE 2")}, false);
+        OperatorInstantiator plusInst = (logicObject, engineAPI, dictionary, values) => new DummyPlus(null, null, null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
+        OperatorInstantiator toString = (logicObject, engineAPI, dictionary, values) => new DummyToString(null, null, null, new [] {values[0]}, false);
+        ChainableInstantiator wait3 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, null, new IValue[] { ToVal(3f)}, false);
+        ChainableInstantiator wait05 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, null, new IValue[] { ToVal(0.5f)}, false);
+        ChainableInstantiator log1 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, null, new [] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
+        ChainableInstantiator logImpatince = (logicObject, engineAPI, dictionary, values) => new DummyLog(null , null, null, new IValue[] {ToVal("IMPATIENCE!")}, false);
+        ChainableInstantiator log2 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, null, new IValue[] {ToVal("Log from STATE 2")}, false);
         ChainableInstantiator state1Setter = (logicObject, engineAPI, dictionary, values) => new DummySetState(() => logicObject.SetState("State 1", null));
         ChainableInstantiator state2Setter = (logicObject, engineAPI, dictionary, values) => new DummySetState(() => logicObject.SetState("State 2", null));
-        ChainableInstantiator nce3 = (logicObject, engineAPI, dictionary, values) => new DummyNce(null, null, new IValue[] {dictionary["y"]}, false);
+        ChainableInstantiator nce3 = (logicObject, engineAPI, dictionary, values) => new DummyNce(null, null, null, new IValue[] {dictionary["y"]}, false);
         
 
         OperatorInstantiator[] vals11 = {plusInst, toString};

@@ -160,7 +160,7 @@ namespace Player {
             }*/
 
             bool isXPrimary;
-            if (isXMoreImportant) {  // TODO: maybe take into account diagonal inputs
+            if (isXMoreImportant) {
                 isXPrimary = Math.Abs(direction.x) >= Math.Abs(direction.y);
             } else {
                 isXPrimary = Math.Abs(direction.x) > Math.Abs(direction.y);

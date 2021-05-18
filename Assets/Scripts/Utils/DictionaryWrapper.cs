@@ -62,4 +62,7 @@ public class DictionaryWrapper<T1, T2> : IReadOnlyDictionary<T1, T2> {
                 .Select(pair => pair.Value);
         }
     }
+
+    public static implicit operator DictionaryWrapper<T1, T2>(Dictionary<T1, T2> dict) =>
+        new DictionaryWrapper<T1, T2>(new IReadOnlyDictionary<T1, T2>[] {dict});
 }

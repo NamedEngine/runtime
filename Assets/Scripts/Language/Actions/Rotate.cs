@@ -8,8 +8,8 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public Rotate(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Rotate(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
             var deltaRotation = ((Value<float>) Arguments[0]).Get();

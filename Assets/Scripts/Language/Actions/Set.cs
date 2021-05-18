@@ -8,8 +8,8 @@ namespace Language.Actions {
             new IValue[] {new Variable<int>()},
         };
 
-        public SetInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             ((Variable<int>) Arguments[1]).Set((Value<int>) Arguments[0]);
@@ -23,8 +23,8 @@ namespace Language.Actions {
             new IValue[] {new Variable<float>()},
         };
 
-        public SetFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             ((Variable<float>) Arguments[1]).Set((Value<float>) Arguments[0]);
@@ -38,8 +38,8 @@ namespace Language.Actions {
             new IValue[] {new Variable<bool>()},
         };
 
-        public SetBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             ((Variable<bool>) Arguments[1]).Set((Value<bool>) Arguments[0]);
@@ -53,8 +53,8 @@ namespace Language.Actions {
             new IValue[] {new Variable<string>()},
         };
 
-        public SetString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
             ((Variable<string>) Arguments[1]).Set((Value<string>) Arguments[0]);

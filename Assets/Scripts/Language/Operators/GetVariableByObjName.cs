@@ -33,9 +33,8 @@ namespace Language.Operators {
         ProxyVariable _proxy;
         ProxyVariable Proxy => _proxy ?? (_proxy = new ProxyVariable(Arguments[1] as VariableRef, this));
 
-        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI,
-            IValue[] arguments, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments,
-            constraintReference) {
+        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
         }
 
         LogicObject GetReferencedObject() {

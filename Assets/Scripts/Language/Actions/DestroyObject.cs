@@ -9,8 +9,8 @@ namespace Language.Actions {
             new IValue[] {new ClassRef()},
         };
 
-        public DestroyObject(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DestroyObject(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
             var objName = ((Value<string>) Arguments[0]).Get();

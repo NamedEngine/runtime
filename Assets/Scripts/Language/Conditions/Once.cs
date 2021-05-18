@@ -7,8 +7,8 @@ namespace Language.Conditions {
 
         bool _activated;
 
-        public Once(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference): base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Once(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
 
         protected override bool ConditionLogic() {
             var res = !_activated;

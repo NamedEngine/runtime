@@ -16,10 +16,11 @@ public abstract class Chainable : IConstrainable {
         return _constraints.ArgTypes;
     }
 
-    protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) {
+    protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI,
+        DictionaryWrapper<string, IVariable> variables, IValue[] arguments, bool constraintReference) {
         _constraintReference = constraintReference;
         BoundGameObject = gameObject;
-        VariableDict = gameObject?.GetComponent<LogicObject>().Variables;
+        VariableDict = variables;
         EngineAPI = engineAPI;
 
         _constraints = new LogicTypeConstraints(argTypes);

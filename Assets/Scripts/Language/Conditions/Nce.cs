@@ -15,8 +15,8 @@ namespace Language.Conditions {
         
         System.Action _setInteractionsOnce;
 
-        public Nce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) {
+        public Nce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
+            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
             _setInteractionsOnce = ((System.Action) SetInteractions).Once();
         }
 

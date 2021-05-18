@@ -15,7 +15,7 @@ namespace Language.Actions {
             new NullValue(),
         }, 100).ToArray());
         
-        public Log(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Log(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values, bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
         
         // ReSharper disable Unity.PerformanceAnalysis
         protected override IEnumerator ActionLogic() {
