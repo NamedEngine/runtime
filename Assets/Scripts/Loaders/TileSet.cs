@@ -6,12 +6,11 @@ public class TileSet {
     readonly GraphicsConverter _converter;
     readonly Texture2D _texture;
     readonly int _firstgid;
-    float _tileWidth;
-    public float TileWidth => _tileWidth;
-    float _tileHeight;
-    public float TileHeight => _tileHeight;
-    int _columns;
-    int _rows;
+    public float TileWidth { get; }
+    public float TileHeight { get; }
+    public Vector2 TileSize => new Vector2(TileWidth, TileHeight);
+    readonly int _columns;
+    readonly int _rows;
 
     Dictionary<int, Rect[]> _colliders;
 
@@ -20,8 +19,8 @@ public class TileSet {
         _converter = converter;
         _texture = texture;
         _firstgid = firstgid;
-        _tileWidth = tileWidth;
-        _tileHeight = tileHeight;
+        TileWidth = tileWidth;
+        TileHeight = tileHeight;
         _columns = columns;
         _rows = rows;
         _colliders = colliders ?? new Dictionary<int, Rect[]>();
@@ -41,13 +40,13 @@ public class TileSet {
         var col = tileIndex % _columns;
         var row = _rows - 1 - tileIndex / _columns;
         
-        var xPos = col * _tileWidth;
-        var yPos = row * _tileHeight;
+        var xPos = col * TileWidth;
+        var yPos = row * TileHeight;
         var pos = new Vector2(xPos, yPos);
-        var size = new Vector2(_tileWidth, _tileHeight);
+        var size = new Vector2(TileWidth, TileHeight);
         
         var rect = new Rect(pos, size);
-        return Sprite.Create(_texture, rect, Vector2.zero, _converter.PixelsPerUnit);
+        return Sprite.Create(_texture, rect, _converter.DefaultPivot, _converter.PixelsPerUnit);
     }
 
     public Rect[] GetCollider(int tile) {

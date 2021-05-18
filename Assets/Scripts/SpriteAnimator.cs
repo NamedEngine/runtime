@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,55 +7,20 @@ public class SpriteAnimator : MonoBehaviour {
     SpriteRenderer _spriteRenderer;
     GraphicsConverter _graphicsConverter;
     FileLoader _fileLoader;
-    SpriteHolder _defaultSprite;
+    Sprite _defaultSprite;
 
-    class SpriteHolder {
-        readonly Sprite[] _sprites = new Sprite[GetIndex(true, true) + 1];
-        readonly int _baseIdx = GetIndex(false, false);
-        
-        public SpriteHolder(Sprite sprite) {
-            _sprites[_baseIdx] = sprite;
-        }
-
-        public Sprite this[bool flipX, bool flipY] {
-            get {
-                var idx = GetIndex(flipX, flipY);
-                var res = _sprites[idx];
-                if (res != default) {
-                    return res;
-                }
-
-                var baseSprite = _sprites[_baseIdx];
-                var pivot = Vector2.zero;
-                if (flipX) {
-                    pivot.x += 1;
-                }
-                if (flipY) {
-                    pivot.y += 1;
-                }
-                
-                _sprites[idx] = Sprite.Create(baseSprite.texture, baseSprite.rect, pivot, baseSprite.pixelsPerUnit);
-                return _sprites[idx];
-            }
-        }
-
-        static int GetIndex(bool flipX, bool flipY) {
-            return Convert.ToInt32(flipX) * 1 + Convert.ToInt32(flipY) * 2;
-        }
-    }
-    
-    static readonly Dictionary<string, SpriteHolder> SpriteCache = new Dictionary<string, SpriteHolder>();
+    static readonly Dictionary<string, Sprite> SpriteCache = new Dictionary<string, Sprite>();
     static readonly Dictionary<string, string[]> PathToNamesCache = new Dictionary<string, string[]>();
 
-    SpriteHolder FromCacheOrLoad(string path) {
+    Sprite FromCacheOrLoad(string path) {
         if (!SpriteCache.ContainsKey(path)) {
-            SpriteCache[path] = new SpriteHolder(_graphicsConverter.PathToSprite(path));
+            SpriteCache[path] = _graphicsConverter.PathToSprite(path);
         }
         
         return SpriteCache[path];
     }
     
-    SpriteHolder[] FromCacheOrLoadDir(string dirPath) {
+    Sprite[] FromCacheOrLoadDir(string dirPath) {
         if (!PathToNamesCache.ContainsKey(dirPath)) {
             PathToNamesCache[dirPath] = _fileLoader
                 .LoadAllWithExtensionAndNames((path) => "", null, dirPath)
@@ -76,11 +40,11 @@ public class SpriteAnimator : MonoBehaviour {
         var utils = GameObject.Find("Utils");
         _graphicsConverter = utils.GetComponent<GraphicsConverter>();
         _fileLoader = utils.GetComponent<FileLoader>();
-        _defaultSprite = new SpriteHolder(_spriteRenderer.sprite);
+        _defaultSprite = _spriteRenderer.sprite;
     }
     
     public void UpdateDefaultSprite() {
-        _defaultSprite = new SpriteHolder(_spriteRenderer.sprite);
+        _defaultSprite = _spriteRenderer.sprite;
     }
 
     // TODO: something about sprite size?
@@ -93,12 +57,12 @@ public class SpriteAnimator : MonoBehaviour {
         InternalSetSprite(FromCacheOrLoad(path.ToProperPath()), flipX, flipY);
     }
 
-    void InternalSetSprite(SpriteHolder sprite, bool flipX, bool flipY) {
+    void InternalSetSprite(Sprite sprite, bool flipX, bool flipY) {
         StopAllCoroutines();
         _spriteRenderer.flipX = flipX;
         _spriteRenderer.flipY = flipY;
 
-        _spriteRenderer.sprite = sprite[flipX, flipY];
+        _spriteRenderer.sprite = sprite;
     }
 
     public void SetAnimation(string dirPath, float time, int repeats, bool flipX = false, bool flipY = false) {
@@ -123,7 +87,7 @@ public class SpriteAnimator : MonoBehaviour {
         var infinite = repeats == 0;
         var currSprite = 0;
         while (repeats >= 0) {
-            _spriteRenderer.sprite = sprites[currSprite][flipX, flipY];
+            _spriteRenderer.sprite = sprites[currSprite];
             currSprite = (currSprite + 1) % sprites.Length;
             
             if (infinite || repeats != 0) {

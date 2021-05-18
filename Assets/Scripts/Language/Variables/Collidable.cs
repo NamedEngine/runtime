@@ -12,7 +12,6 @@ namespace Language.Variables {
             _size = BoundGameObject.GetComponent<Size>();
             _size.RegisterCollider(_collider);
             _collider.size = _size.Value;
-            _collider.offset = _size.Value / 2;
         }
 
         readonly System.Action _setColliderOnce;

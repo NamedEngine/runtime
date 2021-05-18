@@ -17,8 +17,8 @@ namespace Language.Actions {
         protected override IEnumerator ActionLogic() {
             var deltaX = ((Value<float>) Arguments[0]).Get();
             var deltaY = ((Value<float>) Arguments[1]).Get();
-            var x = (Variable<float>) VariableDict[nameof(X)];
-            var y = (Variable<float>) VariableDict[nameof(Y)];
+            var x = (Variable<float>) VariableDict[nameof(CenterX)];
+            var y = (Variable<float>) VariableDict[nameof(CenterY)];
 
             var velocityX = (Variable<float>) VariableDict[nameof(VelocityX)];
             var velocityY = (Variable<float>) VariableDict[nameof(VelocityY)];

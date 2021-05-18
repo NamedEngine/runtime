@@ -13,8 +13,8 @@ namespace Language.Actions {
             bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            Arguments[0].TryTransferValueTo(VariableDict[nameof(X)]);
-            Arguments[1].TryTransferValueTo(VariableDict[nameof(Y)]);
+            Arguments[0].TryTransferValueTo(VariableDict[nameof(CenterX)]);
+            Arguments[1].TryTransferValueTo(VariableDict[nameof(CenterY)]);
 
             return null;
         }

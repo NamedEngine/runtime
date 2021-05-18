@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 namespace Language.Variables {
-    public class X : SpecialVariable<float> {
+    public class CenterX : SpecialVariable<float> {
         Size _size;
 
         void SetSize() {
@@ -13,18 +13,18 @@ namespace Language.Variables {
         protected override float SpecialGet() {
             _setSizeOnce();
 
-            return EngineAPI.GetSizePosConverter().PositionU2M(BoundGameObject.transform.position, _size.Height).x;
+            return EngineAPI.GetSizePosConverter().PositionU2M(BoundGameObject.transform.position).x;
         }
 
         protected override void SpecialSet(float value) {
             _setSizeOnce();
 
-            var x = EngineAPI.GetSizePosConverter().PositionM2U(new Vector2(value, 0), _size.Height).x;
+            var x = EngineAPI.GetSizePosConverter().PositionM2U(new Vector2(value, 0)).x;
             var pos = BoundGameObject.transform.position;
             BoundGameObject.transform.position = new Vector3(x, pos.y, pos.z);
         }
 
-        public X(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {
+        public CenterX(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {
             _setSizeOnce = ((System.Action) SetSize).Once();
         }
     }

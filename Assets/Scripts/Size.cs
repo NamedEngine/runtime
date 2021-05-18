@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 public class Size : MonoBehaviour {
     [SerializeField] Vector2 value;
-    HashSet<BoxCollider2D> _colliders = new HashSet<BoxCollider2D>();
+    readonly HashSet<BoxCollider2D> _colliders = new HashSet<BoxCollider2D>();
 
     public Vector2 Value {
         get => value;
@@ -27,7 +27,6 @@ public class Size : MonoBehaviour {
             .ToList()
             .ForEach(c => {
                 c.size = Value;
-                c.offset = Value / 2;
             });
         
         AfterResize.ForEach(a => a());
