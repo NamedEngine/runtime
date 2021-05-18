@@ -42,7 +42,7 @@ namespace Language.Classes {
             return new [] {
                 GetSpecialVariablePair<Collidable, bool>(true),
                 GetSpecialVariablePair<TopDownSpeed>(),
-                GetSpecialVariablePair<AnimationTime>(),
+                GetSpecialVariablePair<AnimationTime, float>(1),
                 GetSpecialVariablePair<IsXMoreImportant>(),
                 GetSpecialVariablePair<FlipXIfNotPresent>(),
                 GetSpecialVariablePair<FlipYIfNotPresent>(),
