@@ -33,7 +33,7 @@ namespace Language.Classes {
                 GetSpecialVariablePair<CenterY>(),
                 GetSpecialVariablePair<SizeX>(),
                 GetSpecialVariablePair<SizeY>(),
-                GetSpecialVariablePair<MaxCameraYSize, float>(0),
+                GetSpecialVariablePair<CameraMaxYSize, float>(0),
             };
         }
     }

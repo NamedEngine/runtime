@@ -2,7 +2,7 @@
 using UnityEngine;
 
 namespace Language.Variables.CameraFrame {
-    public class MaxCameraYSize : SpecialVariable<float> {
+    public class CameraMaxYSize : SpecialVariable<float> {
         Camera _camera;
         const int PlayerSizesInCamera = 5;
 
@@ -22,7 +22,7 @@ namespace Language.Variables.CameraFrame {
         protected override void SpecialSet(float value) {
             _setCameraOnce();
             if (value < 0) {
-                throw new LogicException(nameof(MaxCameraYSize), $"Can't set camera size to negative value {value}");
+                throw new LogicException(nameof(CameraMaxYSize), $"Can't set camera size to negative value {value}");
             }
 
             if (value == 0) {
@@ -43,7 +43,7 @@ namespace Language.Variables.CameraFrame {
             _camera.orthographicSize = value / 2;
         }
 
-        public MaxCameraYSize(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {
+        public CameraMaxYSize(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {
             _setCameraOnce = ((System.Action) SetCamera).Once();
         }
     }
