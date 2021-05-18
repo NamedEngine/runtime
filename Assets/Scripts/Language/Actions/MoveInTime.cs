@@ -27,6 +27,9 @@ namespace Language.Actions {
             var relative = (Arguments[3] as Value<bool>)?.Get() ?? false;
             
             if (!relative) {
+                var initialX = x.Get();
+                var initialY = y.Get();
+                
                 var newVelocityX = deltaX / time;
                 var newVelocityY = deltaY / time;
                 
@@ -35,8 +38,8 @@ namespace Language.Actions {
 
                 yield return new WaitForSeconds(time);
                 
-                x.Set(x + deltaX);
-                y.Set(y + deltaY);
+                x.Set(initialX + deltaX);
+                y.Set(initialY + deltaY);
             } else {
                 var mapDirection = new Vector2(deltaX, deltaY);
                 var unityDirection = EngineAPI.GetSizePosConverter().DirectionM2U(mapDirection);
