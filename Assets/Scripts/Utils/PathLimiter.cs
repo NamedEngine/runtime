@@ -12,6 +12,7 @@ public class PathLimiter : MonoBehaviour {
 
         if (!resultingPath.StartsWith(fullRootPath)) {
             throw new ArgumentOutOfRangeException("Path \"" + resultingPath + "\" is not in root path: \"" + fullRootPath + "\"");
+            // todo: to MAYBE logic exception + path existence check
         }
 
         return resultingPath;

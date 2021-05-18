@@ -150,21 +150,21 @@ public static class LogicUtils {
                     .ToArray();
         
                 if (possibleValueTypes.Length == 0) {
+                    var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" wasn't provided" +
+                                  "\n with any variable reference";
                     if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id],
-                            $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" wasn't provided" +
-                            "\n with any variable reference");
+                        throw new Rules.LogicParseException(idTofile[nodeInfo.id], message);
                     }
-                    throw new ArgumentException($"Can't deduce type for generic operator {type.Name}: no types are provided");
+                    throw new ArgumentException(message);
                 }
         
                 if (possibleValueTypes.Any(vt => vt != possibleValueTypes[0])) {  // not all types are same
+                    var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" was provided" +
+                                  "\n with any variable references of different types";
                     if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id],
-                            $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" was provided" +
-                            "\n with any variable references of different types");
+                        throw new Rules.LogicParseException(idTofile[nodeInfo.id], message);
                     }
-                    throw new ArgumentException($"Can't deduce type for generic operator {type.Name}: types are not the same");
+                    throw new ArgumentException(message);
                 }
         
                 type = type.MakeGenericType(ValueTypeConverter.GetType(possibleValueTypes[0]));

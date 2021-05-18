@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Language;
 using Rules;
 using UnityEngine;
 
@@ -44,7 +45,7 @@ public class LogicEngine : MonoBehaviour {
 
         public LogicObject CreateObject(string name, string className) {
             if (_engine._logicObjects.ContainsKey(name)) {
-                throw new ArgumentException("Object with name \"{name}\" already exists!");
+                return null;
             }
             
             var newObject = _engine.classInstantiator.CreateObject(className, _engine._logicClasses,
@@ -76,12 +77,13 @@ public class LogicEngine : MonoBehaviour {
     Dictionary<string, LogicObject> _logicClasses;
     Dictionary<string, LogicObject> _logicObjects;
 
+    void OnLogicError(Exception e) {
+        logicExceptionHandler.DisplayError(e.Message);
+        enabled = false;
+        // TODO: maybe also disable all logicObjects
+    }
+
     void Start() {
-        void OnLogicError(Exception e) {
-            logicExceptionHandler.DisplayError(e.Message);
-            enabled = false;
-        }
-        
         try {
             _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
@@ -89,18 +91,30 @@ public class LogicEngine : MonoBehaviour {
 
             var mapPath = "Maps/main.tmx".ToProperPath();
             var objectInfos = mapLoader.LoadMap(mapPath); // TODO
+
             _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
                 new LogicEngineAPI(this), _objectNameGenerator);
-            _logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
         }
         catch (LogicParseException e) {
+            OnLogicError(e);
+        }
+
+        try {
+            _logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
+        }
+        catch (LogicException e) {
             OnLogicError(e);
         }
     }
 
     void Update() {
         foreach (var logicObject in _logicObjects) {
-            logicObject.Value.ProcessLogic();
+            try {
+                logicObject.Value.ProcessLogic();
+            }
+            catch (LogicException e) {
+                OnLogicError(e);
+            }
         }
     }
 }

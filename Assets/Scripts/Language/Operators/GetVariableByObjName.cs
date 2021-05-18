@@ -43,7 +43,8 @@ namespace Language.Operators {
             var className = variableRef.ClassRef.ClassName;
             var obj = EngineAPI.GetObjectByName(objName, className);
             if (obj == null) {
-                throw new ArgumentException("Could not find object with name \"" + objName + "\" and type \"" + className +"\"");
+                throw new LogicException(nameof(GetVariableByObjName<T>),
+                    $"Could not find object with name \"{objName}\" and type \"{className}\"");
             }
 
             return obj;

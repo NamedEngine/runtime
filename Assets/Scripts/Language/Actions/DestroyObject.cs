@@ -17,7 +17,8 @@ namespace Language.Actions {
             var className = ((ClassRef) Arguments[1]).ClassName;
             var destroyed = EngineAPI.DestroyObject(objName, className);
             if (!destroyed) {
-                throw new ArgumentException("Could not find object with name \"" + objName + "\" and type \"" + className +"\"");
+                throw new LogicException(nameof(DestroyObject), 
+                    $"Could not find object with name \"{objName}\" and type \"{className}\"");
             }
 
             return null;

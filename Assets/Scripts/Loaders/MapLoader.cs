@@ -169,7 +169,7 @@ public class MapLoader : MonoBehaviour {
                     : "unnamed object";
                 var id = GetAttr(obj, "id");
                 throw new ArgumentException("Found unsupported type \"" + typeString + "\" in the " + objNaming +
-                                            " with id " + id);
+                                            " with id " + id);  // TODO: to map rules
             }
 
             var paramName = GetAttr(prop, "name");
