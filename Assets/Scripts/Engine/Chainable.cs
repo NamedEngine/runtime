@@ -21,7 +21,7 @@ public abstract class Chainable : IConstrainable {
         }
         
         var arguments = _constraints.CheckArgs(context.Arguments, this);
-        Context = new ConstrainableContext(context.Base, context.BoundGameObject, arguments);
+        Context = context.UpdateArguments(arguments);
     }
     
     int _parents;

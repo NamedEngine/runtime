@@ -23,6 +23,7 @@ public class LogicObject : MonoBehaviour {
     }
 
     public string Class { get; private set; }
+    string _name;
 
     public bool IsClass(string otherClass) {
         var isClass = Class == otherClass;
@@ -47,22 +48,25 @@ public class LogicObject : MonoBehaviour {
         if (!string.IsNullOrEmpty(_currentState)) {
             _logicStates[_currentState].Finish();
         }
+
+        var baseContext = new BaseContext(engineAPI, Variables, _name);
         
         _currentState = state;
-        _logicStates[_currentState].Start(this, engineAPI, Variables);
+        _logicStates[_currentState].Start(this, baseContext);
         _logicStates[_currentState].ProcessLogic();
     }
 
     protected LogicEngine.LogicEngineAPI EngineAPI;
     
     public void SetupObject(LogicState generalState, Dictionary<string, LogicState> logicStates, string currentState,
-        Dictionary<string, IVariable> logicVariables, string objectClass, LogicEngine.LogicEngineAPI engineAPI) {
+        Dictionary<string, IVariable> logicVariables, string objectClass, LogicEngine.LogicEngineAPI engineAPI, string objectName) {
         _generalState = generalState;
         _logicStates = logicStates;
         _currentState = currentState;
         _thisClassVariables = logicVariables;
         Class = objectClass;
         EngineAPI = engineAPI;
+        _name = objectName;
     }
 
     public void BeforeStartProcessing() {
@@ -86,20 +90,22 @@ public class LogicObject : MonoBehaviour {
         }
     }
 
-    public LogicObject Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI) {
+    public LogicObject Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI, string newObjectName) {
         var newObject = objectToAttachTo.AddComponent(GetType()) as LogicObject;
         Debug.Assert(newObject != null, nameof(newObject) + " != null");
         
-        newObject._baseObject = _baseObject ? _baseObject.Clone(objectToAttachTo, engineAPI) : null;
+        newObject._baseObject = _baseObject ? _baseObject.Clone(objectToAttachTo, engineAPI, null) : null;
         
         var clonedVariables = _thisClassVariables.ToDictionary(entry => entry.Key,
             entry => entry.Value.Clone(objectToAttachTo, engineAPI));
         newObject._thisClassVariables = clonedVariables;
+
+        var baseContext = new BaseContext(engineAPI, newObject.Variables, newObjectName);
         
-        var clonedGeneralState = _generalState?.Clone(newObject, engineAPI, newObject.Variables, objectToAttachTo);
+        var clonedGeneralState = _generalState?.Clone(newObject, baseContext, objectToAttachTo);
         var clonedStates = _logicStates.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(newObject, engineAPI, newObject.Variables, objectToAttachTo));
-        newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables, Class, engineAPI);
+            entry => entry.Value.Clone(newObject, baseContext, objectToAttachTo));
+        newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables, Class, engineAPI, newObjectName);
         
         return newObject;
     }
@@ -111,7 +117,7 @@ public class LogicObject : MonoBehaviour {
         
         // Debug.Log($":{inheritor.Class}: now inherits from :{Class}:");
 
-        inheritor._baseObject = Clone(inheritor.gameObject, engineAPI);
+        inheritor._baseObject = Clone(inheritor.gameObject, engineAPI, null);
         var inheritorVariableNames = inheritor._thisClassVariables.Keys.ToArray();
         foreach (var variableName in inheritorVariableNames) {
             var got = inheritor._baseObject.Variables.TryGetValue(variableName, out var variable);

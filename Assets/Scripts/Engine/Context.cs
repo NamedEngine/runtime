@@ -1,21 +1,23 @@
 ﻿using UnityEngine;
 
-public class BaseContex {
+public class BaseContext {
     public readonly LogicEngine.LogicEngineAPI EngineAPI;
     public readonly DictionaryWrapper<string, IVariable> VariableDict;
+    public readonly string Name;
     
-    public BaseContex(LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDict) {
+    public BaseContext(LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDict, string name) {
         EngineAPI = engineAPI;
         VariableDict = variableDict;
+        Name = name;
     }
 }
 
 public class ArgumentLocationContext {
-    public readonly BaseContex Base;
+    public readonly BaseContext Base;
     public readonly LogicObject LogicObject;
     public readonly IValue[] PreparedOperators;
     
-    public ArgumentLocationContext(BaseContex baseContex, LogicObject logicObject, IValue[] operators) {
+    public ArgumentLocationContext(BaseContext baseContex, LogicObject logicObject, IValue[] operators) {
         Base = baseContex;
         LogicObject = logicObject;
         PreparedOperators = operators;
@@ -23,13 +25,17 @@ public class ArgumentLocationContext {
 }
 
 public class ConstrainableContext {
-    public readonly BaseContex Base;
+    public readonly BaseContext Base;
     public readonly GameObject BoundGameObject;
     public readonly IValue[] Arguments;
     
-    public ConstrainableContext(BaseContex baseContex, GameObject boundGameObject, IValue[] arguments) {
+    public ConstrainableContext(BaseContext baseContex, GameObject boundGameObject, IValue[] arguments) {
         Base = baseContex;
         Arguments = arguments;
         BoundGameObject = boundGameObject;
+    }
+
+    public ConstrainableContext UpdateArguments(IValue[] newArguments) {
+        return new ConstrainableContext(Base, BoundGameObject, newArguments);
     }
 }

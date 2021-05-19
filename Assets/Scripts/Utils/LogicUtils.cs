@@ -73,7 +73,7 @@ public static class LogicUtils {
                 logicObject.BaseVariables().ToDictionary(
                     pair => pair.Item1,
                     pair => pair.Item2(logicObject.gameObject, null)), 
-                logicObject.BaseClassName(), null);
+                logicObject.BaseClassName(), null, null);
 
             return logicObject;
         }

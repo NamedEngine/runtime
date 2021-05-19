@@ -185,7 +185,7 @@ public class LogicLoader : MonoBehaviour {
         var currentState = currentStates.FirstOrDefault() ?? "";
 
         // Debug.Log("ACTUALLY Setuping object: " + classInfo.name);
-        logicObject.SetupObject(generalState, states, currentState, objectVariables, classInfo.name, null);
+        logicObject.SetupObject(generalState, states, currentState, objectVariables, classInfo.name, null, null);
     }
 
     Dictionary<string, (string, IVariable)> GetVariables(ParsedNodeInfo classInfo, Dictionary<string,ParsedNodeInfo> parsedNodes) {
@@ -324,7 +324,7 @@ public class LogicLoader : MonoBehaviour {
         var chainInfo = new LogicChainInfo(operatorInstantiators, chainableInstantiators, chainableRelations.ToArray());
         
         // Debug.Log("Setuping chain " + chainStartInfo.id);
-        chain.SetupChain(logicObject, null, objectVariables, chainInfo);
+        chain.SetupChain(logicObject, new BaseContext(null, objectVariables, null), chainInfo);
         // Debug.Log("SETUPED chain " + chainStartInfo.id);
         
         return chain;

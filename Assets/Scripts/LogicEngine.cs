@@ -48,7 +48,7 @@ public class LogicEngine : MonoBehaviour {
                 return null;
             }
             
-            var newObject = _engine.classInstantiator.CreateObject(className, _engine._logicClasses,
+            var newObject = _engine.classInstantiator.CreateObject(name, className, _engine._logicClasses,
                 MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
             _engine._logicObjects.Add(name, newObject);
 

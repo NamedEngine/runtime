@@ -62,7 +62,7 @@ public class ObjectTest : MonoBehaviour {
         };
         var lci11 = new LogicChainInfo(vals11, ch11, rels11);
         var lc11 = gameObject.AddComponent<LogicChain>();
-        lc11.SetupChain(_logicObject, null, variables, lci11);
+        lc11.SetupChain(_logicObject, new BaseContext(null, variables, null), lci11);
         
         OperatorInstantiator[] vals12 = {};
         ChainableInstantiator[] ch12 = {nce3, wait05, logImpatince};
@@ -72,7 +72,7 @@ public class ObjectTest : MonoBehaviour {
         };
         var lci12 = new LogicChainInfo(vals12, ch12, rels12);
         var lc12 = gameObject.AddComponent<LogicChain>();
-        lc12.SetupChain(_logicObject, null, variables, lci12);
+        lc12.SetupChain(_logicObject, new BaseContext(null, variables, null), lci12);
         
         var state1 = new LogicState(new [] {lc11, lc12});
         
@@ -84,7 +84,7 @@ public class ObjectTest : MonoBehaviour {
         };
         var lci21 = new LogicChainInfo(vals21, ch21, rels21);
         var lc21 = gameObject.AddComponent<LogicChain>();
-        lc21.SetupChain(_logicObject, null, variables, lci21);
+        lc21.SetupChain(_logicObject, new BaseContext(null, variables, null), lci21);
         
         var state2 = new LogicState(new [] {lc21, lc21});
 
@@ -93,7 +93,7 @@ public class ObjectTest : MonoBehaviour {
             {"State 2", state2}
         };
         
-        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables, "", null);
+        _logicObject.SetupObject(new LogicState(new LogicChain[] {}), states, "State 1", variables, "", null, null);
 
         StartCoroutine(ChangeObject());
     }
@@ -106,7 +106,7 @@ public class ObjectTest : MonoBehaviour {
     IEnumerator ChangeObject() {
         yield return new WaitForSeconds(10);
         Debug.Log("SETUPING SECOND");
-        var newObject = _logicObject.Clone(gameObject, null);
+        var newObject = _logicObject.Clone(gameObject, null, null);
         var tempObj = _logicObject;
         _logicObject = null;
         
@@ -124,7 +124,7 @@ public class ObjectTest : MonoBehaviour {
         
         yield return new WaitForSeconds(10);
         Debug.Log("SETUPING THIRD");
-        newObject = _logicObject.Clone(gameObject, null);
+        newObject = _logicObject.Clone(gameObject, null, null);
         tempObj = _logicObject;
         _logicObject = null;
         

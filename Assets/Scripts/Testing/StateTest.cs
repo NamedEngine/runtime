@@ -54,7 +54,7 @@ public class StateTest : MonoBehaviour {
         };
         var lci11 = new LogicChainInfo(vals11, ch11, rels11);
         var lc11 = gameObject.AddComponent<LogicChain>();
-        lc11.SetupChain(null, null, _variables, lci11);
+        lc11.SetupChain(null, new BaseContext(null, _variables, null), lci11);
         
         OperatorInstantiator[] vals12 = {};
         ChainableInstantiator[] ch12 = {wait5, logPatince};
@@ -63,7 +63,7 @@ public class StateTest : MonoBehaviour {
         };
         var lci12 = new LogicChainInfo(vals12, ch12, rels12);
         var lc12 = gameObject.AddComponent<LogicChain>();
-        lc12.SetupChain(null, null, _variables, lci12);
+        lc12.SetupChain(null, new BaseContext(null, _variables, null), lci12);
         
         _state1 = new LogicState(new [] {lc11, lc12});
         
@@ -74,7 +74,7 @@ public class StateTest : MonoBehaviour {
         };
         var lci21 = new LogicChainInfo(vals21, ch21, rels21);
         var lc21 = gameObject.AddComponent<LogicChain>();
-        lc21.SetupChain(null, null, _variables, lci21);
+        lc21.SetupChain(null, new BaseContext(null, _variables, null), lci21);
         
         _state2 = new LogicState(new [] {lc21, lc21});
 
@@ -91,7 +91,7 @@ public class StateTest : MonoBehaviour {
         
         
         Debug.Log("Starting state 2");
-        _state2.Start(null, null, _variables);
+        _state2.Start(null, new BaseContext(null, _variables, null));
         _state2.ProcessLogic();
         yield return new WaitForSeconds(4f);
         Debug.Log("Finishing state 2");

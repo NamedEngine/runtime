@@ -26,16 +26,16 @@ public class ClassInstantiator : MonoBehaviour {
             }
 
             var className = classParameter.Value;
-            var newObject = CreateObject(className, classes, objectInfo, classPrefabs, engineAPI);
-
             var newObjName = objectInfo.Name != "" ? objectInfo.Name : idGenerator.NewId();
+            var newObject = CreateObject(newObjName, className, classes, objectInfo, classPrefabs, engineAPI);
+
             resultingObjects.Add(newObjName, newObject);
         }
 
         return resultingObjects;
     }
 
-    public LogicObject CreateObject(string className, Dictionary<string, LogicObject> classes,
+    public LogicObject CreateObject(string objectName, string className, Dictionary<string, LogicObject> classes,
         MapObjectInfo objectInfo, Dictionary<string, GameObject> classPrefabs,
         LogicEngine.LogicEngineAPI engineAPI) {
         if (!classes.ContainsKey(className)) {
@@ -56,7 +56,7 @@ public class ClassInstantiator : MonoBehaviour {
         
         var newGameObject = Instantiate(prefab, new Vector3(), Quaternion.identity);
         
-        var newObject = @class.Clone(newGameObject, engineAPI);
+        var newObject = @class.Clone(newGameObject, engineAPI, objectName);
 
         newObject.transform.position = objectInfo.Rect.position;
         

@@ -13,17 +13,16 @@ public class LogicChain : MonoBehaviour {
 
     LogicChainInfo _info;
 
-    public void ResetChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary) {
-        SetupChain(thisObject, engineAPI, variableDictionary, _info);    
+    public void ResetChain(LogicObject thisObject, BaseContext baseContex) {
+        SetupChain(thisObject, baseContex, _info);    
     }
     
-    public void SetupChain(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary, LogicChainInfo info) { // TODO: thb this stinks
+    public void SetupChain(LogicObject thisObject, BaseContext baseContex, LogicChainInfo info) {
         if (IsRunning) {
             throw new Exception("Should not setup chain when running");
         }
         
         // TODO maybe remove "Need sorted value instantiators" constraint
-        var baseContex = new BaseContex(engineAPI, variableDictionary);
         var argLocContext =
             new ArgumentLocationContext(baseContex, thisObject, new IValue[info.OperatorInstantiators.Length]);
         
@@ -91,9 +90,9 @@ public class LogicChain : MonoBehaviour {
         _coroCount = 0;
     }
     
-    public LogicChain Clone(LogicObject newObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variableDictionary, GameObject objectToAttachTo) {
+    public LogicChain Clone(LogicObject newObject, BaseContext baseContext, GameObject objectToAttachTo) {
         var newChain = objectToAttachTo.AddComponent<LogicChain>();
-        newChain.SetupChain(newObject, engineAPI, variableDictionary, _info);
+        newChain.SetupChain(newObject, baseContext, _info);
         return newChain;
     }
 }

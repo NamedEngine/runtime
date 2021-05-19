@@ -2,7 +2,6 @@
 using Actions;
 using Conditions;
 using UnityEngine;
-using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
 using OperatorInstantiator = System.Func<ArgumentLocationContext, IValue>;
 using ChainableInstantiator = System.Func<ArgumentLocationContext, Chainable>;
 
@@ -27,7 +26,7 @@ public class ChainTest : MonoBehaviour {
         };
 
         var chainInfo = new LogicChainInfo(new OperatorInstantiator[]{}, instantiators, relations);
-        _chain.SetupChain(null, null,new VariableDictionary(), chainInfo);
+        _chain.SetupChain(null, new BaseContext(null,null, null), chainInfo);
         _chain.Execute();
 
         StartCoroutine(CopyTest());
@@ -36,7 +35,7 @@ public class ChainTest : MonoBehaviour {
     IEnumerator CopyTest() {
         yield return new WaitForSeconds(3);
         Debug.Log("LESS COPY");
-        var chainCopy = _chain.Clone(null, null, new VariableDictionary(), gameObject);
+        var chainCopy = _chain.Clone(null, new BaseContext(null,null, null), gameObject);
         chainCopy.Execute();
     }
 }
