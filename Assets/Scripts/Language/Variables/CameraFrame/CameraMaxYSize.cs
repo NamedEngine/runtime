@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Language.Variables.CameraFrame {
     public class CameraMaxYSize : SpecialVariable<float> {
-        Camera _camera;
+        CameraController _cameraController;
         const int PlayerSizesInCamera = 5;
 
         void SetCamera() {
-            _camera = Camera.main;
+            _cameraController = Camera.main.GetComponent<CameraController>();
         }
 
         readonly System.Action _setCameraOnce;
@@ -16,7 +16,7 @@ namespace Language.Variables.CameraFrame {
         protected override float SpecialGet() {
             _setCameraOnce();
             
-            return _camera.orthographicSize * 2;
+            return _cameraController.maxHeight;
         }
 
         protected override void SpecialSet(float value) {
@@ -28,7 +28,7 @@ namespace Language.Variables.CameraFrame {
             if (value == 0) {
                 var players = GameObject.FindGameObjectsWithTag("Player");
                 if (players.Length == 0) {
-                    _camera.orthographicSize = float.Epsilon;
+                    _cameraController.maxHeight = float.Epsilon;
                     return;
                 }
 
@@ -36,11 +36,11 @@ namespace Language.Variables.CameraFrame {
                     .Select(p => p.GetComponent<Size>())
                     .Aggregate(0f, (res, size) => res + size.Value.y) / players.Length;
 
-                _camera.orthographicSize = PlayerSizesInCamera * meanSize / 2;
+                _cameraController.maxHeight = PlayerSizesInCamera * meanSize;
                 return;
             }
             
-            _camera.orthographicSize = value / 2;
+            _cameraController.maxHeight = value;
         }
 
         public CameraMaxYSize(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI) : base(gameObject, engineAPI) {

@@ -8,6 +8,8 @@ using static LogicUtils;
 
 namespace Language.Classes {
     public class TopDownPlayer : BaseClass {
+        CameraController _cameraController;
+        
         protected override void BeforeStartProcessingInternal() {
             GetComponents<BoxCollider2D>()
                 .Where(coll => !coll.isTrigger)
@@ -25,7 +27,8 @@ namespace Language.Classes {
             AdjustColliders();
             GetComponent<Size>().AfterResize.Add(AdjustColliders);
             
-            Camera.main.GetComponent<CameraController>().AddPlayer(this);
+            _cameraController = Camera.main.GetComponent<CameraController>();
+            _cameraController.AddPlayer(this);
         }
 
         public override string ShouldInheritFrom() {
@@ -53,6 +56,12 @@ namespace Language.Classes {
                 GetSpecialVariablePair<StandAnimationUp>(),
                 GetSpecialVariablePair<StandAnimationDown>(),
             };
+        }
+
+        void OnDestroy() {  // TODO: maybe introduce AfterFinishProcessing(Internal)
+            if (_cameraController) {
+                _cameraController.RemovePlayer(this);
+            }
         }
     }
 }

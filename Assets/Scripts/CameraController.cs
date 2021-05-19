@@ -6,8 +6,17 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
     Camera _camera;
     CameraFrame _frame;
-    List<TopDownPlayer> _players = new List<TopDownPlayer>();
-    float _currentMaxHeight;
+    readonly HashSet<TopDownPlayer> _players = new HashSet<TopDownPlayer>();
+    public float maxHeight;
+    float CurrentHeight {
+        get => _camera.orthographicSize * 2;
+        set => _camera.orthographicSize = value / 2;
+    }
+
+    Vector2 Position {
+        get => transform.position;
+        set => transform.position = new Vector3(value.x, value.y, transform.position.z);
+    }
 
     void Awake() {
         _camera = GetComponent<Camera>();
@@ -21,28 +30,47 @@ public class CameraController : MonoBehaviour {
         _players.Add(player);
     }
 
-    void LateUpdate() {
-        if (_players.Count == 0) {
-            return;
-        }
-
-        var newPos = _players
-            .Select(player => player.transform.position)
-            .Aggregate(new Vector3(0 , 0, transform.position.z), (res, pos) => res + pos) / _players.Count;
-
-        if (_frame == null || _frame.size.Value == Vector2.zero) {
-            transform.position = newPos;
-            return;
-        }
-        //TODO frame logic
-
-        // _currentMaxHeight
-        // var frameBounds = GetFrameBounds(_frame);
-        // var cameraBounds = _camera.
-        transform.position = newPos;
+    public void RemovePlayer(TopDownPlayer player) {
+        _players.Remove(player);
     }
 
-    static Bounds GetFrameBounds(CameraFrame frame) {
-        return new Bounds(frame.transform.position, frame.size.Value);
+    void LateUpdate() {
+        var newPosition = GetNewPosition();
+        AdjustPositionAndHeight(newPosition, _frame);
+    }
+
+    Vector2 GetNewPosition() {
+        if (_players.Count == 0) {
+            return Position;
+        }
+
+        var newPosition = _players
+            .Select(player => (Vector2) player.transform.position)
+            .Aggregate(new Vector2(0 , 0), (res, pos) => res + pos) / _players.Count;
+
+        return newPosition;
+    }
+
+    void AdjustPositionAndHeight(Vector2 newPosition, CameraFrame frame) {
+        Position = newPosition;
+        
+        if (frame == null || frame.size.Value == Vector2.zero) {
+            CurrentHeight = maxHeight;
+            return;
+        }
+        
+        CurrentHeight = Mathf.Min(maxHeight, GetMaxHeightFromFrame(frame));
+
+        var cameraCenterBounds = GetCameraCenterBounds(frame);
+        Position = cameraCenterBounds.ClosestPoint(Position);
+    }
+    
+    float GetMaxHeightFromFrame(CameraFrame frame) {
+        return Mathf.Min(frame.size.Value.y, frame.size.Value.x / _camera.aspect);
+    }
+
+    Bounds GetCameraCenterBounds(CameraFrame frame) {
+        var cameraSize = new Vector2(_camera.aspect * CurrentHeight, CurrentHeight);
+        return new Bounds(frame.transform.position, frame.size.Value - cameraSize);
     }
 }
