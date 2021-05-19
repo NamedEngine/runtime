@@ -98,7 +98,6 @@ public static class LogicUtils {
                     .ToDictionary(pair => pair.Item2, pair => pair.Item1));
 
         var baseClassVariables = InstantiateBaseClasses(() => instantiator)
-            // .Select(t => instantiator.GetInstance(t) as LogicObject)
             .ToDictionary(logicClass => logicClass.Class, logicClass => logicClass.Variables);
 
         return (classVariables, baseClassVariables);
@@ -127,8 +126,7 @@ public static class LogicUtils {
 
     static readonly Dictionary<string, ConstructorInfo> ConstructorByNodeCache = new Dictionary<string, ConstructorInfo>();
     public static IConstrainable GetConstrainable(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
-        Dictionary<string, string> idTofile, TemporaryInstantiator instantiator, GameObject gameObject = null,
-        LogicEngine.LogicEngineAPI engineAPI = null, DictionaryWrapper<string, IVariable> variables = null, IValue[] arguments = null, bool constraintReference = true) {
+        Dictionary<string, string> idTofile, TemporaryInstantiator instantiator, ConstrainableContext context = null, bool constraintReference = true) {
         ConstructorInfo constructor;
         if (ConstructorByNodeCache.ContainsKey(nodeInfo.id)) {
             constructor = ConstructorByNodeCache[nodeInfo.id];
@@ -169,14 +167,12 @@ public static class LogicUtils {
         
                 type = type.MakeGenericType(ValueTypeConverter.GetType(possibleValueTypes[0]));
             }
-            constructor = type.GetConstructor(new[] {typeof(GameObject), typeof(LogicEngine.LogicEngineAPI), 
-                typeof(DictionaryWrapper<string, IVariable>), typeof(IValue[]), typeof(bool)});
+            constructor = type.GetConstructor(new[] {typeof(ConstrainableContext), typeof(bool)});
             ConstructorByNodeCache[nodeInfo.id] = constructor;
         }
 
         Debug.Assert(constructor != null, nameof(constructor) + " != null");
-        return constructor.Invoke(new object[] {gameObject, engineAPI, variables, arguments,
-            constraintReference}) as IConstrainable;
+        return constructor.Invoke(new object[] {context, constraintReference}) as IConstrainable;
     }
 
     public static SpecialVariableInstantiator GetSpecialVariableInstantiator(Type type) {

@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Language.Variables;
-using UnityEngine;
 
 namespace Language.Actions {
     public class MoveTo : Action {
@@ -9,12 +8,11 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public MoveTo(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public MoveTo(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            Arguments[0].TryTransferValueTo(VariableDict[nameof(CenterX)]);
-            Arguments[1].TryTransferValueTo(VariableDict[nameof(CenterY)]);
+            Context.Arguments[0].TryTransferValueTo(Context.Base.VariableDict[nameof(CenterX)]);
+            Context.Arguments[1].TryTransferValueTo(Context.Base.VariableDict[nameof(CenterY)]);
 
             return null;
         }

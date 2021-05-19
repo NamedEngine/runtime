@@ -1,32 +1,27 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
-    protected readonly GameObject BoundGameObject;
-    protected readonly DictionaryWrapper<string, IVariable> VariableDict;
-    protected readonly LogicEngine.LogicEngineAPI EngineAPI;
-    protected readonly IValue[] Arguments;
-    // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
+    protected readonly ConstrainableContext Context;
+        // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
     readonly bool _constraintReference;
     readonly LogicTypeConstraints _constraints;
     public IValue[][] GetConstraints() {
         return _constraints.ArgTypes;
     }
 
-    protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI,
-        DictionaryWrapper<string, IVariable> variables, IValue[] arguments, bool constraintReference) {
+    protected Chainable(IValue[][] argTypes, ConstrainableContext context, bool constraintReference) {
         _constraintReference = constraintReference;
-        BoundGameObject = gameObject;
-        VariableDict = variables;
-        EngineAPI = engineAPI;
-
         _constraints = new LogicTypeConstraints(argTypes);
-        if (!_constraintReference) {
-            Arguments = _constraints.CheckArgs(arguments, this);
+
+        if (_constraintReference) {
+            return;
         }
+        
+        var arguments = _constraints.CheckArgs(context.Arguments, this);
+        Context = new ConstrainableContext(context.Base, context.BoundGameObject, arguments);
     }
     
     int _parents;

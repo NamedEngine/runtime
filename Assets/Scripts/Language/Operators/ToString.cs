@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class ToString : Operator<string> {
@@ -12,11 +11,10 @@ namespace Language.Operators {
             },
         };
 
-        public ToString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public ToString(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override string InternalGet() {
-            switch (Arguments[0]) {
+            switch (Context.Arguments[0]) {
                 case Value<int> intVal:
                     return intVal.ToString();
                 case Value<float> floatVal:

@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class SignF : Operator<float> {
@@ -7,11 +6,10 @@ namespace Language.Operators {
             new IValue[] {new Value<float>()},
         };
 
-        public SignF(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public SignF(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override float InternalGet() {
-            return Math.Sign((Value<float>) Arguments[0]);
+            return Math.Sign((Value<float>) Context.Arguments[0]);
         }
     }
 }

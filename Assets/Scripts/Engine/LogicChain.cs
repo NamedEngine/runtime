@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-
 using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue>;
 using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], Chainable>;
 
@@ -24,16 +23,19 @@ public class LogicChain : MonoBehaviour {
         }
         
         // TODO maybe remove "Need sorted value instantiators" constraint
-        var preparedOperators = new IValue[info.OperatorInstantiators.Length];
-        for (int i = 0; i < preparedOperators.Length; i++) {
-            preparedOperators[i] = info.OperatorInstantiators[i](thisObject, engineAPI, variableDictionary, preparedOperators);
+        var baseContex = new BaseContex(engineAPI, variableDictionary);
+        var argLocContext =
+            new ArgumentLocationContext(baseContex, thisObject, new IValue[info.OperatorInstantiators.Length]);
+        
+        for (var i = 0; i < argLocContext.PreparedOperators.Length; i++) {
+            argLocContext.PreparedOperators[i] = info.OperatorInstantiators[i](argLocContext);
         }
 
         var preparedChainables = info.ChainableInstantiators
-            .Select(chInst => chInst(thisObject, engineAPI, variableDictionary, preparedOperators))
+            .Select(chInst => chInst(argLocContext))
             .ToArray();
 
-        for (int parent = 0; parent < preparedChainables.Length; parent++) {
+        for (var parent = 0; parent < preparedChainables.Length; parent++) {
             var children = info.ChainableRelations
                 .Where(pair => pair.Item1 == parent)
                 .Select(pair => pair.Item2)

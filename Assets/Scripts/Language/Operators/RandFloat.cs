@@ -1,6 +1,4 @@
 ﻿using System;
-using UnityEngine;
-using Random = System.Random;
 
 namespace Language.Operators {
     public class RandFloat : Operator<float> {
@@ -10,12 +8,11 @@ namespace Language.Operators {
         };
         readonly Random _random = new Random();
         
-        public RandFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public RandFloat(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override float InternalGet() {
-            var minValue = Arguments[0] as Value<float> ?? float.MinValue;
-            var maxValue = Arguments[1] as Value<float> ?? float.MaxValue;
+            var minValue = Context.Arguments[0] as Value<float> ?? float.MinValue;
+            var maxValue = Context.Arguments[1] as Value<float> ?? float.MaxValue;
             return minValue + Convert.ToSingle(_random.NextDouble() * Convert.ToDouble(maxValue - minValue));
         }
     }

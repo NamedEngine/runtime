@@ -10,19 +10,18 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public MoveToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public MoveToInTime(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var newX = ((Value<float>) Arguments[0]).Get();
-            var newY = ((Value<float>) Arguments[1]).Get();
-            var x = (Variable<float>) VariableDict[nameof(CenterX)];
-            var y = (Variable<float>) VariableDict[nameof(CenterY)];
+            var newX = ((Value<float>) Context.Arguments[0]).Get();
+            var newY = ((Value<float>) Context.Arguments[1]).Get();
+            var x = (Variable<float>) Context.Base.VariableDict[nameof(CenterX)];
+            var y = (Variable<float>) Context.Base.VariableDict[nameof(CenterY)];
 
-            var velocityX = (Variable<float>) VariableDict[nameof(VelocityX)];
-            var velocityY = (Variable<float>) VariableDict[nameof(VelocityY)];
+            var velocityX = (Variable<float>) Context.Base.VariableDict[nameof(VelocityX)];
+            var velocityY = (Variable<float>) Context.Base.VariableDict[nameof(VelocityY)];
             
-            var time = ((Value<float>) Arguments[2]).Get();
+            var time = ((Value<float>) Context.Arguments[2]).Get();
 
             var newVelocityX = (newX - x) / time;
             var newVelocityY = (newY - y) / time;

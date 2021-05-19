@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Conditions {
     public class Nce : Condition {
@@ -10,13 +9,12 @@ namespace Language.Conditions {
         int _activationsLeft;
 
         void SetInteractions() {
-            _activationsLeft = (Value<int>) Arguments[0];
+            _activationsLeft = (Value<int>) Context.Arguments[0];
         }
         
         System.Action _setInteractionsOnce;
 
-        public Nce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
+        public Nce(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) {
             _setInteractionsOnce = ((System.Action) SetInteractions).Once();
         }
 

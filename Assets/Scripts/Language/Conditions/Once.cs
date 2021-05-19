@@ -1,14 +1,10 @@
-﻿using System;
-using UnityEngine;
-
-namespace Language.Conditions {
+﻿namespace Language.Conditions {
     public class Once : Condition {
         static readonly IValue[][] ArgTypes = { };
 
         bool _activated;
 
-        public Once(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public Once(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool ConditionLogic() {
             var res = !_activated;

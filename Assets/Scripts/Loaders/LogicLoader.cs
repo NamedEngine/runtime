@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Language;
 using UnityEngine;
-
 using VariableIdDict = System.Collections.Generic.Dictionary<string, (string, IVariable)>;
 using AllClassesVariables = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, (string, IVariable)>>;
 
@@ -331,7 +330,7 @@ public class LogicLoader : MonoBehaviour {
         return chain;
     }
 
-    Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], TOut> GetNodeInstantiator<TOut>(ParsedNodeInfo node,
+    Func<ArgumentLocationContext, TOut> GetNodeInstantiator<TOut>(ParsedNodeInfo node,
         Dictionary<string, (string, Action<LogicObject, LogicEngine.LogicEngineAPI>)> stateNameAndSetterById, VariableIdDict variables,
         AllClassesVariables allVariables, Dictionary<string, int> operatorPositions, Dictionary<string, ParsedNodeInfo> parsedNodes)
         where TOut : class {
@@ -339,31 +338,33 @@ public class LogicLoader : MonoBehaviour {
         if (node.type == NodeType.State) {
             // Debug.Log("Returning state setter");
             var setter = stateNameAndSetterById[node.id].Item2;
-            return (logicObject, engineAPI, dictionary, values) => new SetState(() => setter(logicObject, engineAPI)) as TOut;
+            return (argLocContext) => new SetState(() => setter(argLocContext.LogicObject, argLocContext.Base.EngineAPI)) as TOut;
         }
 
         var constraints = LogicUtils.GetConstrainable(node, parsedNodes, null, temporaryInstantiator).GetConstraints();
         temporaryInstantiator.Clear();
         // Debug.Log("Getting value locators");
-        var valueLocators = node.parameters
+        var argumentLocators = node.parameters
             .Select(parameterId => parsedNodes[parameterId])
-            .Select(parameterInfo => GetValueLocator(parameterInfo, constraints, variables, allVariables, operatorPositions, parsedNodes))
+            .Select(parameterInfo => GetArgumentLocator(parameterInfo, constraints, variables, allVariables, operatorPositions, parsedNodes))
             .ToArray();
         
-        return (logicObject, engineAPI, dictionary, values) => {
-            var usedValues = valueLocators
-                .Select(loc => loc(logicObject, engineAPI, dictionary, values))
+        return (argumentLocationContext) => {
+            var usedValues = argumentLocators
+                .Select(loc => loc(argumentLocationContext))
                 .ToArray();
-            
-            var instance = LogicUtils.GetConstrainable(node, parsedNodes, null, temporaryInstantiator,
-                logicObject.gameObject, engineAPI, dictionary, usedValues, false) as TOut;
+
+            var context = new ConstrainableContext(argumentLocationContext.Base,
+                argumentLocationContext.LogicObject.gameObject, usedValues);
+            var instance = LogicUtils.GetConstrainable(node, parsedNodes, null, temporaryInstantiator, context,
+                false) as TOut;
             temporaryInstantiator.Clear();
 
             return instance;
         };
     }
 
-    static Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue> GetValueLocator(ParsedNodeInfo parameter,
+    static Func<ArgumentLocationContext, IValue> GetArgumentLocator(ParsedNodeInfo parameter,
         IValue[][] constraints, VariableIdDict variables, AllClassesVariables allVariables, Dictionary<string, int> operatorPositions,
         Dictionary<string, ParsedNodeInfo> parsedNodes) {
         var sourceId = parameter.prev.FirstOrDefault() ?? "";
@@ -380,25 +381,25 @@ public class LogicLoader : MonoBehaviour {
         switch (sourceNode.type) {
             case NodeType.Variable:
                 // Debug.Log("Creating locator for variable with name: " + variables[sourceId].Item1);
-                return (logicObject, engineAPI, dictionary, values) => dictionary[variables[sourceId].Item1];
+                return (argumentLocationContext) => argumentLocationContext.Base.VariableDict[variables[sourceId].Item1];
             case NodeType.Operator:
                 // Debug.Log("Creating locator for operator with position: " + operatorPositions[sourceId]);
-                return (logicObject, engineAPI, dictionary, values) => values[operatorPositions[sourceId]];
+                return (argumentLocationContext) => argumentLocationContext.PreparedOperators[operatorPositions[sourceId]];
             case NodeType.Class:
             case NodeType.ClassRef:
-                return (logicObject, engineAPI, dictionary, values) => GetClassRef(sourceId);
+                return (argumentLocationContext) => GetClassRef(sourceId);
             case NodeType.VariableRef:
                 var classRefNodeId = sourceNode.prev.First();
                 var classRef = GetClassRef(classRefNodeId);
                 var varName = sourceNode.name;
                 var varType = allVariables[classRef.ClassName].Values.First(pair => pair.Item1 == varName).Item2.GetValueType();
-                return (logicObject, engineAPI, dictionary, values) => new VariableRef(classRef, varName, varType);
+                return (argumentLocationContext) => new VariableRef(classRef, varName, varType);
             default:
                 throw new ApplicationException("This should not be possible!");
         }
     }
 
-    static Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue> GetBareParameterInstantiator(ParsedNodeInfo parameter,
+    static Func<ArgumentLocationContext, IValue> GetBareParameterInstantiator(ParsedNodeInfo parameter,
         IValue[][] constraints, Dictionary<string, ParsedNodeInfo> parsedNodes) {
         var parameterIndex = parsedNodes[parameter.parent].parameters.ToList().FindIndex(id => id == parameter.id);
         var possibleValueTypes = constraints[parameterIndex]
@@ -413,6 +414,6 @@ public class LogicLoader : MonoBehaviour {
         }
 
         var possibleType = possibleValueTypes[0];
-        return (logicObject, engineAPI, dictionary, values) => ValueTypeConverter.GetValueByType(possibleType, parameter.name);
+        return (argumentLocationContext) => ValueTypeConverter.GetValueByType(possibleType, parameter.name);
     }
 }

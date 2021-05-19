@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using UnityEngine;
 
 namespace Language.Actions {
     public class CreateObject : Action {
@@ -9,12 +8,11 @@ namespace Language.Actions {
             new IValue[] {new ClassRef()},
         };
 
-        public CreateObject(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public CreateObject(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var objName = ((Value<string>) Arguments[0]).Get();
-            var res = EngineAPI.CreateObject(objName, ((ClassRef) Arguments[1]).ClassName);
+            var objName = ((Value<string>) Context.Arguments[0]).Get();
+            var res = Context.Base.EngineAPI.CreateObject(objName, ((ClassRef) Context.Arguments[1]).ClassName);
             if (res == null) {
                 throw new ArgumentException($"Object with name \"{objName}\" already exists!");
             }

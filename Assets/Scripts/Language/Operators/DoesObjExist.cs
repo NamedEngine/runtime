@@ -1,17 +1,14 @@
-﻿using UnityEngine;
-
-namespace Language.Operators {
+﻿namespace Language.Operators {
     public class DoesObjExist : Operator<bool> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] { new Value<string>() },
             new IValue[] { new ClassRef() }
         };
 
-        public DoesObjExist(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public DoesObjExist(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool InternalGet() {
-            return EngineAPI.GetObjectByName((Value<string>) Arguments[0], ((ClassRef) Arguments[1]).ClassName) == null;
+            return Context.Base.EngineAPI.GetObjectByName((Value<string>) Context.Arguments[0], ((ClassRef) Context.Arguments[1]).ClassName) == null;
         }
     }
 }

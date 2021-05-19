@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class ToBool : Operator<bool> {
@@ -12,11 +11,10 @@ namespace Language.Operators {
             },
         };
 
-        public ToBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public ToBool(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool InternalGet() {
-            switch (Arguments[0]) {
+            switch (Context.Arguments[0]) {
                 case Value<int> intVal:
                     return Convert.ToBoolean(intVal);
                 case Value<float> floatVal:

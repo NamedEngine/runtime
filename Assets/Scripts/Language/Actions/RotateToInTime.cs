@@ -12,13 +12,12 @@ namespace Language.Actions {
 
         const float DeltaTime = 0.02f;
         
-        public RotateToInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public RotateToInTime(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var newRotation = ((Value<float>) Arguments[0]).Get();
-            var time = ((Value<float>) Arguments[1]).Get();
-            var rotation = (Variable<float>) VariableDict[nameof(Rotation)];
+            var newRotation = ((Value<float>) Context.Arguments[0]).Get();
+            var time = ((Value<float>) Context.Arguments[1]).Get();
+            var rotation = (Variable<float>) Context.Base.VariableDict[nameof(Rotation)];
             
             var iterations = Convert.ToInt32(time / DeltaTime);
             var deltaRotationPortion = (newRotation - rotation) / iterations;

@@ -31,17 +31,16 @@ namespace Language.Operators {
         }
 
         ProxyVariable _proxy;
-        ProxyVariable Proxy => _proxy ?? (_proxy = new ProxyVariable(Arguments[1] as VariableRef, this));
+        ProxyVariable Proxy => _proxy ?? (_proxy = new ProxyVariable(Context.Arguments[1] as VariableRef, this));
 
-        public GetVariableByObjName(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
+        public GetVariableByObjName(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) {
         }
 
         LogicObject GetReferencedObject() {
-            var objName = (Value<string>) Arguments[0];
-            var variableRef = (VariableRef) Arguments[1];
+            var objName = (Value<string>) Context.Arguments[0];
+            var variableRef = (VariableRef) Context.Arguments[1];
             var className = variableRef.ClassRef.ClassName;
-            var obj = EngineAPI.GetObjectByName(objName, className);
+            var obj = Context.Base.EngineAPI.GetObjectByName(objName, className);
             if (obj == null) {
                 throw new LogicException(nameof(GetVariableByObjName<T>),
                     $"Could not find object with name \"{objName}\" and type \"{className}\"");

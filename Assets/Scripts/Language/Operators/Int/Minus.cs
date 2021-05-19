@@ -1,17 +1,14 @@
-﻿using UnityEngine;
-
-namespace Language.Operators {
+﻿namespace Language.Operators {
     public class Minus : Operator<int> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {new Value<int>()},
             new IValue[] {new Value<int>()},
         };
 
-        public Minus(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public Minus(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override int InternalGet() {
-            return (Value<int>) Arguments[0] - (Value<int>) Arguments[1];
+            return (Value<int>) Context.Arguments[0] - (Value<int>) Context.Arguments[1];
         }
     }
 }

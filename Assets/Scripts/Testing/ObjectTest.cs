@@ -4,10 +4,9 @@ using Actions;
 using Conditions;
 using Operators;
 using UnityEngine;
-
 using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], Chainable>;
+using OperatorInstantiator = System.Func<ArgumentLocationContext, IValue>;
+using ChainableInstantiator = System.Func<ArgumentLocationContext, Chainable>;
 
 public class ObjectTest : MonoBehaviour {
     LogicObject _logicObject;
@@ -27,16 +26,32 @@ public class ObjectTest : MonoBehaviour {
             {"y", ToVar(3)},
         };
 
-        OperatorInstantiator plusInst = (logicObject, engineAPI, dictionary, values) => new DummyPlus(null, null, null, new IValue[] {dictionary["x"], dictionary["y"]}, false);
-        OperatorInstantiator toString = (logicObject, engineAPI, dictionary, values) => new DummyToString(null, null, null, new [] {values[0]}, false);
-        ChainableInstantiator wait3 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, null, new IValue[] { ToVal(3f)}, false);
-        ChainableInstantiator wait05 = (logicObject, engineAPI, dictionary, values) => new DummyWait(null, null, null, new IValue[] { ToVal(0.5f)}, false);
-        ChainableInstantiator log1 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, null, new [] {ToVal("Log from STATE 1: {0}"), values[1] }, false);
-        ChainableInstantiator logImpatince = (logicObject, engineAPI, dictionary, values) => new DummyLog(null , null, null, new IValue[] {ToVal("IMPATIENCE!")}, false);
-        ChainableInstantiator log2 = (logicObject, engineAPI, dictionary, values) => new DummyLog(null, null, null, new IValue[] {ToVal("Log from STATE 2")}, false);
-        ChainableInstantiator state1Setter = (logicObject, engineAPI, dictionary, values) => new DummySetState(() => logicObject.SetState("State 1", null));
-        ChainableInstantiator state2Setter = (logicObject, engineAPI, dictionary, values) => new DummySetState(() => logicObject.SetState("State 2", null));
-        ChainableInstantiator nce3 = (logicObject, engineAPI, dictionary, values) => new DummyNce(null, null, null, new IValue[] {dictionary["y"]}, false);
+        OperatorInstantiator plusInst = context => new DummyPlus(
+            new ConstrainableContext(context.Base, null, new IValue[] {context.Base.VariableDict["x"], context.Base.VariableDict["y"]}),
+            false);
+        OperatorInstantiator toString = context => new DummyToString(
+            new ConstrainableContext(context.Base, null, new [] {context.PreparedOperators[0]}),
+            false);
+        ChainableInstantiator wait3 = context => new DummyWait(
+            new ConstrainableContext(context.Base, null, new IValue[] { ToVal(3f)}),
+            false);
+        ChainableInstantiator wait05 = context => new DummyWait(
+            new ConstrainableContext(context.Base, null, new IValue[] { ToVal(0.5f)}),
+            false);
+        ChainableInstantiator log1 = context => new DummyLog(
+            new ConstrainableContext(context.Base, null, new [] {ToVal("Log from STATE 1: {0}"), context.PreparedOperators[1] }),
+            false);
+        ChainableInstantiator logImpatince = context => new DummyLog(
+            new ConstrainableContext(context.Base, null, new IValue[] {ToVal("IMPATIENCE!")}),
+            false);
+        ChainableInstantiator log2 = context => new DummyLog(
+            new ConstrainableContext(context.Base, null, new IValue[] {ToVal("Log from STATE 2")}),
+                false);
+        ChainableInstantiator state1Setter = context => new DummySetState(() => context.LogicObject.SetState("State 1", null));
+        ChainableInstantiator state2Setter = context => new DummySetState(() => context.LogicObject.SetState("State 2", null));
+        ChainableInstantiator nce3 = context => new DummyNce(
+            new ConstrainableContext(context.Base, null, new IValue[] {context.Base.VariableDict["y"]}),
+                false);
         
 
         OperatorInstantiator[] vals11 = {plusInst, toString};

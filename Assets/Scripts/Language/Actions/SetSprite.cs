@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using UnityEngine;
 
 namespace Language.Actions {
     public class SetSprite : Action {
@@ -7,15 +6,23 @@ namespace Language.Actions {
             new IValue[] {new Value<string>()},
         };
 
-        readonly SpriteAnimator _animation;
-
-        public SetSprite(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) {
-            _animation = gameObject?.GetComponent<SpriteAnimator>();
-        }
+        SpriteAnimator _animator;
         
+        void SetAnimator() {
+            _animator = Context.BoundGameObject.GetComponent<SpriteAnimator>();
+        }
+
+        readonly System.Action _setAnimatorOnce;
+
+        public SetSprite(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context,
+            constraintReference) {
+            _setAnimatorOnce = ((System.Action) SetAnimator).Once();
+        }
+
         protected override IEnumerator ActionLogic() {
-            _animation.SetSprite((Value<string>) Arguments[0]);
+            _setAnimatorOnce();
+            
+            _animator.SetSprite((Value<string>) Context.Arguments[0]);
 
             return null;
         }

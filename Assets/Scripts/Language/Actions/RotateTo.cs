@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Language.Variables;
-using UnityEngine;
 
 namespace Language.Actions {
     public class RotateTo : Action {
@@ -8,11 +7,10 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public RotateTo(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { }
+        public RotateTo(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            ((Value<float>) Arguments[0]).TryTransferValueTo(VariableDict[nameof(Rotation)]);
+            ((Value<float>) Context.Arguments[0]).TryTransferValueTo(Context.Base.VariableDict[nameof(Rotation)]);
             
             return null;
         }

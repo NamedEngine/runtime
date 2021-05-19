@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-
-namespace Language.Conditions {
+﻿namespace Language.Conditions {
     public class Interact : Condition {
         static readonly IValue[][] ArgTypes = { };
         
         InteractableComponent _interactComponent;
 
         void SetInteractComponent() {
-            _interactComponent = BoundGameObject.GetComponent<InteractableComponent>();
+            _interactComponent = Context.BoundGameObject.GetComponent<InteractableComponent>();
         }
 
         readonly System.Action _setInteractComponentOnce;
         
-        public Interact(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, DictionaryWrapper<string, IVariable> variables, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, variables, values, constraintReference) { 
+        public Interact(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { 
             _setInteractComponentOnce = ((System.Action) SetInteractComponent).Once();
         }
         
