@@ -8,10 +8,10 @@ namespace Language.Actions {
         static readonly IValue[][] ArgTypes = new[] {
             new IValue[] {new Value<string>()},
         }.Concat(Enumerable.Repeat(new IValue[] {
+            new Value<string>(),
             new Value<int>(),
             new Value<float>(),
             new Value<bool>(),
-            new Value<string>(),
             new NullValue(),
         }, 100).ToArray());
         

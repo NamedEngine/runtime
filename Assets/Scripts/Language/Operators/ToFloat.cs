@@ -4,8 +4,8 @@ namespace Language.Operators {
     public class ToFloat : Operator<float> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {
-                new Value<int>(),
                 new Value<float>(),
+                new Value<int>(),
                 new Value<bool>(),
                 new Value<string>(),
             },

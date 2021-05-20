@@ -50,13 +50,15 @@ public class LogicEngine : MonoBehaviour {
         }
 
         public LogicObject CreateObject(string name, string className) {
-            if (_engine._logicObjects.ContainsKey(name)) {
+            var objName = string.IsNullOrEmpty(name) ? _engine._objectNameGenerator.NewId() : name;
+
+            if (_engine._logicObjects.ContainsKey(objName)) {
                 return null;
             }
-            
-            var newObject = _engine.classInstantiator.CreateObject(name, className, _engine._logicClasses,
+
+            var newObject = _engine.classInstantiator.CreateObject(objName, className, _engine._logicClasses,
                 MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
-            _engine._logicObjects.Add(name, newObject);
+            _engine._logicObjects.Add(objName, newObject);
 
             return newObject;
         }

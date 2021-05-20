@@ -4,10 +4,10 @@ namespace Language.Operators {
     public class ToString : Operator<string> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {
+                new Value<string>(),
                 new Value<int>(),
                 new Value<float>(),
                 new Value<bool>(),
-                new Value<string>(),
             },
         };
 
