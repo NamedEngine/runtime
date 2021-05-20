@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Rules.Logic {
     public class OperatorNode : ILogicChecker {
@@ -74,7 +73,7 @@ namespace Rules.Logic {
                 .Where(info => LogicUtils.GetConstrainable(info, parsedNodes, idToFile, instantiator) == null);
             
             foreach (var nodeInfo in improperNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.name}";
+                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.type}";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
