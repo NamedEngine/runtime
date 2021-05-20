@@ -31,6 +31,10 @@ namespace Language.Classes {
             _cameraController.AddPlayer(this);
         }
 
+        protected override void AfterFinishProcessingInternal() {
+            _cameraController.RemovePlayer(this);
+        }
+
         public override string ShouldInheritFrom() {
             return nameof(Empty);
         }
@@ -56,12 +60,6 @@ namespace Language.Classes {
                 GetSpecialVariablePair<StandAnimationUp>(),
                 GetSpecialVariablePair<StandAnimationDown>(),
             };
-        }
-
-        void OnDestroy() {  // TODO: maybe introduce AfterFinishProcessing(Internal)
-            if (_cameraController) {
-                _cameraController.RemovePlayer(this);
-            }
         }
     }
 }

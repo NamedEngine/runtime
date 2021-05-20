@@ -12,7 +12,7 @@ public class ClassInstantiator : MonoBehaviour {
     
     public Dictionary<string, LogicObject> InstantiateMapObjects(Dictionary<string, LogicObject> classes,
         MapObjectInfo[] objectInfos, Dictionary<string, GameObject> classPrefabs, LogicEngine.LogicEngineAPI engineAPI,
-        IdGenerator idGenerator) {
+        IdGenerator idGenerator, GameObject mapObject) {
         
         var resultingObjects = new Dictionary<string, LogicObject>();
         foreach (var objectInfo in objectInfos) {
@@ -28,6 +28,7 @@ public class ClassInstantiator : MonoBehaviour {
             var className = classParameter.Value;
             var newObjName = objectInfo.Name != "" ? objectInfo.Name : idGenerator.NewId();
             var newObject = CreateObject(newObjName, className, classes, objectInfo, classPrefabs, engineAPI);
+            newObject.gameObject.transform.parent = mapObject.transform;
 
             resultingObjects.Add(newObjName, newObject);
         }

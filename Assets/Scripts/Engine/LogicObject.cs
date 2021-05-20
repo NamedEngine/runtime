@@ -76,8 +76,17 @@ public class LogicObject : MonoBehaviour {
         
         BeforeStartProcessingInternal();
     }
+    
+    public void AfterFinishProcessing() {
+        if (_baseObject) {
+            _baseObject.AfterFinishProcessing();
+        }
+        
+        AfterFinishProcessingInternal();
+    }
 
     protected virtual void BeforeStartProcessingInternal() { }
+    protected virtual void AfterFinishProcessingInternal() { }
     
     public void ProcessLogic() {
         if (_baseObject) {

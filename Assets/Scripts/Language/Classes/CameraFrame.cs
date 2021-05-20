@@ -19,6 +19,11 @@ namespace Language.Classes {
             Camera.main.GetComponent<CameraController>().SetFrame(this);
         }
 
+        protected override void AfterFinishProcessingInternal() {
+            _instanceNum--;
+            Camera.main.GetComponent<CameraController>().SetFrame(null);
+        }
+
         public override string ShouldInheritFrom() {
             return null;
         }

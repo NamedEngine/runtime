@@ -544,6 +544,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db5536a01f504bed9dba86a27d8f05d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHeight: 0
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -1258,7 +1259,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 6240062127959290639, guid: e5871cf6f9ab7d74ba503028035f0faf,
     type: 3}
-  mapObject: {fileID: 1720382188}
   graphicsConverter: {fileID: 2082333167}
   sizePositionConverter: {fileID: 2082333170}
   fileLoader: {fileID: 2082333169}
@@ -1379,6 +1379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapLoader: {fileID: 1206927319}
+  mapObject: {fileID: 1720382188}
   logicLoader: {fileID: 1206927321}
   classInstantiator: {fileID: 1765411074}
   sizePositionConverter: {fileID: 2082333170}

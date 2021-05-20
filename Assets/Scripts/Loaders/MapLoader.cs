@@ -9,7 +9,6 @@ using Debug = System.Diagnostics.Debug;
 
 public class MapLoader : MonoBehaviour {
     [SerializeField] GameObject tilePrefab;
-    [SerializeField] GameObject mapObject;
     [SerializeField] GraphicsConverter graphicsConverter;
     [SerializeField] SizePositionConverter sizePositionConverter;
     [SerializeField] FileLoader fileLoader;
@@ -18,15 +17,7 @@ public class MapLoader : MonoBehaviour {
     static int GetIntAttr(XElement element, string name) => Convert.ToInt32(GetAttr(element, name).IfEmpty("0"));
     static float GetFloatAttr(XElement element, string name) => Convert.ToSingle(GetAttr(element, name).IfEmpty("0"), new ProjectFormatProvider());
 
-    void ClearMap() {
-        for (var i = 0; i < mapObject.transform.childCount; i++) {
-            Destroy(mapObject.transform.GetChild(i).gameObject);
-        }
-    }
-
-    public MapObjectInfo[] LoadMap(string mapPath) {
-        ClearMap();
-        
+    public MapObjectInfo[] LoadMap(string mapPath, GameObject mapObject) {
         // TODO: do something with path handling in this file
 
         var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));

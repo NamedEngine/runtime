@@ -46,6 +46,9 @@ public abstract class Chainable : IConstrainable {
     void Notify(CoroRunner runner) {
         // Debug.Log(GetType()+ ": notifying!");
         foreach (var notifiable in _notifiables) {
+            if (Context.Base.EngineAPI.LevelChanged) {
+                return;
+            }
             notifiable(runner);
         }
     }

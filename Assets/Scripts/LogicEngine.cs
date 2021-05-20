@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class LogicEngine : MonoBehaviour {
     [SerializeField] MapLoader mapLoader;
+    [SerializeField] GameObject mapObject;
     [SerializeField] LogicLoader logicLoader;
     [SerializeField] ClassInstantiator classInstantiator;
     [SerializeField] SizePositionConverter sizePositionConverter;
@@ -21,8 +22,13 @@ public class LogicEngine : MonoBehaviour {
     [SerializeField] List<ClassPrefab> classPrefabs;
     Dictionary<string, GameObject> _classPrefabs;
 
-    IdGenerator _objectNameGenerator = new IdGenerator();
-    
+    Dictionary<string, LogicObject> _logicClasses;
+    Dictionary<string, LogicObject> _logicObjects;
+
+    bool _levelChanged;
+
+    readonly IdGenerator _objectNameGenerator = new IdGenerator();
+
     public class LogicEngineAPI {
         readonly LogicEngine _engine;
 
@@ -72,10 +78,40 @@ public class LogicEngine : MonoBehaviour {
             Destroy(foundObject.gameObject);
             return true;
         }
+
+        public bool LoadLevel(string path) {
+            _engine._levelChanged = true;
+            
+            if (_engine._logicObjects != null) {
+                _engine._logicObjects.Values.ToList().ForEach(lo => lo.AfterFinishProcessing());
+                _engine._logicObjects.Clear();
+            }
+            
+            ClearMap();
+            
+            var objectInfos = _engine.mapLoader.LoadMap(path.ToProperPath(), _engine.mapObject);
+
+            _engine._logicObjects = _engine.classInstantiator.InstantiateMapObjects(_engine._logicClasses, objectInfos,
+                _engine._classPrefabs, this, _engine._objectNameGenerator, _engine.mapObject);
+
+            try {
+                _engine._logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
+            }
+            catch (LogicException e) {
+                _engine.OnLogicError(e);
+            }
+
+            return true;
+        }
+
+        void ClearMap() {
+            for (var i = 0; i < _engine.mapObject.transform.childCount; i++) {
+                Destroy(_engine.mapObject.transform.GetChild(i).gameObject);
+            }
+        }
+
+        public bool LevelChanged => _engine._levelChanged;
     }
-    
-    Dictionary<string, LogicObject> _logicClasses;
-    Dictionary<string, LogicObject> _logicObjects;
 
     void OnLogicError(Exception e) {
         logicExceptionHandler.DisplayError(e.Message);
@@ -89,28 +125,25 @@ public class LogicEngine : MonoBehaviour {
 
             _logicClasses = logicLoader.LoadLogicClasses();
 
-            var mapPath = "Maps/main.tmx".ToProperPath();
-            var objectInfos = mapLoader.LoadMap(mapPath); // TODO
-
-            _logicObjects = classInstantiator.InstantiateMapObjects(_logicClasses, objectInfos, _classPrefabs,
-                new LogicEngineAPI(this), _objectNameGenerator);
+            const string mapPath = "Maps/main.tmx";
+            new LogicEngineAPI(this).LoadLevel(mapPath);
         }
         catch (LogicParseException e) {
-            OnLogicError(e);
-        }
-
-        try {
-            _logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
-        }
-        catch (LogicException e) {
             OnLogicError(e);
         }
     }
 
     void Update() {
-        foreach (var logicObject in _logicObjects) {
+        _levelChanged = false;
+        
+        var objectKeys = _logicObjects.Keys.ToArray();
+        foreach (var objectKey in objectKeys) {
+            if (_levelChanged) {
+                return;
+            }
+
             try {
-                logicObject.Value.ProcessLogic();
+                _logicObjects[objectKey].ProcessLogic();
             }
             catch (LogicException e) {
                 OnLogicError(e);
