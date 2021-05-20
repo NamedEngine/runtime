@@ -78,7 +78,24 @@ namespace Rules.Logic {
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
-            
+
+            var notUniqueVariables = parsedNodes.Values
+                .Where(info => info.type == NodeType.Variable)
+                .GroupBy(info => info.prev.First())
+                .Select(gr => (parsedNodes[gr.Key], gr
+                    .GroupBy(node => LogicUtils.GetVariableTypeAndName(node.name).Value.Item2)
+                    .Where(sameNameGroup => sameNameGroup.Count() > 1)
+                    .Select(sameNameGroup => sameNameGroup.Key)
+                    .ToArray()
+                ))
+                .Where(pair => pair.Item2.Length > 0);
+
+            foreach (var (classNode, variableNames) in notUniqueVariables) {
+                var message = $"{classNode.name} class has several variables with same names:\n{string.Join(", ", variableNames)}";
+
+                throw new LogicParseException(idToFile[classNode.id], message);
+            }
+
             var wrongTypedNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Variable)
                 .Select(info => (info, parsedNodes[info.prev.First()].name))
