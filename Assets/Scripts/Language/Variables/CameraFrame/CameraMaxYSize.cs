@@ -5,6 +5,7 @@ namespace Language.Variables.CameraFrame {
     public class CameraMaxYSize : SpecialVariable<float> {
         CameraController _cameraController;
         const int PlayerSizesInCamera = 5;
+        const float MinSize = 0.00001f;
 
         void SetCamera() {
             _cameraController = Camera.main.GetComponent<CameraController>();
@@ -21,14 +22,15 @@ namespace Language.Variables.CameraFrame {
 
         protected override void SpecialSet(float value) {
             _setCameraOnce();
+
             if (value < 0) {
                 throw new LogicException(nameof(CameraMaxYSize), $"Can't set camera size to negative value {value}");
             }
 
-            if (value == 0) {
+            if (value < MinSize) {
                 var players = GameObject.FindGameObjectsWithTag("Player");
                 if (players.Length == 0) {
-                    _cameraController.maxHeight = float.Epsilon;
+                    _cameraController.maxHeight = MinSize;
                     return;
                 }
 
@@ -36,7 +38,7 @@ namespace Language.Variables.CameraFrame {
                     .Select(p => p.GetComponent<Size>())
                     .Aggregate(0f, (res, size) => res + size.Value.y) / players.Length;
 
-                _cameraController.maxHeight = PlayerSizesInCamera * meanSize;
+                _cameraController.maxHeight = Mathf.Max(PlayerSizesInCamera * meanSize, MinSize);
                 return;
             }
             
