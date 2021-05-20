@@ -16,6 +16,7 @@ namespace Language.Classes {
         public override (string, Func<GameObject, LogicEngine.LogicEngineAPI, IVariable>)[] BaseVariables() {
             return new [] {
                 GetSpecialVariablePair<Visible, bool>(true),
+                GetSpecialVariablePair<DrawingLayer>(),
                 GetSpecialVariablePair<Collidable, bool>(false),
                 GetSpecialVariablePair<Interactable, bool>(false),
                 GetSpecialVariablePair<CenterX>(),
