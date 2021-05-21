@@ -147,17 +147,19 @@ namespace Rules.Logic {
                 });
         }
 
-        static void OneRelatedChainCheck(Dictionary<string, ParsedNodeInfo> parsedNodes,
-            Dictionary<string, string> idToFile) {
-
-            HashSet<string> GetChainStartIds(string id) {
+        static void OneRelatedChainCheck(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {
+            HashSet<string> GetChainStartIds(string id, string nextId) {
                 var node = parsedNodes[id];
-                if (node.type != NodeType.Action && node.type != NodeType.Condition) {
-                    return new HashSet<string> {id};
+                if (!IsChainable(node)) {
+                    var res = new HashSet<string>();
+                    if (nextId != null) {
+                        res.Add(nextId);
+                    }
+                    return res;
                 }
 
                 return node.prev
-                    .Select(GetChainStartIds)
+                    .Select(prevId => GetChainStartIds(prevId, id))
                     .Aggregate(new HashSet<string>(), (acc, val) => {
                         acc.UnionWith(val);
                         return acc;
@@ -165,13 +167,11 @@ namespace Rules.Logic {
             }
 
             var tooManyRelatedChainsNodes = parsedNodes.Values
-                .Where(info => info.type == NodeType.Action
-                               || info.type == NodeType.Condition)
-                .Select(info => (info, GetChainStartIds(info.id)))
+                .Where(IsChainable)
+                .Select(info => (info, GetChainStartIds(info.id, null)))
                 .Where(pair => pair.Item2.Count > 1);
-            
+
             foreach (var (nodeInfo, relatedChainStarts) in tooManyRelatedChainsNodes) {
-                
                 var message = nodeInfo.ToNameAndType() + " has multiple related chains\nwhich start from following blocks:\n";
                 message += string.Join("\n", relatedChainStarts.Select(id => parsedNodes[id].ToNameAndType()));
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
