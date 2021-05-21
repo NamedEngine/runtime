@@ -96,20 +96,13 @@ namespace Rules.Logic {
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
 
-            int MandatoryParamsNum(ParsedNodeInfo nodeInfo) {
-                var constraints = LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints();
-                var optionalNum = constraints
-                    .Select(possibleValues => possibleValues.Any(value => !(value is NullValue)))
-                    .Count(canBeNull => canBeNull);
-                
-                return constraints.Length - optionalNum;
-            }
-            int MaxParamsNum(ParsedNodeInfo nodeInfo) {
-                return LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints().Length;
-            }
-            
+            int MandatoryParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MandatoryParamsNum(info, parsedNodes, idToFile, instantiator);
+            int MaxParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MaxParamsNum(info, parsedNodes, idToFile, instantiator);
+
             var wrongParamsNumNodes = parsedNodes.Values
-                .Where(info => info.type == NodeType.Operator)
+                .Where(IsChainable)
                 .Where(info => info.parameters.Length < MandatoryParamsNum(info)
                                || info.parameters.Length > MaxParamsNum(info));
             

@@ -126,7 +126,7 @@ public static class LogicUtils {
 
     static readonly Dictionary<string, ConstructorInfo> ConstructorByNodeCache = new Dictionary<string, ConstructorInfo>();
     public static IConstrainable GetConstrainable(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
-        Dictionary<string, string> idTofile, TemporaryInstantiator instantiator, ConstrainableContext context = null, bool constraintReference = true) {
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator, ConstrainableContext context = null, bool constraintReference = true) {
         ConstructorInfo constructor;
         if (ConstructorByNodeCache.ContainsKey(nodeInfo.id)) {
             constructor = ConstructorByNodeCache[nodeInfo.id];
@@ -150,8 +150,8 @@ public static class LogicUtils {
                 if (possibleValueTypes.Length == 0) {
                     var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" wasn't provided" +
                                   "\n with any variable reference";
-                    if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id], message);
+                    if (idToFile != null) {
+                        throw new Rules.LogicParseException(idToFile[nodeInfo.id], message);
                     }
                     throw new ArgumentException(message);
                 }
@@ -159,8 +159,8 @@ public static class LogicUtils {
                 if (possibleValueTypes.Any(vt => vt != possibleValueTypes[0])) {  // not all types are same
                     var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" was provided" +
                                   "\n with any variable references of different types";
-                    if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id], message);
+                    if (idToFile != null) {
+                        throw new Rules.LogicParseException(idToFile[nodeInfo.id], message);
                     }
                     throw new ArgumentException(message);
                 }
@@ -207,5 +207,21 @@ public static class LogicUtils {
     
     public static (string, SpecialVariableInstantiator) GetSpecialVariablePair<TVar, T>(T defaultValue) where TVar : SpecialVariable<T> {
         return (typeof(TVar).Name, GetSpecialVariableInstantiator<TVar, T>(defaultValue));
+    }
+    
+    public static int MandatoryParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+        var c = GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator);
+        var constraints = c.GetConstraints();
+        var optionalNum = constraints
+            .Select(possibleValues => possibleValues.Any(value => (value is NullValue)))
+            .Count(canBeNull => canBeNull);
+                
+        return constraints.Length - optionalNum;
+    }
+    
+    public static int MaxParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+        return GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints().Length;
     }
 }
