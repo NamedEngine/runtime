@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
@@ -31,58 +32,62 @@ public abstract class Chainable : IConstrainable {
     }
 
     int _notifications;
-    void GetNotified(CoroRunner runner) {
+    bool IsReady => _notifications == _parents;
+
+    void GetNotified() {
         _notifications++;
-        // Debug.Log(GetType()+ ": getting notified!");
-        if (_notifications >= _parents) {
-            _notifications = 0;
-            // Debug.Log(GetType()+ ": executing!");
-            Execute(runner);
-        }
+    }
+
+    public void ResetNotifications() {
+        _notifications = 0;
     }
     
-    readonly List<Action<CoroRunner>> _notifiables = new List<Action<CoroRunner>>();
+    readonly List<Chainable> _children = new List<Chainable>();
 
-    void Notify(CoroRunner runner) {
+    void Notify() {
         // Debug.Log(GetType()+ ": notifying!");
-        foreach (var notifiable in _notifiables) {
+        foreach (var child in _children) {
             if (Context.Base.EngineAPI.LevelChanged) {
                 return;
             }
-            notifiable(runner);
+            child.GetNotified();
         }
     }
+
     public void AddChild(Chainable chainable) {
         if (_constraintReference) {
             throw new ApplicationException("This object is only a constraints reference");
         }
         
-        _notifiables.Add(chainable.GetNotified);
+        _children.Add(chainable);
         chainable.AddParent();
     }
 
-    public void Execute(CoroRunner runner) {
+    public void Execute(CoroRunner runner, Action<IEnumerable<Chainable>> callback) {
         if (_constraintReference) {
             throw new ApplicationException("This object is only a constraints reference");
         }
         
+        void ContinueCallChain(bool notify) {
+            if (notify) {
+                Notify();
+            }
+            callback(_children.Where(child => child.IsReady));
+        }
+
         var logic = InternalLogic(out var shouldNotify);
         if (logic != null) {
             // Debug.Log(GetType()+ ": my logic is Async!");
             IEnumerator Wrapper() {
                 yield return logic;
                 
-                if (shouldNotify) {
-                    Notify(runner);
-                }
+                ContinueCallChain(shouldNotify);
             }
 
             runner(Wrapper());
         } else {
             // Debug.Log(GetType()+ ": my logic is Sync!");
-            if (shouldNotify) {
-                Notify(runner);
-            }
+            ContinueCallChain(shouldNotify);
         }
     }
 

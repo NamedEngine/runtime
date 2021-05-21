@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using OperatorInstantiator = System.Func<LogicObject, LogicEngine.LogicEngineAPI, DictionaryWrapper<string, IVariable>, IValue[], IValue>;
@@ -16,6 +17,8 @@ public class LogicChain : MonoBehaviour {
     public void ResetChain(LogicObject thisObject, BaseContext baseContex) {
         SetupChain(thisObject, baseContex, _info);    
     }
+
+    readonly List<System.Action> _chainableNotificationResetters = new List<System.Action>();
     
     public void SetupChain(LogicObject thisObject, BaseContext baseContex, LogicChainInfo info) {
         if (IsRunning) {
@@ -32,15 +35,19 @@ public class LogicChain : MonoBehaviour {
 
         var preparedChainables = info.ChainableInstantiators
             .Select(chInst => chInst(argLocContext))
-            .ToArray();
+            .ToList();
+        
+        _chainableNotificationResetters.Clear();
+        preparedChainables.ForEach(chainable => _chainableNotificationResetters.Add(chainable.ResetNotifications));
 
-        for (var parent = 0; parent < preparedChainables.Length; parent++) {
+        for (var parent = 0; parent < preparedChainables.Count; parent++) {
             var children = info.ChainableRelations
                 .Where(pair => pair.Item1 == parent)
                 .Select(pair => pair.Item2)
                 .ToArray();
 
             foreach (var child in children) {
+                // Debug.Log($"{preparedChainables[parent].GetType()} now has child {preparedChainables[child]}");
                 preparedChainables[parent].AddChild(preparedChainables[child]);
             }
         }
@@ -54,7 +61,8 @@ public class LogicChain : MonoBehaviour {
         
         parentSet.ExceptWith(childSet);
         if (parentSet.Count != 1) {
-            throw new ArgumentException("A chain should only have one root");
+            throw new ArgumentException("A chain should only have one root, but it has several: " +
+                                        string.Join(", ", parentSet));
         }
 
         var rootIndex = parentSet.ToArray()[0];
@@ -63,15 +71,28 @@ public class LogicChain : MonoBehaviour {
 
         _info = info;
     }
-
     public void Execute() {
         if (IsRunning) {
             return;
         }
 
+        _chainableNotificationResetters.ForEach(reset => reset());
+
         _coroCount++;
-        _root.Execute(RunCoro);
+        _root.Execute(RunCoro, ExecutionCallback);
         _coroCount--;
+    }
+
+    readonly Queue<Chainable> _executionQueue = new Queue<Chainable>();
+
+    void ExecutionCallback(IEnumerable<Chainable> nextChainables) {
+        foreach (var next in nextChainables) {
+            _executionQueue.Enqueue(next);
+        }
+        
+        if (_executionQueue.Count > 0) {
+            _executionQueue.Dequeue().Execute(RunCoro, ExecutionCallback);
+        }
     }
 
     void RunCoro(IEnumerator coro) {
