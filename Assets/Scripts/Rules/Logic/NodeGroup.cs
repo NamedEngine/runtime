@@ -1,50 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Rules.Logic {
     public class NodeGroup : ILogicChecker {
+        static bool IsChainable(ParsedNodeInfo info) {
+            return info.type == NodeType.Condition
+                   || info.type == NodeType.Action;
+        }
+
         static void CycleCheck(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {
-            var filesWithCycles = idToFile
-                .GroupBy(pair => pair.Value)
-                .ToDictionary(group => group.Key,
-                    group => group
-                        .Select(pair => pair.Key)
-                        .Where(id => parsedNodes[id].type == NodeType.Condition
-                                     || parsedNodes[id].type == NodeType.Action)
-                        .ToArray())
-                .Select(pair => {
-                    var (file, ids) = pair;
-                    foreach (var startId in ids) {
-                        var visitedNodes = new HashSet<string>();
-                        var visitingQueue = new Queue<string>();
-                        visitingQueue.Enqueue(startId);
+            bool IsFirstChainable(string id) {
+                var info = parsedNodes[id];
+                return IsChainable(info)
+                       && info.prev.Length == 1
+                       && !IsChainable(parsedNodes[info.prev.First()]);
+            }
 
-                        while (visitingQueue.Count > 0) {
-                            var currentNode = visitingQueue.Dequeue();
-                            if (visitedNodes.Contains(currentNode)) {
-                                return (file, currentNode);
-                            }
-
-                            visitedNodes.Add(currentNode);
-
-                            parsedNodes[currentNode].next
-                                .Where(nextId => ids.Contains(nextId))
-                                .ToList().ForEach(nextId => visitingQueue.Enqueue(nextId));
+            var cycles = parsedNodes
+                .Select(pair => pair.Key)
+                        // not IsFirstOperator cause if there are none rules won't prohibit it (unlike with chainables)
+                .Where(id => IsFirstChainable(id) || parsedNodes[id].type == NodeType.Operator)  
+                .Select(startId => {
+                    // Debug.Log($"First chainable or operator: {parsedNodes[startId].name}");
+                    string[] GetNext(string id) {
+                        var info = parsedNodes[id];
+                        if (IsChainable(info)) {
+                            return info.next
+                                .Where(nextId => IsChainable(parsedNodes[nextId]))
+                                .ToArray();
                         }
+
+                        // operator
+                        return info.next
+                            .Select(nextId => parsedNodes[nextId].parent)
+                            .Where(parentId => parentId != null
+                                               && parsedNodes[parentId].type == NodeType.Operator)
+                            .ToArray();
                     }
 
-                    return (file, null);
+                    List<string> HasCycleInNext(string id, List<string> visitedIds) {
+                        if (visitedIds.Count > 10) {
+                            return null;
+                        }
+                        var index = visitedIds.IndexOf(id);
+                        if (index != -1) {
+                            return visitedIds.GetRange(index, visitedIds.Count - index);
+                        }
+
+                        var next = GetNext(id);
+                        if (next.Length == 0) {
+                            return null;
+                        }
+
+                        var newVisitedIds = visitedIds.Append(id).ToList();
+                        return next
+                            .Select(nextId => HasCycleInNext(nextId, newVisitedIds))
+                            .FirstOrDefault(cycleList => cycleList != null);
+                    }
+
+                    return HasCycleInNext(startId, new List<string>());
                 })
-                .Where(pair => pair.currentNode != null);
+                .Where(cycle => cycle != null);
 
-            foreach (var (file, cycledNodeId) in filesWithCycles) {
-                var cycledNode = parsedNodes[cycledNodeId];
-
-                throw new LogicParseException(file,
-                    $"File contains a cycle that includes\n{cycledNode.ToNameAndType()}");
-                // TODO: maybe display whole cycle
+            foreach (var cycle in cycles) {
+                throw new LogicParseException(idToFile[cycle.First()],
+                    "File contains a cycle that includes following nodes:\n" +
+                    string.Join("\n", cycle.Select(id => parsedNodes[id].ToNameAndType())));
             }
         }
         
