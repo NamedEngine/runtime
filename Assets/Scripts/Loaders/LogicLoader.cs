@@ -255,13 +255,11 @@ public class LogicLoader : MonoBehaviour {
                 .ToArray();
 
             foreach (var next in nextInChain) {
-                if (chainables.Contains(next)) {
-                    continue;
+                if (!chainables.Contains(next)) {
+                    chainables.Add(next);
                 }
-                
-                var nextIndex = chainables.Count;
+                var nextIndex = chainables.IndexOf(next);
                 chainableRelations.Add((current, nextIndex));
-                chainables.Add(next);
             }
         }
         // Debug.Log("Chainables: " + string.Join("\n", chainables));
