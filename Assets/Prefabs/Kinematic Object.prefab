@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6240062127959290626}
   - component: {fileID: 7253419668229930463}
   - component: {fileID: 6240062127959290625}
+  - component: {fileID: -2083549592746182443}
   m_Layer: 0
   m_Name: Kinematic Object
   m_TagString: Untagged
@@ -95,8 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c848aa34b6e4cc28082df23c855f69f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 0
-  height: 0
+  value: {x: 0, y: 0}
 --- !u!50 &6240062127959290625
 Rigidbody2D:
   serializedVersion: 4
@@ -118,3 +118,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &-2083549592746182443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6240062127959290639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6947cd78f63a4102b46c326909f6d4a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

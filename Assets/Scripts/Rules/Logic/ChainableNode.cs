@@ -48,11 +48,14 @@ namespace Rules.Logic {
             foreach (var nodeInfo in wrongPrevCombinationNodes) {
                 var message =
                     $"{nodeInfo.ToNameAndType()} can't receive connection from following set of blocks:";
+                if (nodeInfo.prev.Length == 0) {
+                    message += "\nThere are none!";
+                }
                 foreach (var prevInfo in nodeInfo.prev.Select(prevId => parsedNodes[prevId])) {
                     message += $"\n\"{prevInfo.type}\"- \"{prevInfo.name}\"";
                 }
 
-                message += "\nConditions & actions can only receive connections from either one state, one class or several conditions & actions";
+                message += "\nConditions & actions should only receive connections from either one state, one class or any number of conditions & actions";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
@@ -76,7 +79,7 @@ namespace Rules.Logic {
                 .Where(info => LogicUtils.GetConstrainable(info, parsedNodes, idToFile, instantiator) == null);
             
             foreach (var nodeInfo in improperNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.name}";
+                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.type}";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
@@ -93,20 +96,13 @@ namespace Rules.Logic {
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
 
-            int MandatoryParamsNum(ParsedNodeInfo nodeInfo) {
-                var constraints = LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints();
-                var optionalNum = constraints
-                    .Select(possibleValues => possibleValues.Any(value => !(value is NullValue)))
-                    .Count(canBeNull => canBeNull);
-                
-                return constraints.Length - optionalNum;
-            }
-            int MaxParamsNum(ParsedNodeInfo nodeInfo) {
-                return LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints().Length;
-            }
-            
+            int MandatoryParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MandatoryParamsNum(info, parsedNodes, idToFile, instantiator);
+            int MaxParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MaxParamsNum(info, parsedNodes, idToFile, instantiator);
+
             var wrongParamsNumNodes = parsedNodes.Values
-                .Where(info => info.type == NodeType.Operator)
+                .Where(IsChainable)
                 .Where(info => info.parameters.Length < MandatoryParamsNum(info)
                                || info.parameters.Length > MaxParamsNum(info));
             

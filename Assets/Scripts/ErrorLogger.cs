@@ -59,6 +59,7 @@ public class ErrorLogger : MonoBehaviour {
         var filepath = Path.Combine(LogPath, filename);
         _logNames.Add(filepath);
         using (var sw = File.AppendText(filepath)) {
+            sw.WriteLine(Environment.OSVersion);
             sw.WriteLine(condition);
             sw.WriteLine(stackTrace);
             sw.WriteLine();

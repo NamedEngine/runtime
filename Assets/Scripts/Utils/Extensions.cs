@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 public static class Extensions {
@@ -97,5 +98,10 @@ public static class Extensions {
         }
 
         return type;
+    }
+
+    public const char StringPathSeparator = '/';
+    public static string ToProperPath (this string str) {
+        return Path.Combine(str.Split(StringPathSeparator));
     }
 }

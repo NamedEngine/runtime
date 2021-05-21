@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
+using SpecialVariableInstantiator = System.Func<UnityEngine.GameObject, LogicEngine.LogicEngineAPI, IVariable>;
 
 public static class LogicUtils {
     public static HashSet<ParsedNodeInfo> GetAllSuccessors(ParsedNodeInfo node, Dictionary<string, ParsedNodeInfo> parsedNodes) {
@@ -56,16 +58,29 @@ public static class LogicUtils {
 
         var node = parsedNodes.First(IsCurrentClassNode).Value;
         if (node.prev.Length == 0) {
-            return Language.Classes.Empty.EmptyClassName;
+            return nameof(Language.Classes.Empty);
         }
 
         return parsedNodes[node.prev.First()].name;
     }
 
-    public static Type[] GetBaseClassesTypes() {
+    public static LogicObject[] InstantiateBaseClasses(Func<IInstantiator> instantiatorLocator) {
+        LogicObject InstantiateType(Type t) {
+            var logicObject = instantiatorLocator().GetInstance(t) as Language.BaseClass;
+            Debug.Assert(logicObject != null, nameof(logicObject) + " != null");
+            
+            logicObject.SetupObject(null, new Dictionary<string, LogicState>(), null,
+                logicObject.BaseVariables().ToDictionary(
+                    pair => pair.Item1,
+                    pair => pair.Item2(logicObject.gameObject, null)), 
+                logicObject.BaseClassName(), null, null);
+
+            return logicObject;
+        }
+
         return Assembly.GetExecutingAssembly().GetTypes()
-            .Where(type => type.Namespace == typeof(Language.Classes.Empty).Namespace)
-            .ToArray();
+            .Where(type => type.IsSubclassOf(typeof(Language.BaseClass)))
+            .Select(InstantiateType).ToArray();
     }
 
     public static (Dictionary<string, Dictionary<string, ValueType>> classVariables,
@@ -82,8 +97,7 @@ public static class LogicUtils {
                     .Where(pair => pair.Item2 != "")
                     .ToDictionary(pair => pair.Item2, pair => pair.Item1));
 
-        var baseClassVariables = LogicUtils.GetBaseClassesTypes()
-            .Select(t => instantiator.GetInstance(t) as LogicObject)
+        var baseClassVariables = InstantiateBaseClasses(() => instantiator)
             .ToDictionary(logicClass => logicClass.Class, logicClass => logicClass.Variables);
 
         return (classVariables, baseClassVariables);
@@ -112,8 +126,7 @@ public static class LogicUtils {
 
     static readonly Dictionary<string, ConstructorInfo> ConstructorByNodeCache = new Dictionary<string, ConstructorInfo>();
     public static IConstrainable GetConstrainable(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
-        Dictionary<string, string> idTofile, TemporaryInstantiator instantiator, GameObject gameObject = null,
-        LogicEngine.LogicEngineAPI engineAPI = null, IValue[] arguments = null, bool constraintReference = true) {
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator, ConstrainableContext context = null, bool constraintReference = true) {
         ConstructorInfo constructor;
         if (ConstructorByNodeCache.ContainsKey(nodeInfo.id)) {
             constructor = ConstructorByNodeCache[nodeInfo.id];
@@ -121,7 +134,6 @@ public static class LogicUtils {
             var fullname = $"{nameof(Language)}.{nodeInfo.type}s.{nodeInfo.name}";
             var type = Type.GetType(fullname) ?? Type.GetType(fullname + "`1");
             if (type == null) {
-                // throw new ArgumentException("Could not find " + nodeInfo.type + " with name " + nodeInfo.name);
                 return null;
             }
         
@@ -136,29 +148,80 @@ public static class LogicUtils {
                     .ToArray();
         
                 if (possibleValueTypes.Length == 0) {
-                    if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id],
-                            $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" wasn't provided" +
-                            "\n with any variable reference");
+                    var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" wasn't provided" +
+                                  "\n with any variable reference";
+                    if (idToFile != null) {
+                        throw new Rules.LogicParseException(idToFile[nodeInfo.id], message);
                     }
-                    throw new ArgumentException($"Can't deduce type for generic operator {type.Name}: no types are provided");
+                    throw new ArgumentException(message);
                 }
         
                 if (possibleValueTypes.Any(vt => vt != possibleValueTypes[0])) {  // not all types are same
-                    if (idTofile != null) {
-                        throw new Rules.LogicParseException(idTofile[nodeInfo.id],
-                            $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" was provided" +
-                            "\n with any variable references of different types");
+                    var message = $"{nodeInfo.name}\" block of\"{nodeInfo.type}\" was provided" +
+                                  "\n with any variable references of different types";
+                    if (idToFile != null) {
+                        throw new Rules.LogicParseException(idToFile[nodeInfo.id], message);
                     }
-                    throw new ArgumentException($"Can't deduce type for generic operator {type.Name}: types are not the same");
+                    throw new ArgumentException(message);
                 }
         
                 type = type.MakeGenericType(ValueTypeConverter.GetType(possibleValueTypes[0]));
             }
-            constructor = type.GetConstructor(new[] {typeof(GameObject), typeof(LogicEngine.LogicEngineAPI), typeof(IValue[]), typeof(bool)});
+            constructor = type.GetConstructor(new[] {typeof(ConstrainableContext), typeof(bool)});
             ConstructorByNodeCache[nodeInfo.id] = constructor;
         }
 
-        return constructor.Invoke(new object[] {gameObject, engineAPI, arguments, constraintReference}) as IConstrainable;
+        Debug.Assert(constructor != null, nameof(constructor) + " != null");
+        return constructor.Invoke(new object[] {context, constraintReference}) as IConstrainable;
+    }
+
+    public static SpecialVariableInstantiator GetSpecialVariableInstantiator(Type type) {
+        if (!type.GetInterfaces().Contains(typeof(ISpecialVariable))) {
+            throw new ArgumentException("Type should implement interface ISpecialVariable");
+        }
+        
+        var constructor = type.GetConstructor(new[] {typeof(GameObject), typeof(LogicEngine.LogicEngineAPI)});
+        Debug.Assert(constructor != null, nameof(constructor) + " != null");
+        
+        return (go, api) => constructor.Invoke(new object[] {go, api}) as IVariable;
+    }
+    
+    public static SpecialVariableInstantiator GetSpecialVariableInstantiator<TVar>() where TVar : ISpecialVariable {
+        return GetSpecialVariableInstantiator(typeof(TVar));
+    }
+    
+    public static SpecialVariableInstantiator GetSpecialVariableInstantiator<TVar, T>(T defaultValue) where TVar : SpecialVariable<T> {
+        return (go, api) => {
+            var variable = GetSpecialVariableInstantiator(typeof(TVar))(go, api) as SpecialVariable<T>;
+            Debug.Assert(variable != null, nameof(variable) + " != null");
+            
+            variable.Set(defaultValue);
+            return variable;
+        };
+    }
+
+
+    public static (string, SpecialVariableInstantiator) GetSpecialVariablePair<TVar>() where TVar : ISpecialVariable {
+        return (typeof(TVar).Name, GetSpecialVariableInstantiator<TVar>());
+    }
+    
+    public static (string, SpecialVariableInstantiator) GetSpecialVariablePair<TVar, T>(T defaultValue) where TVar : SpecialVariable<T> {
+        return (typeof(TVar).Name, GetSpecialVariableInstantiator<TVar, T>(defaultValue));
+    }
+    
+    public static int MandatoryParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+        var c = GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator);
+        var constraints = c.GetConstraints();
+        var optionalNum = constraints
+            .Select(possibleValues => possibleValues.Any(value => (value is NullValue)))
+            .Count(canBeNull => canBeNull);
+                
+        return constraints.Length - optionalNum;
+    }
+    
+    public static int MaxParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+        return GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints().Length;
     }
 }

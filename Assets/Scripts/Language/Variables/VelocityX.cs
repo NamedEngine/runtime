@@ -10,13 +10,13 @@ namespace Language.Variables {
 
         readonly System.Action _setRigidBodyOnce;
         
-        protected override float InternalGet() {
+        protected override float SpecialGet() {
             _setRigidBodyOnce();
 
             return EngineAPI.GetSizePosConverter().DirectionU2M(_rb.velocity).x;
         }
 
-        public override void Set(float value) {
+        protected override void SpecialSet(float value) {
             _setRigidBodyOnce();
 
             var vel = _rb.velocity;

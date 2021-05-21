@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
+﻿using System.Collections;
 
 namespace Language.Actions {
     public class DestroyObject : Action {
@@ -9,15 +7,15 @@ namespace Language.Actions {
             new IValue[] {new ClassRef()},
         };
 
-        public DestroyObject(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public DestroyObject(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var objName = ((Value<string>) Arguments[0]).Get();
-            var className = ((ClassRef) Arguments[1]).ClassName;
-            var destroyed = EngineAPI.DestroyObject(objName, className);
+            var objName = ((Value<string>) Context.Arguments[0]).Get();
+            var className = ((ClassRef) Context.Arguments[1]).ClassName;
+            var destroyed = Context.Base.EngineAPI.DestroyObject(objName, className);
             if (!destroyed) {
-                throw new ArgumentException("Could not find object with name \"" + objName + "\" and type \"" + className +"\"");
+                throw new LogicException(nameof(DestroyObject), 
+                    $"Could not find object with name \"{objName}\" and type \"{className}\"");
             }
 
             return null;

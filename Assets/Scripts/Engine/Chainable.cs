@@ -1,31 +1,28 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Linq;
 using CoroRunner = System.Action<System.Collections.IEnumerator>;
 
 public abstract class Chainable : IConstrainable {
-    protected readonly GameObject BoundGameObject;
-    protected readonly DictionaryWrapper<string, IVariable> VariableDict;
-    protected readonly LogicEngine.LogicEngineAPI EngineAPI;
-    protected readonly IValue[] Arguments;
-    // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
+    protected readonly ConstrainableContext Context;
+        // most likely this (this bool) and everything related is a REALLY bad solution but I don't have templates nor complex inheritance and want to get this done
     readonly bool _constraintReference;
     readonly LogicTypeConstraints _constraints;
     public IValue[][] GetConstraints() {
         return _constraints.ArgTypes;
     }
 
-    protected Chainable(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments, bool constraintReference) {
+    protected Chainable(IValue[][] argTypes, ConstrainableContext context, bool constraintReference) {
         _constraintReference = constraintReference;
-        BoundGameObject = gameObject;
-        VariableDict = gameObject?.GetComponent<LogicObject>().Variables;
-        EngineAPI = engineAPI;
-
         _constraints = new LogicTypeConstraints(argTypes);
-        if (!_constraintReference) {
-            Arguments = _constraints.CheckArgs(arguments, this);
+
+        if (_constraintReference) {
+            return;
         }
+        
+        var arguments = _constraints.CheckArgs(context.Arguments, this);
+        Context = context.UpdateArguments(arguments);
     }
     
     int _parents;
@@ -35,55 +32,62 @@ public abstract class Chainable : IConstrainable {
     }
 
     int _notifications;
-    void GetNotified(CoroRunner runner) {
+    bool IsReady => _notifications == _parents;
+
+    void GetNotified() {
         _notifications++;
-        // Debug.Log(GetType()+ ": getting notified!");
-        if (_notifications >= _parents) {
-            _notifications = 0;
-            // Debug.Log(GetType()+ ": executing!");
-            Execute(runner);
-        }
+    }
+
+    public void ResetNotifications() {
+        _notifications = 0;
     }
     
-    readonly List<Action<CoroRunner>> _notifiables = new List<Action<CoroRunner>>();
+    readonly List<Chainable> _children = new List<Chainable>();
 
-    void Notify(CoroRunner runner) {
+    void Notify() {
         // Debug.Log(GetType()+ ": notifying!");
-        foreach (var notifiable in _notifiables) {
-            notifiable(runner);
+        foreach (var child in _children) {
+            if (Context.Base.EngineAPI.LevelChanged) {
+                return;
+            }
+            child.GetNotified();
         }
     }
+
     public void AddChild(Chainable chainable) {
         if (_constraintReference) {
             throw new ApplicationException("This object is only a constraints reference");
         }
         
-        _notifiables.Add(chainable.GetNotified);
+        _children.Add(chainable);
         chainable.AddParent();
     }
 
-    public void Execute(CoroRunner runner) {
+    public void Execute(CoroRunner runner, Action<IEnumerable<Chainable>> callback) {
         if (_constraintReference) {
             throw new ApplicationException("This object is only a constraints reference");
         }
         
+        void ContinueCallChain(bool notify) {
+            if (notify) {
+                Notify();
+            }
+            callback(_children.Where(child => child.IsReady));
+        }
+
         var logic = InternalLogic(out var shouldNotify);
         if (logic != null) {
             // Debug.Log(GetType()+ ": my logic is Async!");
             IEnumerator Wrapper() {
                 yield return logic;
                 
-                if (shouldNotify) {
-                    Notify(runner);
-                }
+                ContinueCallChain(shouldNotify);
             }
 
             runner(Wrapper());
         } else {
             // Debug.Log(GetType()+ ": my logic is Sync!");
-            if (shouldNotify) {
-                Notify(runner);
-            }
+            ContinueCallChain(shouldNotify);
         }
     }
 

@@ -34,16 +34,19 @@ namespace Rules.Logic {
                                        && prevInfo.type != NodeType.Condition
                                        && prevInfo.type != NodeType.Action)
                     .ToArray()))
-                .Where(pair => pair.Item2.Length > 0);
+                .Where(pair => pair.Item2.Length > 0 || pair.Item1.prev.Length == 0);
 
             foreach (var (nodeInfo, improperPrev) in improperNodes) {
                 var message =
                     $"{nodeInfo.ToNameAndType()} can't receive connection from following blocks:";
+                if (nodeInfo.prev.Length == 0) {
+                    message += "\nThere are none!";
+                }
                 foreach (var prevInfo in improperPrev) {
                     message += $"\n\"{prevInfo.type}\"- \"{prevInfo.name}\"";
                 }
 
-                message += "\nIt can only receive a connection from one class and conditions & actions";
+                message += "\nStates should only receive connections from either one class or any number of conditions & actions";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }

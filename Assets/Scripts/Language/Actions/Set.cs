@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using UnityEngine;
 
 namespace Language.Actions {
     public class SetInt : Action {
@@ -8,11 +7,10 @@ namespace Language.Actions {
             new IValue[] {new Variable<int>()},
         };
 
-        public SetInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetInt(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
-            ((Variable<int>) Arguments[1]).Set((Value<int>) Arguments[0]);
+            ((Variable<int>) Context.Arguments[1]).Set((Value<int>) Context.Arguments[0]);
             return null;
         }
     }
@@ -23,11 +21,10 @@ namespace Language.Actions {
             new IValue[] {new Variable<float>()},
         };
 
-        public SetFloat(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetFloat(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
-            ((Variable<float>) Arguments[1]).Set((Value<float>) Arguments[0]);
+            ((Variable<float>) Context.Arguments[1]).Set((Value<float>) Context.Arguments[0]);
             return null;
         }
     }
@@ -38,11 +35,10 @@ namespace Language.Actions {
             new IValue[] {new Variable<bool>()},
         };
 
-        public SetBool(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetBool(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
-            ((Variable<bool>) Arguments[1]).Set((Value<bool>) Arguments[0]);
+            ((Variable<bool>) Context.Arguments[1]).Set((Value<bool>) Context.Arguments[0]);
             return null;
         }
     }
@@ -53,11 +49,10 @@ namespace Language.Actions {
             new IValue[] {new Variable<string>()},
         };
 
-        public SetString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public SetString(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override IEnumerator ActionLogic() {
-            ((Variable<string>) Arguments[1]).Set((Value<string>) Arguments[0]);
+            ((Variable<string>) Context.Arguments[1]).Set((Value<string>) Context.Arguments[0]);
             return null;
         }
     }

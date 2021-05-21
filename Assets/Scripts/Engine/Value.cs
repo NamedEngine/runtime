@@ -26,7 +26,7 @@
     }
 
     public virtual bool TryTransferValueTo(IVariable other) {
-        if (!(other is Variable<T> castedOther)) {
+        if (!(other.PrepareForCast() is Variable<T> castedOther)) {
             return false;
         }
         

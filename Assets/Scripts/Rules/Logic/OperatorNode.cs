@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Rules.Logic {
     public class OperatorNode : ILogicChecker {
@@ -74,7 +73,7 @@ namespace Rules.Logic {
                 .Where(info => LogicUtils.GetConstrainable(info, parsedNodes, idToFile, instantiator) == null);
             
             foreach (var nodeInfo in improperNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.name}";
+                var message = $"{nodeInfo.ToNameAndType()} should have a name of an existing {nodeInfo.type}";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
@@ -91,17 +90,10 @@ namespace Rules.Logic {
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
 
-            int MandatoryParamsNum(ParsedNodeInfo nodeInfo) {
-                var constraints = LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints();
-                var optionalNum = constraints
-                    .Select(possibleValues => possibleValues.Any(value => !(value is NullValue)))
-                    .Count(canBeNull => canBeNull);
-                
-                return constraints.Length - optionalNum;
-            }
-            int MaxParamsNum(ParsedNodeInfo nodeInfo) {
-                return LogicUtils.GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator).GetConstraints().Length;
-            }
+            int MandatoryParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MandatoryParamsNum(info, parsedNodes, idToFile, instantiator);
+            int MaxParamsNum(ParsedNodeInfo info) =>
+                LogicUtils.MaxParamsNum(info, parsedNodes, idToFile, instantiator);
             
             var wrongParamsNumNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Operator)

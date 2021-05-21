@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -18,10 +17,9 @@ public class DrawIOParser : ILogicParser<string> {
             next = new string[]{}
         };
 
-        if (info.type == NodeType.Parameter) {
-            var childObj = obj.Elements("mxCell").First();
-            info.parent = GetAttr(childObj, "parent");
-        }
+        var childObj = obj.Elements("mxCell").First();
+        var parent = GetAttr(childObj, "parent");
+        info.parent = parent == "1" ? null : parent;
 
         return new KeyValuePair<string,ParsedNodeInfo>(info.id, info);
     }
@@ -44,7 +42,7 @@ public class DrawIOParser : ILogicParser<string> {
 
         // add children
         var childrenDict = infoDict
-            .Where(pair => pair.Value.type == NodeType.Parameter)
+            .Where(pair => pair.Value.parent != null)
             .GroupBy(pair => pair.Value.parent)
             .Select(gr => new KeyValuePair<string, string[]>(gr.Key,
                 gr.Select(pair => pair.Key).ToArray()
@@ -58,7 +56,7 @@ public class DrawIOParser : ILogicParser<string> {
 
         var relArray = root
             .Elements("mxCell")
-            .Where(rel => rel.HasElements)  // filtering empty cells without geometry
+            .Where(rel => rel.Attributes().Any(attr => attr.Name == "edge"))  // filtering anything but edges (arrows)
             .Select(RelationToPair)
             .ToArray();
         

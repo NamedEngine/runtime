@@ -10,16 +10,16 @@ namespace Language.Variables {
 
         readonly System.Action _setSizeOnce;
         
-        protected override float InternalGet() {
+        protected override float SpecialGet() {
             _setSizeOnce();
 
             return (_size.Value / EngineAPI.GetSizePosConverter().SizeM2U).y;
         }
 
-        public override void Set(float value) {
+        protected override void SpecialSet(float value) {
             _setSizeOnce();
 
-            var y = (new Vector2(0, value) * EngineAPI.GetSizePosConverter().SizeM2U).x;
+            var y = (new Vector2(0, value) * EngineAPI.GetSizePosConverter().SizeM2U).y;
             _size.Value = new Vector2(_size.Value.x, y);
         }
 

@@ -1,9 +1,8 @@
 ﻿using System.Collections;
-using UnityEngine;
 
 public abstract class Condition : Chainable {
-    protected Condition(IValue[][] argTypes, GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-        bool constraintReference) : base(argTypes, gameObject, engineAPI, values, constraintReference) { }
+    protected Condition(IValue[][] argTypes, ConstrainableContext context, bool constraintReference)
+        : base(argTypes, context, constraintReference) { }
     
     protected override IEnumerator InternalLogic(out bool shouldNotify) {
         shouldNotify = ConditionLogic();

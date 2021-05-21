@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using Random = System.Random;
+﻿using System;
 
 namespace Language.Operators {
     public class RandInt : Operator<int> {
@@ -9,12 +8,11 @@ namespace Language.Operators {
         };
         readonly Random _random = new Random();
         
-        public RandInt(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] arguments,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, arguments, constraintReference) { }
+        public RandInt(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override int InternalGet() {
-            var minValue = Arguments[0] as Value<int> ?? int.MinValue;
-            var maxValue = Arguments[1] as Value<int> ?? int.MaxValue;
+            var minValue = Context.Arguments[0] as Value<int> ?? int.MinValue;
+            var maxValue = Context.Arguments[1] as Value<int> ?? int.MaxValue;
             return _random.Next(minValue, maxValue);
         }
     }

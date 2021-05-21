@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Conditions {
     public class Nce : Condition {
@@ -9,12 +8,19 @@ namespace Language.Conditions {
 
         int _activationsLeft;
 
-        public Nce(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) {
-            _activationsLeft = (Value<int>) values[0];
+        void SetInteractions() {
+            _activationsLeft = (Value<int>) Context.Arguments[0];
+        }
+        
+        System.Action _setInteractionsOnce;
+
+        public Nce(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) {
+            _setInteractionsOnce = ((System.Action) SetInteractions).Once();
         }
 
         protected override bool ConditionLogic() {
+            _setInteractionsOnce();
+            
             _activationsLeft = Math.Max(-1, --_activationsLeft);
             return _activationsLeft >= 0;
         }

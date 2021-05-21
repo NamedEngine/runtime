@@ -4,6 +4,7 @@ public class GraphicsConverter: MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     [SerializeField] float pixelsPerUnit = 100;
     public float PixelsPerUnit => pixelsPerUnit;
+    public readonly Vector2 DefaultPivot = new Vector2(.5f, .5f);
 
     public byte[] PathToBytes(string path) {
         return fileLoader.LoadBytes(path);
@@ -18,7 +19,7 @@ public class GraphicsConverter: MonoBehaviour {
 
     public Sprite TextureToSprite(Texture2D texture) {
         var rect = new Rect(Vector2.zero, new Vector2(texture.width, texture.height));
-        var sprite = Sprite.Create(texture, rect, Vector2.zero, pixelsPerUnit);
+        var sprite = Sprite.Create(texture, rect, DefaultPivot, pixelsPerUnit);
         return sprite;
     }
 

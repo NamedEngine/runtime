@@ -78,7 +78,24 @@ namespace Rules.Logic {
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
-            
+
+            var notUniqueVariables = parsedNodes.Values
+                .Where(info => info.type == NodeType.Variable)
+                .GroupBy(info => info.prev.First())
+                .Select(gr => (parsedNodes[gr.Key], gr
+                    .GroupBy(node => LogicUtils.GetVariableTypeAndName(node.name).Value.Item2)
+                    .Where(sameNameGroup => sameNameGroup.Count() > 1)
+                    .Select(sameNameGroup => sameNameGroup.Key)
+                    .ToArray()
+                ))
+                .Where(pair => pair.Item2.Length > 0);
+
+            foreach (var (classNode, variableNames) in notUniqueVariables) {
+                var message = $"{classNode.name} class has several variables with same names:\n{string.Join(", ", variableNames)}";
+
+                throw new LogicParseException(idToFile[classNode.id], message);
+            }
+
             var wrongTypedNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Variable)
                 .Select(info => (info, parsedNodes[info.prev.First()].name))
@@ -102,32 +119,14 @@ namespace Rules.Logic {
         static void CheckChildren(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {
             var improperNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Variable)
-                .Where(info => info.parameters.Length != 1
+                .Where(info => info.parameters.Length > 1
                                || info.parameters.Any(id => parsedNodes[id].type != NodeType.Parameter));
 
             foreach (var nodeInfo in improperNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} should have have exactly 1\nchild of \"Parameter\" type";
+                var message = $"{nodeInfo.ToNameAndType()} should have have 0 or 1\nchild node of \"Parameter\" type";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
-            
-            // TODO: move to ParameterNode
-            /*var improperValueNodes = parsedNodes.Values
-                .Where(info => info.type == NodeType.Variable)
-                .Where(info => {
-                    var parameterValue = parsedNodes[info.parameters.First()].name;
-                    var type = LogicUtils.GetVariableTypeAndName(info.name).Value.Item1;
-                    var casted = ValueTypeConverter.GetVariableByType(type, parameterValue);
-                    return casted is null;
-                });
-            
-            foreach (var nodeInfo in improperValueNodes) {
-                var parameterValue = parsedNodes[nodeInfo.parameters.First()].name;
-                var type = LogicUtils.GetVariableTypeAndName(nodeInfo.name).Value.Item1;
-                var message = $"{nodeInfo.ToNameAndType()} has incorrect parameter value:\ncan't cast \"{parameterValue}\" to type \"{type}\"";
-
-                throw new LogicParseException(idToFile[nodeInfo.id], message);
-            }*/
         }
 
         public List<Action<Dictionary<string, ParsedNodeInfo>, Dictionary<string, string>, TemporaryInstantiator>> GetCheckerMethods() {

@@ -11,22 +11,24 @@ namespace Language.Actions {
             new IValue[] {new Value<bool>(), new NullValue()},  // relative to direction
         };
         
-        public MoveInTime(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public MoveInTime(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var deltaX = ((Value<float>) Arguments[0]).Get();
-            var deltaY = ((Value<float>) Arguments[1]).Get();
-            var x = (Variable<float>) VariableDict[nameof(X)];
-            var y = (Variable<float>) VariableDict[nameof(Y)];
+            var deltaX = ((Value<float>) Context.Arguments[0]).Get();
+            var deltaY = ((Value<float>) Context.Arguments[1]).Get();
+            var x = (Variable<float>) Context.Base.VariableDict[nameof(CenterX)];
+            var y = (Variable<float>) Context.Base.VariableDict[nameof(CenterY)];
 
-            var velocityX = (Variable<float>) VariableDict[nameof(VelocityX)];
-            var velocityY = (Variable<float>) VariableDict[nameof(VelocityY)];
+            var velocityX = (Variable<float>) Context.Base.VariableDict[nameof(VelocityX)];
+            var velocityY = (Variable<float>) Context.Base.VariableDict[nameof(VelocityY)];
             
-            var time = ((Value<float>) Arguments[2]).Get();
-            var relative = (Arguments[3] as Value<bool>)?.Get() ?? false;
+            var time = ((Value<float>) Context.Arguments[2]).Get();
+            var relative = (Context.Arguments[3] as Value<bool>)?.Get() ?? false;
             
             if (!relative) {
+                var initialX = x.Get();
+                var initialY = y.Get();
+                
                 var newVelocityX = deltaX / time;
                 var newVelocityY = deltaY / time;
                 
@@ -35,14 +37,14 @@ namespace Language.Actions {
 
                 yield return new WaitForSeconds(time);
                 
-                x.Set(x + deltaX);
-                y.Set(y + deltaY);
+                x.Set(initialX + deltaX);
+                y.Set(initialY + deltaY);
             } else {
                 var mapDirection = new Vector2(deltaX, deltaY);
-                var unityDirection = EngineAPI.GetSizePosConverter().DirectionM2U(mapDirection);
-                var newUnityDirection = BoundGameObject.transform.right * unityDirection.x +
-                                        BoundGameObject.transform.forward * unityDirection.y;
-                var newMapDirection = EngineAPI.GetSizePosConverter().DirectionU2M(newUnityDirection);
+                var unityDirection = Context.Base.EngineAPI.GetSizePosConverter().DirectionM2U(mapDirection);
+                var newUnityDirection = Context.BoundGameObject.transform.right * unityDirection.x +
+                                        Context.BoundGameObject.transform.forward * unityDirection.y;
+                var newMapDirection = Context.Base.EngineAPI.GetSizePosConverter().DirectionU2M(newUnityDirection);
 
                 var resultingX = x + newMapDirection.x;
                 var resultingY = y + newMapDirection.y;

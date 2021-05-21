@@ -1,22 +1,20 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class ToString : Operator<string> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {
+                new Value<string>(),
                 new Value<int>(),
                 new Value<float>(),
                 new Value<bool>(),
-                new Value<string>(),
             },
         };
 
-        public ToString(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public ToString(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override string InternalGet() {
-            switch (Arguments[0]) {
+            switch (Context.Arguments[0]) {
                 case Value<int> intVal:
                     return intVal.ToString();
                 case Value<float> floatVal:

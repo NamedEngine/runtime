@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class Max : Operator<int> {
@@ -8,11 +7,10 @@ namespace Language.Operators {
             new IValue[] {new Value<int>()},
         };
 
-        public Max(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Max(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override int InternalGet() {
-            return Math.Max((Value<int>) Arguments[0], (Value<int>) Arguments[1]);
+            return Math.Max((Value<int>) Context.Arguments[0], (Value<int>) Context.Arguments[1]);
         }
     }
 }

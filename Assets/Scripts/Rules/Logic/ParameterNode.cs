@@ -167,8 +167,7 @@ namespace Rules.Logic {
                     switch (prevInfo.type) {
                         case NodeType.Variable:
                             var variableType = LogicUtils.GetVariableTypeAndName(prevInfo.name).Value.Item1;
-                            var variableParamInfo = parsedNodes[prevInfo.parameters.First()];
-                            var variableValue = variableParamInfo.name;
+                            var variableValue = prevInfo.parameters.Length == 1 ? parsedNodes[prevInfo.parameters.First()].name : "";
                             prev = ValueTypeConverter.GetVariableByType(variableType, variableValue);
                             break;
                         case NodeType.VariableRef:

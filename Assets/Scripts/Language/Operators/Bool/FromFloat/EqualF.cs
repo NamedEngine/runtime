@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 
 namespace Language.Operators {
     public class EqualF : Operator<bool> {
@@ -9,12 +8,11 @@ namespace Language.Operators {
             new IValue[] {new Value<float>(), new NullValue()},
         };
 
-        public EqualF(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public EqualF(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool InternalGet() {
-            var delta = Arguments[2] as Value<float> ?? 1e-4f;
-            return Math.Abs(((Value<float>) Arguments[0]).Get() - ((Value<float>) Arguments[1]).Get()) < delta;
+            var delta = Context.Arguments[2] as Value<float> ?? 1e-4f;
+            return Math.Abs(((Value<float>) Context.Arguments[0]).Get() - ((Value<float>) Context.Arguments[1]).Get()) < delta;
         }
     }
 }

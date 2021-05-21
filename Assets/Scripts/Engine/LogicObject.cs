@@ -2,27 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Debug = System.Diagnostics.Debug;
 
 public class LogicObject : MonoBehaviour {
     LogicObject _baseObject;
     public string BaseClass => _baseObject != null ? _baseObject.Class : null;
-    
-    protected LogicState GeneralState;
-    protected Dictionary<string, LogicState> LogicStates = new Dictionary<string, LogicState>();
 
-    protected Dictionary<string, IVariable> ThisClassVariables = new Dictionary<string, IVariable>();
+    LogicState _generalState;
+    Dictionary<string, LogicState> _logicStates = new Dictionary<string, LogicState>();
+
+    Dictionary<string, IVariable> _thisClassVariables = new Dictionary<string, IVariable>();
     public DictionaryWrapper<string, IVariable> Variables {
         get {
             if (!_baseObject) {
-                return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {ThisClassVariables});
+                return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {_thisClassVariables});
             }
             
-            return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {ThisClassVariables, _baseObject.Variables});
+            return new DictionaryWrapper<string, IVariable>(new IReadOnlyDictionary<string, IVariable>[] {_thisClassVariables, _baseObject.Variables});
         }
     }
 
-    protected string ObjectClass;
-    public string Class => ObjectClass;
+    public string Class { get; private set; }
+    string _name;
 
     public bool IsClass(string otherClass) {
         var isClass = Class == otherClass;
@@ -32,80 +33,119 @@ public class LogicObject : MonoBehaviour {
 
         return isClass;
     }
-    
-    protected string CurrentState = "";
-    public void SetState(string state, LogicEngine.LogicEngineAPI engineAPI) {  // TODO: maybe reduce scope somehow
-        if (CurrentState != "") {
-            LogicStates[CurrentState].Finish();
-        }
-        
-        CurrentState = state;
-        LogicStates[CurrentState].Start(this, engineAPI, Variables.ToDictionary());
-        LogicStates[CurrentState].ProcessLogic();
-    }
-    
-    public void SetupObject(LogicState generalState, Dictionary<string, LogicState> logicStates, string currentState, Dictionary<string, IVariable> logicVariables, string objectClass) {
-        GeneralState = generalState;
-        LogicStates = logicStates;
-        CurrentState = currentState;
-        ThisClassVariables = logicVariables;
-        ObjectClass = objectClass;
-    }
-    
-    public void ProcessLogic() {
-        GeneralState?.ProcessLogic();
-        if (CurrentState != "") {
-            LogicStates[CurrentState].ProcessLogic();
+
+    public string[] GetInheritanceChain() {
+        var chain = new List<string> {Class};
+        if (BaseClass != null) {
+            chain.AddRange(_baseObject.GetInheritanceChain());
         }
 
+        return chain.ToArray();
+    }
+
+    string _currentState = "";
+    public void SetState(string state, LogicEngine.LogicEngineAPI engineAPI) {  // TODO: maybe reduce scope somehow
+        if (!string.IsNullOrEmpty(_currentState)) {
+            _logicStates[_currentState].Finish();
+        }
+
+        var baseContext = new BaseContext(engineAPI, Variables, _name);
+        
+        _currentState = state;
+        _logicStates[_currentState].Start(this, baseContext);
+        _logicStates[_currentState].ProcessLogic();
+    }
+
+    protected LogicEngine.LogicEngineAPI EngineAPI;
+    
+    public void SetupObject(LogicState generalState, Dictionary<string, LogicState> logicStates, string currentState,
+        Dictionary<string, IVariable> logicVariables, string objectClass, LogicEngine.LogicEngineAPI engineAPI, string objectName) {
+        _generalState = generalState;
+        _logicStates = logicStates;
+        _currentState = currentState;
+        _thisClassVariables = logicVariables;
+        Class = objectClass;
+        EngineAPI = engineAPI;
+        _name = objectName;
+    }
+
+    public void BeforeStartProcessing() {
+        if (_baseObject) {
+            _baseObject.BeforeStartProcessing();
+        }
+        
+        BeforeStartProcessingInternal();
+    }
+    
+    public void AfterFinishProcessing() {
+        if (_baseObject) {
+            _baseObject.AfterFinishProcessing();
+        }
+        
+        AfterFinishProcessingInternal();
+    }
+
+    protected virtual void BeforeStartProcessingInternal() { }
+    protected virtual void AfterFinishProcessingInternal() { }
+    
+    public void ProcessLogic() {
         if (_baseObject) {
             _baseObject.ProcessLogic();
         }
+        
+        _generalState?.ProcessLogic();
+        if (!string.IsNullOrEmpty(_currentState)) {
+            _logicStates[_currentState].ProcessLogic();
+        }
     }
 
-    public LogicObject Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI = null) {
-        var newObject = objectToAttachTo.AddComponent<LogicObject>();
-        newObject._baseObject = _baseObject ? _baseObject.Clone(objectToAttachTo, engineAPI) : _baseObject;
+    public LogicObject Clone(GameObject objectToAttachTo, LogicEngine.LogicEngineAPI engineAPI, string newObjectName) {
+        var newObject = objectToAttachTo.AddComponent(GetType()) as LogicObject;
+        Debug.Assert(newObject != null, nameof(newObject) + " != null");
         
-        var clonedVariables = ThisClassVariables.ToDictionary(entry => entry.Key,
+        newObject._baseObject = _baseObject ? _baseObject.Clone(objectToAttachTo, engineAPI, null) : null;
+        
+        var clonedVariables = _thisClassVariables.ToDictionary(entry => entry.Key,
             entry => entry.Value.Clone(objectToAttachTo, engineAPI));
-        newObject.ThisClassVariables = clonedVariables;
+        newObject._thisClassVariables = clonedVariables;
+
+        var baseContext = new BaseContext(engineAPI, newObject.Variables, newObjectName);
         
-        var clonedGeneralState = GeneralState?.Clone(newObject, engineAPI, newObject.Variables.ToDictionary(), objectToAttachTo);
-        var clonedStates = LogicStates.ToDictionary(entry => entry.Key,
-            entry => entry.Value.Clone(newObject, engineAPI, newObject.Variables.ToDictionary(), objectToAttachTo));
-        newObject.SetupObject(clonedGeneralState, clonedStates, CurrentState, clonedVariables, Class);
+        var clonedGeneralState = _generalState?.Clone(newObject, baseContext, objectToAttachTo);
+        var clonedStates = _logicStates.ToDictionary(entry => entry.Key,
+            entry => entry.Value.Clone(newObject, baseContext, objectToAttachTo));
+        newObject.SetupObject(clonedGeneralState, clonedStates, _currentState, clonedVariables, Class, engineAPI, newObjectName);
         
         return newObject;
     }
 
-    public void Inherit(LogicObject inheritor) {
+    public void Inherit(LogicObject inheritor, LogicEngine.LogicEngineAPI engineAPI) {
         if (inheritor._baseObject != null) {
             throw new ApplicationException();
         }
         
         // Debug.Log($":{inheritor.Class}: now inherits from :{Class}:");
 
-        inheritor._baseObject = Clone(inheritor.gameObject);
-        var inheritorVariableNames = inheritor.ThisClassVariables.Keys.ToArray();
+        inheritor._baseObject = Clone(inheritor.gameObject, engineAPI, null);
+        var inheritorVariableNames = inheritor._thisClassVariables.Keys.ToArray();
         foreach (var variableName in inheritorVariableNames) {
             var got = inheritor._baseObject.Variables.TryGetValue(variableName, out var variable);
             if (!got) {
                 continue;
             }
 
-            var transferred = inheritor.ThisClassVariables[variableName].TryTransferValueTo(variable);
+            var transferred = inheritor._thisClassVariables[variableName].TryTransferValueTo(variable);
             if (!transferred) {
-                throw new ArgumentException($"Inheritor({inheritor.Class}) variable {variableName} has inappropriate type");  // TODO: MOVE TO LANG RULES
+                throw new ArgumentException($"Inheritor({inheritor.Class}) variable {variableName} has inappropriate type");
             }
 
-            inheritor.ThisClassVariables.Remove(variableName);
+            inheritor._thisClassVariables.Remove(variableName);
         }
     }
     
     void OnDestroy() {
-        GeneralState?.Finish();
-        foreach (var state in LogicStates.Values) {
+        _generalState?.Finish();
+        foreach (var state in _logicStates.Values) {
             state.Finish();
             state.Destroy(Destroy);
             // not letting chains know they are being destroyed cause they are attached to the same object and are gone for good after the process

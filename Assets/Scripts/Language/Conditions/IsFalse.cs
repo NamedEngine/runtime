@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-
-namespace Language.Conditions {
+﻿namespace Language.Conditions {
     public class IsFalse : Condition {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {new Value<bool>()}
         };
         
-        public IsFalse(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public IsFalse(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override bool ConditionLogic() {
-            return !(Arguments[0] as Value<bool>);
+            return !(Context.Arguments[0] as Value<bool>);
         }
     }
 }

@@ -10,13 +10,13 @@ namespace Variables {
 
         readonly System.Action _setRendererOnce;
         
-        protected override bool InternalGet() {
+        protected override bool SpecialGet() {
             _setRendererOnce();
 
             return _renderer.enabled;
         }
 
-        public override void Set(bool value) {
+        protected override void SpecialSet(bool value) {
             _setRendererOnce();
 
             _renderer.enabled = value;

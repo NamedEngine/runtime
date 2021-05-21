@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using System;
+using System.Collections;
 
 namespace Language.Actions {
     public class CreateObject : Action {
@@ -8,11 +8,14 @@ namespace Language.Actions {
             new IValue[] {new ClassRef()},
         };
 
-        public CreateObject(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public CreateObject(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            EngineAPI.CreateObject((Value<string>) Arguments[0], ((ClassRef) Arguments[1]).ClassName);
+            var objName = ((Value<string>) Context.Arguments[0]).Get();
+            var res = Context.Base.EngineAPI.CreateObject(objName, ((ClassRef) Context.Arguments[1]).ClassName);
+            if (res == null) {
+                throw new ArgumentException($"Object with name \"{objName}\" already exists!");
+            }
 
             return null;
         }

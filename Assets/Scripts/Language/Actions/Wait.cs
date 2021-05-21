@@ -11,10 +11,9 @@ namespace Language.Actions {
             },
         };
         
-        public Wait(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Wait(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         protected override IEnumerator ActionLogic() {
-            switch (Arguments[0]) {
+            switch (Context.Arguments[0]) {
                 case Value<int> intVal:
                     yield return new WaitForSeconds(intVal);
                     break;

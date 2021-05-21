@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
-using VariableDictionary = System.Collections.Generic.Dictionary<string, IVariable>;
-using OperatorInstantiator = System.Func<System.Collections.Generic.Dictionary<string, IVariable>, IValue[], IValue>;
-using ChainableInstantiator = System.Func<LogicObject, System.Collections.Generic.Dictionary<string, IVariable>, IValue[], Chainable>;
 
 public class LogicState {
     readonly LogicChain[] _logicChains;
@@ -18,9 +15,9 @@ public class LogicState {
         }
     }
 
-    public void Start(LogicObject thisObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary) {
+    public void Start(LogicObject thisObject, BaseContext baseContext) {
         foreach (var logicChain in _logicChains) {
-            logicChain.ResetChain(thisObject, engineAPI, variableDictionary);
+            logicChain.ResetChain(thisObject, baseContext);
         }
     }
 
@@ -36,9 +33,9 @@ public class LogicState {
         }
     }
 
-    public LogicState Clone(LogicObject newObject, LogicEngine.LogicEngineAPI engineAPI, VariableDictionary variableDictionary, GameObject objectToAttachTo) {
+    public LogicState Clone(LogicObject newObject, BaseContext baseContext, GameObject objectToAttachTo) {
         var clonedChains = _logicChains
-            .Select(chain => chain.Clone(newObject, engineAPI, variableDictionary, objectToAttachTo))
+            .Select(chain => chain.Clone(newObject, baseContext, objectToAttachTo))
             .ToArray();
         return new LogicState(clonedChains);
     }

@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using Language.Variables;
-using UnityEngine;
 
 namespace Language.Actions {
     public class Rotate : Action {
@@ -8,12 +7,11 @@ namespace Language.Actions {
             new IValue[] {new Value<float>()},
         };
         
-        public Rotate(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Rotate(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var deltaRotation = ((Value<float>) Arguments[0]).Get();
-            var rotation = (Variable<float>) VariableDict[nameof(Rotation)];
+            var deltaRotation = ((Value<float>) Context.Arguments[0]).Get();
+            var rotation = (Variable<float>) Context.Base.VariableDict[nameof(Rotation)];
             
             rotation.Set(rotation + deltaRotation);
 

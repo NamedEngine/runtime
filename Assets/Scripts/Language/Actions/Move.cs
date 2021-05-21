@@ -10,15 +10,14 @@ namespace Language.Actions {
             new IValue[] {new Value<bool>(), new NullValue()},  // relative to direction
         };
         
-        public Move(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Move(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
         
         protected override IEnumerator ActionLogic() {
-            var deltaX = ((Value<float>) Arguments[0]).Get();
-            var deltaY = ((Value<float>) Arguments[1]).Get();
-            var x = (Variable<float>) VariableDict[nameof(X)];
-            var y = (Variable<float>) VariableDict[nameof(Y)];
-            var relative = (Arguments[2] as Value<bool>)?.Get() ?? false;
+            var deltaX = ((Value<float>) Context.Arguments[0]).Get();
+            var deltaY = ((Value<float>) Context.Arguments[1]).Get();
+            var x = (Variable<float>) Context.Base.VariableDict[nameof(CenterX)];
+            var y = (Variable<float>) Context.Base.VariableDict[nameof(CenterY)];
+            var relative = (Context.Arguments[2] as Value<bool>)?.Get() ?? false;
             
             if (!relative) {
                 x.Set(x + deltaX);
@@ -27,9 +26,9 @@ namespace Language.Actions {
             }
 
             var mapDirection = new Vector2(deltaX, deltaY);
-            var unityDirection = EngineAPI.GetSizePosConverter().DirectionM2U(mapDirection);
-            var newUnityDirection = BoundGameObject.transform.right * unityDirection.x + BoundGameObject.transform.forward * unityDirection.y;
-            var newMapDirection = EngineAPI.GetSizePosConverter().DirectionU2M(newUnityDirection);
+            var unityDirection = Context.Base.EngineAPI.GetSizePosConverter().DirectionM2U(mapDirection);
+            var newUnityDirection = Context.BoundGameObject.transform.right * unityDirection.x + Context.BoundGameObject.transform.forward * unityDirection.y;
+            var newMapDirection = Context.Base.EngineAPI.GetSizePosConverter().DirectionU2M(newUnityDirection);
             
             x.Set(x + newMapDirection.x);
             y.Set(y + newMapDirection.y);

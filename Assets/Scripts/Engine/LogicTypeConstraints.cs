@@ -23,8 +23,9 @@ public class LogicTypeConstraints {
         }
 
         // padding with nulls so we will always have fixed number of Values in descendants
+        IValue[] newValues;
         if (arguments.Length < ArgTypes.Length) {
-            var newValues = new IValue[ArgTypes.Length];
+            newValues = new IValue[ArgTypes.Length];
             for (int i = 0; i < arguments.Length; i++) {
                 newValues[i] = arguments[i];
             }
@@ -32,23 +33,25 @@ public class LogicTypeConstraints {
             for (int i = arguments.Length; i < ArgTypes.Length; i++) {
                 newValues[i] = null;
             }
+        } else {
+            newValues = arguments;
         }
 
-        for (int i = 0; i < arguments.Length; i++) {
+        for (int i = 0; i < newValues.Length; i++) {
             var typeMatch = ArgTypes[i]
-                .Select(t => t.Cast(arguments[i]))
+                .Select(t => t.Cast(newValues[i]))
                 .Any(b => b);
             if (typeMatch) {
                 continue;
             }
 
-            if (arguments[i] is null) {
+            if (newValues[i] is null) {
                 throw new ArgumentException("Argument error in " + caller.GetType() + " operator: argument #" + i + " is mandatory");
             }
 
             throw new ArgumentException("Argument type mismatch in " + caller.GetType() + " operator: argument #" + i + " has inappropriate type");
         }
 
-        return arguments.Select(v => v.PrepareForCast()).ToArray();
+        return newValues.Select(v => v?.PrepareForCast()).ToArray();
     }
 }

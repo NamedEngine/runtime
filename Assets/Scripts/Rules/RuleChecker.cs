@@ -10,16 +10,16 @@ namespace Rules {
         
         public static void CheckLogic(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
             var logicCheckers = new List<ILogicChecker> {
+                new NodeGroup(),
+                
                 new ClassNode(),
                 new StateNode(),
                 new ClassRefNode(),
-                new VariableRefNode(),
                 new VariableNode(),
+                new VariableRefNode(),
                 new OperatorNode(),
                 new ChainableNode(),
                 new ParameterNode(),
-                
-                new NodeGroup(),
             };
             
             logicCheckers.ForEach(lc => lc.GetCheckerMethods().ForEach(method => {

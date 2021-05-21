@@ -1,16 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 public class Size : MonoBehaviour {
-    Vector2 _value;
-    List<BoxCollider2D> _colliders = new List<BoxCollider2D>();
+    [SerializeField] Vector2 value;
+    readonly HashSet<BoxCollider2D> _colliders = new HashSet<BoxCollider2D>();
 
     public Vector2 Value {
-        get => _value;
+        get => value;
         set {
-            _value = value;
+            this.value = value;
             ResizeColliders();
         }
     }
+
+    public readonly List<System.Action> AfterResize = new List<System.Action>();
 
     public float Width => Value.x;
     public float Height => Value.y;
@@ -21,6 +24,11 @@ public class Size : MonoBehaviour {
 
     void ResizeColliders() {
         _colliders
-            .ForEach(c => c.size = Value);
+            .ToList()
+            .ForEach(c => {
+                c.size = Value;
+            });
+        
+        AfterResize.ForEach(a => a());
     }
 }

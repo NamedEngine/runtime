@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-
-namespace Language.Operators {
+﻿namespace Language.Operators {
     public class Not : Operator<bool> {
         static readonly IValue[][] ArgTypes = {
             new IValue[] {new Value<bool>()},
         };
 
-        public Not(GameObject gameObject, LogicEngine.LogicEngineAPI engineAPI, IValue[] values,
-            bool constraintReference) : base(ArgTypes, gameObject, engineAPI, values, constraintReference) { }
+        public Not(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool InternalGet() {
-            return !(Value<bool>) Arguments[0];
+            return !(Value<bool>) Context.Arguments[0];
         }
     }
 }
