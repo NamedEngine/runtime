@@ -1,60 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class TileSet {
-    readonly GraphicsConverter _converter;
-    readonly Texture2D _texture;
-    readonly int _firstgid;
-    public float TileWidth { get; }
-    public float TileHeight { get; }
-    public Vector2 TileSize => new Vector2(TileWidth, TileHeight);
-    readonly int _columns;
-    readonly int _rows;
-    readonly float _margin;
-    readonly float _spacing;
+public abstract class TileSet {
+    readonly int _firstGid;
 
-    readonly Dictionary<int, Rect[]> _colliders;
-
-    public TileSet(GraphicsConverter converter, Texture2D texture, int firstgid, float tileWidth, float tileHeight,
-        int columns, int rows, float margin, float spacing, Dictionary<int, Rect[]> colliders = null) {
-        _converter = converter;
-        _texture = texture;
-        _firstgid = firstgid;
-        TileWidth = tileWidth;
-        TileHeight = tileHeight;
-        _columns = columns;
-        _rows = rows;
-        _margin = margin;
-        _spacing = spacing;
-        _colliders = colliders ?? new Dictionary<int, Rect[]>();
+    protected TileSet(int firstGid) {
+        _firstGid = firstGid;
     }
 
     public bool InRange(int tile) {
-        return tile >= _firstgid && tile < _firstgid + _rows * _columns;
+        return tile >= _firstGid && tile < _firstGid + GetTileCount();
     }
 
-    public Sprite GetSprite(int tile) {
-        if (!InRange(tile)) {
-            throw new IndexOutOfRangeException();
-        }
+    protected abstract int GetTileCount();
 
-        var tileIndex = tile - _firstgid;
-        
-        var col = tileIndex % _columns;
-        var row = _rows - 1 - tileIndex / _columns;
-        
-        var xPos = _margin + col * (TileWidth + _spacing);
-        var yPos = _margin + row * (TileHeight + _spacing);
-        var pos = new Vector2(xPos, yPos);
-        var size = new Vector2(TileWidth, TileHeight);
-        
-        var rect = new Rect(pos, size);
-        return Sprite.Create(_texture, rect, _converter.DefaultPivot, _converter.PixelsPerUnit);
+    protected int GetTileIndex(int tile) {
+        return tile - _firstGid;
     }
 
-    public Rect[] GetCollider(int tile) {
-        var tileIndex = tile - _firstgid;
-        return _colliders.ContainsKey(tileIndex) ? _colliders[tileIndex] : new Rect[] { };
-    }
+    public abstract Sprite GetSprite(int tile);
+
+    public abstract Vector2 GetTileSize(int tile);
+
+    public abstract Rect[] GetCollider(int tile);
 }

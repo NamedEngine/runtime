@@ -110,9 +110,11 @@ public class MapLoader : MonoBehaviour {
 
                 var sprite = tileSet.GetSprite(tileNumber);
 
+                var tileSize = tileSet.GetTileSize(tileNumber);
                 var xPos = (column + chunkInfo.OffsetX) * mapInfo.MapTileWidth;
                 var yPos = (row + chunkInfo.OffsetY) * mapInfo.MapTileHeight;
-                var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yPos), tileSet.TileSize);
+                var yAlignedPos = yPos + mapInfo.MapTileHeight - tileSize.y;
+                var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yAlignedPos), tileSize);
 
                 var tile = Instantiate(tilePrefab, pos, quaternion.identity);
                 var sr = tile.GetComponent<SpriteRenderer>();
@@ -230,6 +232,14 @@ public class MapLoader : MonoBehaviour {
     }
 
     TileSet LoadTileSet(TileSetInfo tileSetInfo) {
+        if (!tileSetInfo.TileSetElement.Elements("image").Any()) {
+            return LoadMultiImageTileSet(tileSetInfo);
+        }
+
+        return LoadOneImageTileSet(tileSetInfo);
+    }
+
+    OneImageTileSet LoadOneImageTileSet(TileSetInfo tileSetInfo) {
         var tileWidth = GetFloatAttr(tileSetInfo.TileSetElement, "tilewidth");
         var tileHeight = GetFloatAttr(tileSetInfo.TileSetElement, "tileheight");
         var tileCount = GetIntAttr(tileSetInfo.TileSetElement, "tilecount");
@@ -243,11 +253,24 @@ public class MapLoader : MonoBehaviour {
         var imagePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), imagePathRaw);
         var texture = graphicsConverter.PathToTexture(imagePath);
 
-        var tileInfos = tileSetInfo.TileSetElement.Descendants("tile").ToArray();
+        var tileInfos = tileSetInfo.TileSetElement.Elements("tile").ToArray();
         var tileIds = tileInfos.Select(i => GetIntAttr(i, "id")).ToArray();
 
         var tileSize = new Vector2(tileWidth, tileHeight);
 
+        var tileColliders = tileInfos
+            .Select(i => TileElementToColliders(i, tileSize))
+            .ToArray();
+
+        var colliders = tileIds
+            .Zip(tileColliders, (id, rects) => new {id, rects})
+            .ToDictionary(item => item.id, item => item.rects);
+
+        return new OneImageTileSet(graphicsConverter, texture, tileSetInfo.FirstGid, tileWidth, tileHeight, columns, rows, 
+            margin, spacing, colliders);
+    }
+
+    Rect[] TileElementToColliders(XElement tile, Vector2 tileSize) {
         Rect PosSizeFromObject(XElement obj) {
             var width = GetFloatAttr(obj, "width");
             var height = GetFloatAttr(obj, "height");
@@ -261,16 +284,41 @@ public class MapLoader : MonoBehaviour {
             return new Rect(pos, size);
         }
 
-        var tileColliders = tileInfos
-            .Select(i => i.Descendants("objectgroup").First().Descendants().ToArray())
-            .Select(objects => objects.Select(PosSizeFromObject).ToArray())
-            .ToArray();
+        return tile.Element("objectgroup")?
+            .Elements()
+            .Select(PosSizeFromObject)
+            .ToArray()
+               ?? new Rect[] { };
+    }
 
-        var colliders = tileIds
-            .Zip(tileColliders, (id, rects) => new {id, rects})
-            .ToDictionary(item => item.id, item => item.rects);
+    MultiImageTileSet LoadMultiImageTileSet(TileSetInfo tileSetInfo) {
+        KeyValuePair<int, MultiImageTileSet.TileInfo> TileElementToTileInfo(XElement tile) {
+            var id = GetIntAttr(tile, "id");
 
-        return new TileSet(graphicsConverter, texture, tileSetInfo.FirstGid, tileWidth, tileHeight, columns, rows, 
-            margin, spacing, colliders);
+            var imageElement = tile.Element("image");
+
+            var width = GetFloatAttr(imageElement, "width");
+            var height = GetFloatAttr(imageElement, "height");
+            var size = new Vector2(width, height);
+
+            var source = GetAttr(imageElement, "source");
+            var spritePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), source);
+            var sprite = graphicsConverter.PathToSprite(spritePath);
+
+            var colliders = TileElementToColliders(tile, size);
+
+            return new KeyValuePair<int, MultiImageTileSet.TileInfo>(id, new MultiImageTileSet.TileInfo {
+                Sprite = sprite,
+                Size = size,
+                Colliders = colliders
+            });
+        }
+
+        var tileInfos = tileSetInfo.TileSetElement
+            .Elements("tile")
+            .Select(TileElementToTileInfo)
+            .ToDictionary();
+
+        return new MultiImageTileSet(tileInfos, tileSetInfo.FirstGid);
     }
 }
