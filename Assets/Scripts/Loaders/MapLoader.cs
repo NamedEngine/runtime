@@ -34,12 +34,10 @@ public class MapLoader : MonoBehaviour {
         };
 
         const string tileSetElementName = "tileset";
-
         var tileSets = root.Elements(tileSetElementName)
-            .Select(d => new { path = GetAttr(d, "source"), gid = GetIntAttr(d, "firstgid") })
-            .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
-            .Select(item => LoadTileSet(item.fullPath, item.gid))
-            .ToList();
+            .Select(element => GetTileSetInfo(element, mapPath))
+            .Select(LoadTileSet)
+            .ToArray();
 
         var layerObjectInfoLoaders =
             new Dictionary<string, Func<XElement, string, string, List<MapObjectInfo>>> {
@@ -71,7 +69,7 @@ public class MapLoader : MonoBehaviour {
         return objectInfos.ToArray();
     }
 
-    List<GameObject> LoadTileLayer(XElement layer, MapInfo mapInfo, string sortingLayer, List<TileSet> tileSets) {
+    List<GameObject> LoadTileLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
         var data = layer.Elements("data").First();
         var chunks = data.Elements("chunk").ToList();
         if (chunks.Count == 0) {
@@ -98,7 +96,7 @@ public class MapLoader : MonoBehaviour {
             .ToList();
     }
 
-    List<GameObject> LoadTileChunk(ChunkInfo chunkInfo, MapInfo mapInfo, string sortingLayer, List<TileSet> tileSets) {
+    List<GameObject> LoadTileChunk(ChunkInfo chunkInfo, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
         var tileObjects = new List<GameObject>();
         var rows = chunkInfo.TileNumbers.Length;
         for (var row = 0; row < rows; row++) {
@@ -217,24 +215,41 @@ public class MapLoader : MonoBehaviour {
             .ToArray();
     }
 
-    TileSet LoadTileSet(string tileSetPath, int firstgid) {
-        var tileSetDocument = XDocument.Parse(fileLoader.LoadText(tileSetPath));
+    TileSetInfo GetTileSetInfo(XElement tileSetElement, string mapPath) {
+        var firstGid = GetIntAttr(tileSetElement, "firstgid");
 
-        var root = tileSetDocument.Root;
-        Debug.Assert(root != null, nameof(root) + " != null");
+        const string sourceAttrName = "source";
+        var hasSource = tileSetElement.Attributes().Any(attr => attr.Name == sourceAttrName);
+        if (!hasSource) {
+            return new TileSetInfo {
+                TileSetElement = tileSetElement,
+                FirstGid = firstGid,
+                TileSetPath = mapPath
+            };
+        }
         
-        var tileWidth = GetFloatAttr(root, "tilewidth");
-        var tileHeight = GetFloatAttr(root, "tileheight");
-        var tileCount = GetIntAttr(root, "tilecount");
-        var columns = GetIntAttr(root, "columns");
+        var source = GetAttr(tileSetElement, sourceAttrName);
+        var path = Path.Combine(Path.GetDirectoryName(mapPath), source);
+        return new TileSetInfo {
+            TileSetElement = XDocument.Parse(fileLoader.LoadText(path)).Root,
+            FirstGid = firstGid,
+            TileSetPath = path
+        };
+    }
+
+    TileSet LoadTileSet(TileSetInfo tileSetInfo) {
+        var tileWidth = GetFloatAttr(tileSetInfo.TileSetElement, "tilewidth");
+        var tileHeight = GetFloatAttr(tileSetInfo.TileSetElement, "tileheight");
+        var tileCount = GetIntAttr(tileSetInfo.TileSetElement, "tilecount");
+        var columns = GetIntAttr(tileSetInfo.TileSetElement, "columns");
         var rows = tileCount / columns;
 
-        var imageInfo = root.Descendants().First();
+        var imageInfo = tileSetInfo.TileSetElement.Descendants().First();
         var imagePathRaw = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(tileSetPath), imagePathRaw);
+        var imagePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), imagePathRaw);
         var texture = graphicsConverter.PathToTexture(imagePath);
 
-        var tileInfos = root.Descendants("tile").ToArray();
+        var tileInfos = tileSetInfo.TileSetElement.Descendants("tile").ToArray();
         var tileIds = tileInfos.Select(i => GetIntAttr(i, "id")).ToArray();
 
         var tileSize = new Vector2(tileWidth, tileHeight);
@@ -261,6 +276,6 @@ public class MapLoader : MonoBehaviour {
             .Zip(tileColliders, (id, rects) => new {id, rects})
             .ToDictionary(item => item.id, item => item.rects);
 
-        return new TileSet(graphicsConverter, texture, firstgid, tileWidth, tileHeight, columns, rows, colliders);
+        return new TileSet(graphicsConverter, texture, tileSetInfo.FirstGid, tileWidth, tileHeight, columns, rows, colliders);
     }
 }
