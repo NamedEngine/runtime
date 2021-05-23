@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Rules.Parsing {
@@ -12,6 +13,42 @@ namespace Rules.Parsing {
         static XElement GetById(XElement root, XAttribute id) {
             return root.Elements()
                 .First(obj => obj.Attribute("id").Value == id.Value);
+        }
+
+        static void CheckMalformed(string logicSource, string file) {
+            var malformedException = new LogicParseException(file, "This file is malformed");
+            
+            XDocument document;
+            try {
+                document = XDocument.Parse(logicSource);
+            }
+            catch (XmlException) {
+                throw malformedException;
+            }
+            
+            var firstElements = document.Elements("mxfile").ToArray();
+            if (firstElements.Length != 1) {
+                throw malformedException;
+            }
+
+            var secondElements = firstElements.First().Elements("diagram").ToArray();
+            if (secondElements.Length != 1) {
+                throw malformedException;
+            }
+        }
+
+        static void CheckCompressed(string logicSource, string file) {
+            var document = XDocument.Parse(logicSource);
+            var notCompressed = document.Descendants()
+                .Any(desc => desc.Name == "mxGraphModel");
+
+            if (notCompressed) {
+                return;
+            }
+
+            const string message = "This file is compressed, uncheck \"Compress\" checkbox in File > Properties in redactor";
+
+            throw new LogicParseException(file, message);
         }
         
         static void CheckBlocks(string logicSource, string file) {
@@ -102,6 +139,8 @@ namespace Rules.Parsing {
 
         public List<Action<string, string>> GetCheckerMethods() {
             return new List<Action<string, string>> {
+                CheckMalformed,
+                CheckCompressed,
                 CheckBlocks,
                 CheckArrows
             };

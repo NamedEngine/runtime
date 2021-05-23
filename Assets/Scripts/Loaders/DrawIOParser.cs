@@ -30,7 +30,7 @@ public class DrawIOParser : ILogicParser<string> {
         return new KeyValuePair<string, string>(GetRelAttr("source"), GetRelAttr("target"));
     }
         
-    public Dictionary<string, ParsedNodeInfo> Parse(string logicSource) {
+    public Dictionary<string, ParsedNodeInfo> Parse(string logicSource, IdGenerator idGenerator) {
         var document = XDocument.Parse(logicSource);
         var root = document.Descendants("root").First();
         
@@ -86,6 +86,27 @@ public class DrawIOParser : ILogicParser<string> {
             infoDict[next] = updatedInfo;
         }
 
-        return infoDict;
+        var oldToNewIds = new Dictionary<string, string>();
+
+        string OldToNewId(string oldId) {
+            if (!oldToNewIds.ContainsKey(oldId)) {
+                oldToNewIds[oldId] = idGenerator.NewId();
+            }
+            
+            return oldToNewIds[oldId];
+        }
+
+        return infoDict.ToDictionary(pair => OldToNewId(pair.Key), pair => {
+            var info = pair.Value;
+            return new ParsedNodeInfo {
+                id = OldToNewId(info.id),
+                type = info.type,
+                name = info.name,
+                parent = info.parent == null ? null : OldToNewId(info.parent),
+                parameters = info.parameters.Select(OldToNewId).ToArray(),
+                prev = info.prev.Select(OldToNewId).ToArray(),
+                next = info.next.Select(OldToNewId).ToArray(),
+            };
+        });
     }
 }

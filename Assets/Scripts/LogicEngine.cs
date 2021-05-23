@@ -125,7 +125,7 @@ public class LogicEngine : MonoBehaviour {
         try {
             _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
-            _logicClasses = logicLoader.LoadLogicClasses();
+            _logicClasses = logicLoader.LoadLogicClasses(_objectNameGenerator);
 
             const string mapPath = "Maps/main.tmx";
             new LogicEngineAPI(this).LoadLevel(mapPath);

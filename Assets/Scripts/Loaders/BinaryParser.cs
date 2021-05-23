@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
 public class BinaryParser : ILogicParser<byte[]>, ILogicSaver<byte[]> {
-    public Dictionary<string, ParsedNodeInfo> Parse(byte[] logicSource) {
+    public Dictionary<string, ParsedNodeInfo> Parse(byte[] logicSource, IdGenerator idGenerator) {
         var stream = new MemoryStream(logicSource);
         var reader = new BinaryFormatter();
         

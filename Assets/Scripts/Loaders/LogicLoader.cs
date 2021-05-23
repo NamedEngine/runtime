@@ -10,9 +10,7 @@ public class LogicLoader : MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     [SerializeField] TemporaryInstantiator temporaryInstantiator;
     [SerializeField] GameObject kinematicObjectPrefab;
-    readonly IdGenerator _idGenerator = new IdGenerator();
-    public Dictionary<string, LogicObject> LoadLogicClasses() {
-        _idGenerator.Reset();
+    public Dictionary<string, LogicObject> LoadLogicClasses(IdGenerator idGenerator) {
         var parser = new DrawIOParser();
 
         var filePairs = fileLoader
@@ -23,29 +21,27 @@ public class LogicLoader : MonoBehaviour {
             Rules.RuleChecker.CheckParsing<Rules.Parsing.DrawIO, string>(pair.Item1, pair.Item2)
         );
 
-        var parsedNodes = filePairs
-            .Select(filePair => parser.Parse(filePair.Item1)) // TODO: replace ids by new ones from shared pool before merging into one dict (problem: same ids in different files) 
+        var filesWithParsedNodes = filePairs
+            .Select(filePair => (filePair.Item2, parser.Parse(filePair.Item1, idGenerator)))
+            .ToArray();
+
+        var parsedNodes = filesWithParsedNodes
+            .SelectMany(dictPair => dictPair.Item2)
+            .ToDictionary();
+
+        var idToFile = filesWithParsedNodes
+            .Select(dictPair => 
+                dictPair.Item2.ToDictionary(kv => kv.Key, kv => dictPair.Item1))
             .SelectMany(x => x)
             .ToDictionary();
 
-        var idToFile = filePairs
-            .Select(filePair => (parser.Parse(filePair.Item1), filePair.Item2))
-            .Select(dictPair => 
-                dictPair.Item1.ToDictionary(kv => kv.Key, kv => dictPair.Item2))
-            .SelectMany(x => x)
-            .ToDictionary();
-        
         Rules.RuleChecker.CheckLogic(parsedNodes, idToFile, temporaryInstantiator);
 
-        // foreach (var node in parsedNodes.Values) {
-        //     Debug.Log(node);
-        // }
-
-        var objects = CreateAndSetupObjects(parsedNodes);
+        var objects = CreateAndSetupObjects(parsedNodes, idGenerator);
         return objects;
     }
 
-    Dictionary<string, LogicObject> CreateAndSetupObjects(Dictionary<string, ParsedNodeInfo> parsedNodes) {
+    Dictionary<string, LogicObject> CreateAndSetupObjects(Dictionary<string, ParsedNodeInfo> parsedNodes, IdGenerator idGenerator) {
         var baseClasses = InstantiateBaseClasses();
         
         var objects = CreateObjects(parsedNodes);
@@ -58,7 +54,7 @@ public class LogicLoader : MonoBehaviour {
             .Zip(objects, (variables, pair) => (parsedNodes[pair.Key].name, variables))
             .ToDictionary();
         foreach (var baseClass in baseClasses) {
-            allVariables.Add(baseClass.Class, baseClass.Variables.ToDictionary(pair => _idGenerator.NewId(), pair => (pair.Key, pair.Value)));
+            allVariables.Add(baseClass.Class, baseClass.Variables.ToDictionary(pair => idGenerator.NewId(), pair => (pair.Key, pair.Value)));
         }
         
         Dictionary<string, (string, IVariable)> GetVariablesWithInherited(string className,
