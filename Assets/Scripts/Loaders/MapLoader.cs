@@ -190,15 +190,7 @@ public class MapLoader : MonoBehaviour {
     MapObjectParameter[] ParametersFromObject(XElement obj) {
         MapObjectParameter ParameterFromProperty(XElement prop) {
             var typeString = GetAttr(prop, "type").IfEmpty("string");
-            var parsed = Enum.TryParse(typeString.StartWithUpper(), out ValueType type);
-            if (!parsed) {
-                var objNaming = GetAttr(obj, "name") != ""
-                    ? "object named \"" + GetAttr(obj, "name") + "\""
-                    : "unnamed object";
-                var id = GetAttr(obj, "id");
-                throw new ArgumentException("Found unsupported type \"" + typeString + "\" in the " + objNaming +
-                                            " with id " + id);  // TODO: to map rules
-            }
+            Enum.TryParse(typeString.StartWithUpper(), out ValueType type);
 
             var paramName = GetAttr(prop, "name");
             var value = GetAttr(prop, "value");

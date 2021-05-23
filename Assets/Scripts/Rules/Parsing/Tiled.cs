@@ -85,6 +85,11 @@ namespace Rules.Parsing {
             }
         }
 
+        static string GetObjectNaming(XElement obj) {
+            var name = obj.Attribute("name")?.Value;
+            return name != null ? $"object named \"{name}\"" : "unnamed object";
+        }
+
         static void CheckSupportedObjects(string mapInfoSource, string file) {
             var document = XDocument.Parse(mapInfoSource);
             var root = document.Root;
@@ -99,12 +104,46 @@ namespace Rules.Parsing {
             var unsupportedTypes = root.Elements("objectgroup")
                 .Select(objectGroup => objectGroup.Elements("object"))
                 .SelectMany(obj => obj)
-                .Select(obj => MapUtils.GetObjectType(obj, MapUtils.RectTypeName))
-                .Where(objType => !supportedTypes.Contains(objType));
+                .Select(obj => new { obj, type = MapUtils.GetObjectType(obj, MapUtils.RectTypeName) })
+                .Where(pair => !supportedTypes.Contains(pair.type));
 
-            foreach (var objType in unsupportedTypes) {
-                var message = $"Object type \"{objType}\" is not supported" +
+            foreach (var pair in unsupportedTypes) {
+                var objNaming = GetObjectNaming(pair.obj);
+
+                var message = $"Object type \"{pair.type}\" of an {objNaming} is not supported" +
                               "\nThe only supported types are: " + string.Join(", ", supportedTypes);
+
+                throw new MapParseException(file, message);
+            }
+        }
+
+        static void CheckSupportedPropertyTypes(string mapInfoSource, string file) {
+            var document = XDocument.Parse(mapInfoSource);
+            var root = document.Root;
+            Debug.Assert(root != null, nameof(root) + " != null");
+
+            const string propertiesElementName = "properties";
+            var unsupportedPropertyTypes = root.Elements("objectgroup")
+                .Select(objectGroup => objectGroup.Elements("object"))
+                .SelectMany(obj => obj)
+                .Where(obj => obj.Elements(propertiesElementName).Any())
+                .SelectMany(obj => obj.Element(propertiesElementName)
+                    .Elements("property")
+                    .Select(prop => new { obj, prop }))
+                .Select(pair => new {
+                    pair.obj,
+                    pair.prop,
+                    type = (pair.prop.Attribute("type")?.Value ?? "").IfEmpty("string").StartWithUpper()
+                })
+                .Where(triple => !Enum.TryParse(triple.type, out ValueType _));
+
+            foreach (var triple in unsupportedPropertyTypes) {
+                var objNaming = GetObjectNaming(triple.obj);
+                var propName = triple.prop.Attribute("name")?.Value;
+
+                var message = $"Property \"{propName}\" of type \"{triple.type}\"" +
+                              $"\n of an {objNaming} is not supported" +
+                              "\nThe only supported types are: " + string.Join(", ", ValueTypeConverter.ValueTypes);
 
                 throw new MapParseException(file, message);
             }
@@ -116,6 +155,7 @@ namespace Rules.Parsing {
                 CheckSupportedOrientation,
                 CheckSupportedEncoding,
                 CheckSupportedObjects,
+                CheckSupportedPropertyTypes,
             };
         }
     }
