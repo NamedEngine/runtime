@@ -18,13 +18,16 @@ public class MapLoader : MonoBehaviour {
     static float GetFloatAttr(XElement element, string name) => Convert.ToSingle(GetAttr(element, name).IfEmpty("0"), new ProjectFormatProvider());
 
     public MapObjectInfo[] LoadMap(string mapPath, GameObject mapObject) {
+        var mapInfo = fileLoader.LoadText(mapPath);
+        Rules.RuleChecker.CheckParsing<Rules.Parsing.Tiled, string>(mapInfo, mapPath);
+
         // TODO: do something with path handling in this file
 
-        var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
+        var mapDocument = XDocument.Parse(mapInfo);
         var root = mapDocument.Root;
         Debug.Assert(root != null, nameof(root) + " != null");
 
-        var tileSets = root.Descendants("tileset")
+        var tileSets = root.Elements("tileset")
             .Select(d => new { path = GetAttr(d, "source"), gid = GetIntAttr(d, "firstgid") })
             .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
             .Select(item => LoadTileSet(item.fullPath, item.gid))

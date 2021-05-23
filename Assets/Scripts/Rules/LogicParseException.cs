@@ -2,7 +2,7 @@
 
 namespace Rules {
     [Serializable]
-    public class LogicParseException : Exception {
+    public class LogicParseException : ParseException {
         public LogicParseException(string file, string message) : base($"File: {file};\n{message}") { }
     }
 }

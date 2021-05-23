@@ -81,7 +81,7 @@ public class LogicEngine : MonoBehaviour {
             return true;
         }
 
-        public bool LoadLevel(string path) {
+        public void LoadLevel(string path) {
             _engine._levelChanged = true;
             
             if (_engine._logicObjects != null) {
@@ -102,8 +102,6 @@ public class LogicEngine : MonoBehaviour {
             catch (LogicException e) {
                 _engine.OnLogicError(e);
             }
-
-            return true;
         }
 
         void ClearMap() {
@@ -130,7 +128,7 @@ public class LogicEngine : MonoBehaviour {
             const string mapPath = "Maps/main.tmx";
             new LogicEngineAPI(this).LoadLevel(mapPath);
         }
-        catch (LogicParseException e) {
+        catch (ParseException e) {
             OnLogicError(e);
         }
     }

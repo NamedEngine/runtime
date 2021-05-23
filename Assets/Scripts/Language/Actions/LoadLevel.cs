@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Rules;
 
 namespace Language.Actions {
     public class LoadLevel : Action {  // this way nothing will be executed after loading new level
@@ -10,9 +11,10 @@ namespace Language.Actions {
         
         protected override IEnumerator ActionLogic() {
             var levelPath = ((Value<string>) Context.Arguments[0]).Get();
-            var res = Context.Base.EngineAPI.LoadLevel(levelPath);
-            if (!res) {
-                throw new LogicException(nameof(LoadLevel), $"Could not load level {levelPath}");
+            try {
+                Context.Base.EngineAPI.LoadLevel(levelPath);
+            } catch (MapParseException e){
+                throw new LogicException(nameof(LoadLevel), e.Message);
             }
 
             return null;
