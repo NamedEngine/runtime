@@ -60,6 +60,7 @@ public class ClassInstantiator : MonoBehaviour {
         var newObject = @class.Clone(newGameObject, engineAPI, objectName);
 
         newObject.transform.position = objectInfo.Rect.position;
+        newObject.transform.rotation = Quaternion.Euler(0, 0, -1 * objectInfo.Rotation);
         
         var size = newGameObject.GetComponent<Size>();
         if (size != null) {

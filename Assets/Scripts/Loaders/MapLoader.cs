@@ -153,8 +153,8 @@ public class MapLoader : MonoBehaviour {
         var rawImagePath = GetAttr(imageInfo, "source");
         var imagePath = Path.Combine(Path.GetDirectoryName(mapInfo.MapPath), rawImagePath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
-        var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
-        
+        var rect = RectAndRotationFromObject(imageInfo, layer, "offsetx", "offsety").Item1;
+
         return new List<MapObjectInfo> { new MapObjectInfo {
             Name = GetAttr(layer, "name"),
             Rect = rect,
@@ -165,35 +165,43 @@ public class MapLoader : MonoBehaviour {
     }
 
     MapObjectInfo ParseRect(XElement obj, string sortingLayer, TileSet[] tileSets) {
-        Rect GetRect(XElement o, bool isFromTile) => RectFromObject(o, o, "x", "y", isFromTile);
+        (Rect, float) GetRectRotation(XElement o, bool isFromTile) => RectAndRotationFromObject(o, o, "x", "y", isFromTile);
 
         var gid = GetIntAttr(obj, "gid");
         var tileSet = tileSets.FirstOrDefault(t => t.InRange(gid));
 
+        var (rect, rotation) = GetRectRotation(obj, tileSet != null);
         return new MapObjectInfo {
             Name = GetAttr(obj, "name"),
-            Rect = GetRect(obj, tileSet != null),
+            Rect = rect,
+            Rotation = rotation,
             SortingLayer = sortingLayer,
             Sprite = tileSet?.GetSprite(gid),
             Parameters = ParametersFromObject(obj)
         };
     }
 
-    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName, bool isFromTile = false) {
+    (Rect, float) RectAndRotationFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName, bool isFromTile = false) {
         var width = GetFloatAttr(sizeObj, "width");
         var height = GetFloatAttr(sizeObj, "height");
         var xPos = GetFloatAttr(posObj, xPosName);
         var yPos = GetFloatAttr(posObj, yPosName);
+        var rotation = GetFloatAttr(posObj, "rotation");
 
         var mapSize = new Vector2(width, height);
         var size = mapSize * sizePositionConverter.SizeM2U;
-        var mapPos = new Vector2(xPos, yPos);
+        var mapPosRotated = new Vector2(xPos, yPos);
+
+        var vectorToCenter = isFromTile ? mapSize / 2 * new Vector2(1, -1) : mapSize / 2;
+        var vectorToFindCenter = Quaternion.Euler(0, 0, rotation) * vectorToCenter;
+
+        var mapPos = mapPosRotated + (Vector2) vectorToFindCenter - vectorToCenter;
         if (isFromTile) {
             mapPos.y -= mapSize.y;
         }
         var pos = sizePositionConverter.InitialPositionOnMapToUnity(mapPos, mapSize);
 
-        return new Rect(pos, size);
+        return (new Rect(pos, size), rotation);
     }
 
     MapObjectParameter[] ParametersFromObject(XElement obj) {
