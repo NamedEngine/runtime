@@ -13,4 +13,19 @@ public static class MapUtils {
 
         return notProperties.First().Name.ToString();
     }
+
+    public static readonly MapObjectParameter EmptyClassParameter = new MapObjectParameter {
+        Name = "Class",
+        Type = ValueType.String,
+        Value = nameof(Language.Classes.Empty)
+    };
+
+    public static MapObjectParameter GetClassParameter(MapObjectInfo info) {
+        var classParameter = info.Parameters.FirstOrDefault(p => p.Name == EmptyClassParameter.Name);
+        if (classParameter.IsDefault()) {
+            classParameter = EmptyClassParameter;
+        }
+
+        return classParameter;
+    }
 }

@@ -27,5 +27,9 @@ namespace Rules {
                 instantiator.Clear();
             }));
         }
+
+        public static void CheckMapToLogic(Dictionary<string, LogicObject> classes, MapObjectInfo[] objectInfos, string file) {
+            MapToLogic.GetCheckerMethods().ForEach(method => method(classes, objectInfos, file));
+        }
     }
 }

@@ -1,31 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Rules;
 using UnityEngine;
 
 public class ClassInstantiator : MonoBehaviour {
-    static readonly MapObjectParameter EmptyClassParameter = new MapObjectParameter {
-        Name = "Class",
-        Type = ValueType.String,
-        Value = nameof(Language.Classes.Empty)
-    };
-    
     public Dictionary<string, LogicObject> InstantiateMapObjects(Dictionary<string, LogicObject> classes,
         MapObjectInfo[] objectInfos, Dictionary<string, GameObject> classPrefabs, LogicEngine.LogicEngineAPI engineAPI,
-        IdGenerator idGenerator, GameObject mapObject) {
+        IdGenerator idGenerator, GameObject mapObject, string mapFile) {
+        RuleChecker.CheckMapToLogic(classes, objectInfos, mapFile);
         
         var resultingObjects = new Dictionary<string, LogicObject>();
         foreach (var objectInfo in objectInfos) {
-            var classParameter = objectInfo.Parameters.FirstOrDefault(p => p.Name == EmptyClassParameter.Name);
-            if (classParameter.IsDefault()) {
-                classParameter = EmptyClassParameter;
-            }
-
-            if (classParameter.Type != ValueType.String) {
-                throw new ArgumentException("");  // TODO
-            }
-
+            var classParameter = MapUtils.GetClassParameter(objectInfo);
             var className = classParameter.Value;
+
             var newObjName = objectInfo.Name != "" ? objectInfo.Name : idGenerator.NewId();
             var newObject = CreateObject(newObjName, className, classes, objectInfo, classPrefabs, engineAPI);
             newObject.gameObject.transform.parent = mapObject.transform;
@@ -39,10 +28,6 @@ public class ClassInstantiator : MonoBehaviour {
     public LogicObject CreateObject(string objectName, string className, Dictionary<string, LogicObject> classes,
         MapObjectInfo objectInfo, Dictionary<string, GameObject> classPrefabs,
         LogicEngine.LogicEngineAPI engineAPI) {
-        if (!classes.ContainsKey(className)) {
-            throw new ArgumentException("");  // TODO
-        }
-
         var @class = classes[className];
         
         GameObject prefab = null;
@@ -78,18 +63,14 @@ public class ClassInstantiator : MonoBehaviour {
         }
         
         var parameters = objectInfo.Parameters
-            .Where(p => p.Name != EmptyClassParameter.Name)
+            .Where(p => p.Name != MapUtils.EmptyClassParameter.Name)
             .ToList();
         
         foreach (var parameter in parameters) {
-            if (!newObject.Variables.ContainsKey(parameter.Name)) {
-                throw new ArgumentException("");  // TODO
-            }
-            
             var variable = ValueTypeConverter.GetVariableByType(parameter.Type, parameter.Value);
             var transferred = variable.TryTransferValueTo(newObject.Variables[parameter.Name]);
             if (!transferred) {
-                throw new ArgumentException("");  // TODO
+                throw new Exception("Variable was not transferred during object instantiation");
             }
         }
 

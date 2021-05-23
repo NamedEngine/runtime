@@ -94,7 +94,7 @@ public class LogicEngine : MonoBehaviour {
             var objectInfos = _engine.mapLoader.LoadMap(path.ToProperPath(), _engine.mapObject);
 
             _engine._logicObjects = _engine.classInstantiator.InstantiateMapObjects(_engine._logicClasses, objectInfos,
-                _engine._classPrefabs, this, _engine._objectNameGenerator, _engine.mapObject);
+                _engine._classPrefabs, this, _engine._objectNameGenerator, _engine.mapObject, path);
 
             try {
                 _engine._logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
