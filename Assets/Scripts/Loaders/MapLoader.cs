@@ -19,14 +19,19 @@ public class MapLoader : MonoBehaviour {
     static float GetFloatAttr(XElement element, string name) => Convert.ToSingle(GetAttr(element, name).IfEmpty("0"), new ProjectFormatProvider());
 
     public MapObjectInfo[] LoadMap(string mapPath, GameObject mapObject) {
-        var mapInfo = fileLoader.LoadText(mapPath);
-        Rules.RuleChecker.CheckParsing<Rules.Parsing.Tiled, string>(mapInfo, mapPath);
+        var mapInfoSource = fileLoader.LoadText(mapPath);
+        Rules.RuleChecker.CheckParsing<Rules.Parsing.Tiled, string>(mapInfoSource, mapPath);
 
         // TODO: do something with path handling in this file
 
-        var mapDocument = XDocument.Parse(mapInfo);
+        var mapDocument = XDocument.Parse(mapInfoSource);
         var root = mapDocument.Root;
         Debug.Assert(root != null, nameof(root) + " != null");
+
+        var mapInfo = new MapInfo {
+            MapTileWidth = GetFloatAttr(root, "tilewidth"),
+            MapTileHeight = GetFloatAttr(root, "tileheight"),
+        };
 
         const string tileSetElementName = "tileset";
 
@@ -48,7 +53,7 @@ public class MapLoader : MonoBehaviour {
         foreach (var layer in layers) {
             var layerType = layer.Name.ToString();
             if (layerType == "layer") {
-                var layerObjects = LoadTileLayer(layer, sortingLayer.ToString(), tileSets);
+                var layerObjects = LoadTileLayer(layer, mapInfo, sortingLayer.ToString(), tileSets);
                 sortingLayer++;
                 
                 var layerObject = new GameObject();
@@ -66,30 +71,49 @@ public class MapLoader : MonoBehaviour {
         return objectInfos.ToArray();
     }
 
-    List<GameObject> LoadTileLayer(XElement layer, string sortingLayer, List<TileSet> tileSets) {
-        var data = layer.Elements("data").First().Value;
-        
-        var tileNumbers = data.Split('\n')
-            .Where(l => l.Length > 0)
-            .Select(l => l.EndsWith(",") ? l.Substring(0, l.Length - 1) : l)
-            .Select(l => l.Split(',').Select(s => Convert.ToInt32(s)).ToArray())
-            .ToArray();
+    List<GameObject> LoadTileLayer(XElement layer, MapInfo mapInfo, string sortingLayer, List<TileSet> tileSets) {
+        var data = layer.Elements("data").First();
+        var chunks = data.Elements("chunk").ToList();
+        if (chunks.Count == 0) {
+            chunks.Add(data);
+        }
 
+        ChunkInfo GetChunkInfo(XElement chunk) {
+            var tileNumbers = chunk.Value.Split('\n')
+                .Where(l => l.Length > 0)
+                .Select(l => l.EndsWith(",") ? l.Substring(0, l.Length - 1) : l)
+                .Select(l => l.Split(',').Select(s => Convert.ToInt32(s)).ToArray())
+                .ToArray();
+
+            return new ChunkInfo {
+                OffsetX = GetIntAttr(chunk, "x"),
+                OffsetY = GetIntAttr(chunk, "y"),
+                TileNumbers = tileNumbers
+            };
+        }
+
+        return chunks.Select(GetChunkInfo)
+            .Select(chunk => LoadTileChunk(chunk, mapInfo, sortingLayer, tileSets))
+            .SelectMany(tileObjects => tileObjects)
+            .ToList();
+    }
+
+    List<GameObject> LoadTileChunk(ChunkInfo chunkInfo, MapInfo mapInfo, string sortingLayer, List<TileSet> tileSets) {
         var tileObjects = new List<GameObject>();
-        var rows = tileNumbers.Length;
+        var rows = chunkInfo.TileNumbers.Length;
         for (var row = 0; row < rows; row++) {
-            var columns = tileNumbers[row].Length;
+            var columns = chunkInfo.TileNumbers[row].Length;
             for (var column = 0; column < columns; column++) {
-                var tileNumber = tileNumbers[row][column];
+                var tileNumber = chunkInfo.TileNumbers[row][column];
                 var tileSet = tileSets.FirstOrDefault(t => t.InRange(tileNumber));
                 if (tileSet == null) {
                     continue;
                 }
-                
+
                 var sprite = tileSet.GetSprite(tileNumber);
 
-                var xPos = column * tileSet.TileWidth;
-                var yPos = row * tileSet.TileHeight;
+                var xPos = (column + chunkInfo.OffsetX) * mapInfo.MapTileWidth;
+                var yPos = (row + chunkInfo.OffsetY) * mapInfo.MapTileHeight;
                 var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yPos), tileSet.TileSize);
 
                 var tile = Instantiate(tilePrefab, pos, quaternion.identity);
@@ -104,7 +128,7 @@ public class MapLoader : MonoBehaviour {
                     c.offset = rect.position;
                     c.size = rect.size;
                 }
-                
+
                 tileObjects.Add(tile);
             }
         }
