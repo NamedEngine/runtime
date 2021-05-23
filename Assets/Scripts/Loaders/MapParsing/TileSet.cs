@@ -11,11 +11,13 @@ public class TileSet {
     public Vector2 TileSize => new Vector2(TileWidth, TileHeight);
     readonly int _columns;
     readonly int _rows;
+    readonly float _margin;
+    readonly float _spacing;
 
-    Dictionary<int, Rect[]> _colliders;
+    readonly Dictionary<int, Rect[]> _colliders;
 
-    public TileSet(GraphicsConverter converter, Texture2D texture, int firstgid, float tileWidth, float tileHeight, int columns, int rows,
-        Dictionary<int, Rect[]> colliders = null) {
+    public TileSet(GraphicsConverter converter, Texture2D texture, int firstgid, float tileWidth, float tileHeight,
+        int columns, int rows, float margin, float spacing, Dictionary<int, Rect[]> colliders = null) {
         _converter = converter;
         _texture = texture;
         _firstgid = firstgid;
@@ -23,6 +25,8 @@ public class TileSet {
         TileHeight = tileHeight;
         _columns = columns;
         _rows = rows;
+        _margin = margin;
+        _spacing = spacing;
         _colliders = colliders ?? new Dictionary<int, Rect[]>();
     }
 
@@ -40,8 +44,8 @@ public class TileSet {
         var col = tileIndex % _columns;
         var row = _rows - 1 - tileIndex / _columns;
         
-        var xPos = col * TileWidth;
-        var yPos = row * TileHeight;
+        var xPos = _margin + col * (TileWidth + _spacing);
+        var yPos = _margin + row * (TileHeight + _spacing);
         var pos = new Vector2(xPos, yPos);
         var size = new Vector2(TileWidth, TileHeight);
         
