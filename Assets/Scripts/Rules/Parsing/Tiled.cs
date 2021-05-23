@@ -84,12 +84,38 @@ namespace Rules.Parsing {
                 throw new MapParseException(file, message);
             }
         }
-        
+
+        static void CheckSupportedObjects(string mapInfoSource, string file) {
+            var document = XDocument.Parse(mapInfoSource);
+            var root = document.Root;
+            Debug.Assert(root != null, nameof(root) + " != null");
+
+            
+            var supportedTypes = new[] {
+                MapUtils.RectTypeName,
+                "point"
+            };
+
+            var unsupportedTypes = root.Elements("objectgroup")
+                .Select(objectGroup => objectGroup.Elements("object"))
+                .SelectMany(obj => obj)
+                .Select(obj => MapUtils.GetObjectType(obj, MapUtils.RectTypeName))
+                .Where(objType => !supportedTypes.Contains(objType));
+
+            foreach (var objType in unsupportedTypes) {
+                var message = $"Object type \"{objType}\" is not supported" +
+                              "\nThe only supported types are: " + string.Join(", ", supportedTypes);
+
+                throw new MapParseException(file, message);
+            }
+        }
+
         public List<Action<string, string>> GetCheckerMethods() {
             return new List<Action<string, string>> {
                 CheckMalformed,
                 CheckSupportedOrientation,
-                CheckSupportedEncoding
+                CheckSupportedEncoding,
+                CheckSupportedObjects,
             };
         }
     }
