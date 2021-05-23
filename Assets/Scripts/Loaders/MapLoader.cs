@@ -31,18 +31,19 @@ public class MapLoader : MonoBehaviour {
         var mapInfo = new MapInfo {
             MapTileWidth = GetFloatAttr(root, "tilewidth"),
             MapTileHeight = GetFloatAttr(root, "tileheight"),
+            MapPath = mapPath
         };
 
         const string tileSetElementName = "tileset";
         var tileSets = root.Elements(tileSetElementName)
-            .Select(element => GetTileSetInfo(element, mapPath))
+            .Select(element => GetTileSetInfo(element, mapInfo.MapPath))
             .Select(LoadTileSet)
             .ToArray();
 
         var layerObjectInfoLoaders =
-            new Dictionary<string, Func<XElement, string, string, List<MapObjectInfo>>> {
-                {"objectgroup", LoadObjectLayer},
-                {"imagelayer", LoadImageLayer}
+            new Dictionary<string, Func<XElement, string, List<MapObjectInfo>>> {
+                {"objectgroup", (layer, sortLayer) => LoadObjectLayer(layer, mapInfo, sortLayer, tileSets)},
+                {"imagelayer", (layer, sortLayer) => LoadImageLayer(layer, mapInfo, sortLayer, tileSets)}
             };
 
         var objectInfos = new List<MapObjectInfo>();
@@ -58,8 +59,7 @@ public class MapLoader : MonoBehaviour {
                 layerObject.transform.SetParent(mapObject.transform);
                 layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
             } else {
-                var layerObjectInfos =
-                    layerObjectInfoLoaders[layerType](layer, sortingLayer.ToString(), mapPath);
+                var layerObjectInfos = layerObjectInfoLoaders[layerType](layer, sortingLayer.ToString());
                 sortingLayer++;
                 
                 objectInfos.AddRange(layerObjectInfos);
@@ -136,10 +136,10 @@ public class MapLoader : MonoBehaviour {
         return tileObjects;
     }
 
-    List<MapObjectInfo> LoadObjectLayer(XElement layer, string sortingLayer, string mapPath) {
+    List<MapObjectInfo> LoadObjectLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
         var objectParsersByType = new Dictionary<string, Func<XElement, string, MapObjectInfo>> {
-            {RectTypeName, ParseRect},
-            {"point", ParseRect},
+            {RectTypeName, (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
+            {"point", (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
         };
 
         return layer.Elements("object")
@@ -148,10 +148,10 @@ public class MapLoader : MonoBehaviour {
             .ToList();
     }
 
-    List<MapObjectInfo> LoadImageLayer(XElement layer, string sortingLayer, string mapPath) {
+    List<MapObjectInfo> LoadImageLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
         var imageInfo = layer.Elements("image").First();
         var rawImagePath = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(mapPath), rawImagePath);
+        var imagePath = Path.Combine(Path.GetDirectoryName(mapInfo.MapPath), rawImagePath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
         var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
         
@@ -164,19 +164,22 @@ public class MapLoader : MonoBehaviour {
         } };
     }
 
-    MapObjectInfo ParseRect(XElement obj, string sortingLayer) {
-        Rect GetRect(XElement o) => RectFromObject(o, o, "x", "y");
+    MapObjectInfo ParseRect(XElement obj, string sortingLayer, TileSet[] tileSets) {
+        Rect GetRect(XElement o, bool isFromTile) => RectFromObject(o, o, "x", "y", isFromTile);
+
+        var gid = GetIntAttr(obj, "gid");
+        var tileSet = tileSets.FirstOrDefault(t => t.InRange(gid));
 
         return new MapObjectInfo {
             Name = GetAttr(obj, "name"),
-            Rect = GetRect(obj),
+            Rect = GetRect(obj, tileSet != null),
             SortingLayer = sortingLayer,
-            Sprite = null,
+            Sprite = tileSet?.GetSprite(gid),
             Parameters = ParametersFromObject(obj)
         };
     }
 
-    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName) {
+    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName, bool isFromTile = false) {
         var width = GetFloatAttr(sizeObj, "width");
         var height = GetFloatAttr(sizeObj, "height");
         var xPos = GetFloatAttr(posObj, xPosName);
@@ -184,7 +187,11 @@ public class MapLoader : MonoBehaviour {
 
         var mapSize = new Vector2(width, height);
         var size = mapSize * sizePositionConverter.SizeM2U;
-        var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yPos), mapSize);
+        var mapPos = new Vector2(xPos, yPos);
+        if (isFromTile) {
+            mapPos.y -= mapSize.y;
+        }
+        var pos = sizePositionConverter.InitialPositionOnMapToUnity(mapPos, mapSize);
 
         return new Rect(pos, size);
     }
