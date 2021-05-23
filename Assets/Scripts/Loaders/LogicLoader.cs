@@ -11,7 +11,7 @@ public class LogicLoader : MonoBehaviour {
     [SerializeField] TemporaryInstantiator temporaryInstantiator;
     [SerializeField] GameObject kinematicObjectPrefab;
     public Dictionary<string, LogicObject> LoadLogicClasses(IdGenerator idGenerator) {
-        var parser = new DrawIOParser();
+        var parser = new DrawIOParser(idGenerator);
 
         var filePairs = fileLoader
             .LoadAllWithExtensionAndNames(fileLoader.LoadText, ".xml")
@@ -22,7 +22,7 @@ public class LogicLoader : MonoBehaviour {
         );
 
         var filesWithParsedNodes = filePairs
-            .Select(filePair => (filePair.Item2, parser.Parse(filePair.Item1, idGenerator)))
+            .Select(filePair => (filePair.Item2, parser.Parse(filePair.Item1)))
             .ToArray();
 
         var parsedNodes = filesWithParsedNodes

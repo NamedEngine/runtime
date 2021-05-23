@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 public interface ILogicParser<in T> {
-    Dictionary<string, ParsedNodeInfo> Parse(T logicSource, IdGenerator idGenerator);
+    Dictionary<string, ParsedNodeInfo> Parse(T logicSource);
 }
 
 public interface ILogicSaver<out T> {
