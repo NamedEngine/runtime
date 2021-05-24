@@ -58,6 +58,7 @@ public class LogicEngine : MonoBehaviour {
 
             var newObject = _engine.classInstantiator.CreateObject(objName, className, _engine._logicClasses,
                 MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
+            newObject.transform.parent = _engine.mapObject.transform;
             _engine._logicObjects.Add(objName, newObject);
 
             return newObject;
@@ -78,6 +79,7 @@ public class LogicEngine : MonoBehaviour {
             }
 
             Destroy(foundObject.gameObject);
+            _engine._logicObjects.Remove(name);
             return true;
         }
 
