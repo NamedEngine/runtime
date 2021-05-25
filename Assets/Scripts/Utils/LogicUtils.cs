@@ -208,16 +208,20 @@ public static class LogicUtils {
     public static (string, SpecialVariableInstantiator) GetSpecialVariablePair<TVar, T>(T defaultValue) where TVar : SpecialVariable<T> {
         return (typeof(TVar).Name, GetSpecialVariableInstantiator<TVar, T>(defaultValue));
     }
-    
-    public static int MandatoryParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
-        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
-        var c = GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator);
-        var constraints = c.GetConstraints();
+
+    public static int MandatoryParamsNum(IValue[][] constraints) {
         var optionalNum = constraints
             .Select(possibleValues => possibleValues.Any(value => (value is NullValue)))
             .Count(canBeNull => canBeNull);
                 
         return constraints.Length - optionalNum;
+    }
+    
+    public static int MandatoryParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,
+        Dictionary<string, string> idToFile, TemporaryInstantiator instantiator) {
+        var c = GetConstrainable(nodeInfo, parsedNodes, idToFile, instantiator);
+        var constraints = c.GetConstraints();
+        return MandatoryParamsNum(constraints);
     }
     
     public static int MaxParamsNum(ParsedNodeInfo nodeInfo, Dictionary<string, ParsedNodeInfo> parsedNodes,

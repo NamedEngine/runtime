@@ -8,9 +8,7 @@ public class LogicTypeConstraints {
     }
 
     public IValue[] CheckArgs(IValue[] arguments, object caller) {
-        var mandatoryArgs = ArgTypes
-            .Select(types => types.Any(t => t.Cast(null)))
-            .Count(nullable => nullable == false);
+        var mandatoryArgs = LogicUtils.MandatoryParamsNum(ArgTypes);
 
         if (ArgTypes.Length < arguments.Length || arguments.Length < mandatoryArgs) {
             var message = "Argument count mismatch in " + caller.GetType() + " operator: got " + arguments.Length + ", expected ";
@@ -46,7 +44,7 @@ public class LogicTypeConstraints {
             }
 
             if (newValues[i] is null) {
-                throw new ArgumentException("Argument error in " + caller.GetType() + " operator: argument #" + i + " is mandatory");
+                throw new ArgumentException("Argument error in " + caller.GetType() + " operator: argument #" + i + " is null");
             }
 
             throw new ArgumentException("Argument type mismatch in " + caller.GetType() + " operator: argument #" + i + " has inappropriate type");

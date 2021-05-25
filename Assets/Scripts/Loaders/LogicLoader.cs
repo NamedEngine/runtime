@@ -260,41 +260,38 @@ public class LogicLoader : MonoBehaviour {
         }
         // Debug.Log("Chainables: " + string.Join("\n", chainables));
 
-        HashSet<ParsedNodeInfo> GetAllOperatorPredecessors(ParsedNodeInfo oper) {
-            var rawPredecessors = oper.parameters
-                .Select(parameterId => parsedNodes[parameterId])
-                .Where(parameterInfo => parameterInfo.prev.Length != 0)
-                .Select(parameterInfo => parameterInfo.prev.First())
-                .Select(predecessorId => parsedNodes[predecessorId])
-                .Where(predecessorInfo => predecessorInfo.type == NodeType.Operator)
-                .ToHashSet();
-
-            var predecessors = new HashSet<ParsedNodeInfo>(rawPredecessors);
-            predecessors.Add(oper);
-            foreach (var predecessor in rawPredecessors) {
-                predecessors.UnionWith(GetAllOperatorPredecessors(predecessor));
+        Dictionary<ParsedNodeInfo, int> ProcessOperatorGraph(HashSet<ParsedNodeInfo> prevLevel, int nextLevelNum,
+            Dictionary<ParsedNodeInfo, int> accumulator = null) {
+            if (accumulator == null) {
+                accumulator = new Dictionary<ParsedNodeInfo, int>();
             }
 
-            return predecessors;
+            if (prevLevel.Count == 0) {
+                return accumulator;
+            }
+
+            var newLevel = prevLevel
+                .SelectMany(info => info.parameters)
+                .Select(parameterId => parsedNodes[parameterId])
+                .Where(parameterInfo => parameterInfo.prev.Length != 0)
+                .Select(parameterInfo => parsedNodes[parameterInfo.prev.First()])
+                .Where(valueInfo => valueInfo.type == NodeType.Operator)
+                .ToHashSet();
+
+            foreach (var info in newLevel) {
+                accumulator[info] = nextLevelNum;
+            }
+
+            return ProcessOperatorGraph(newLevel, nextLevelNum + 1, accumulator);
         }
-        var operators = chainables
-            .SelectMany(info => info.parameters)
-            .Select(parameterId => parsedNodes[parameterId])
-            .Where(parameterInfo => parameterInfo.prev.Length != 0)
-            .Select(parameterInfo => parsedNodes[parameterInfo.prev.First()])
-            .Where(valueInfo => valueInfo.type == NodeType.Operator)
-            .Aggregate(new HashSet<ParsedNodeInfo>(), (set, info) => {
-                set.UnionWith(GetAllOperatorPredecessors(info));
-                return set;
-            })
-            .ToList();
-        operators.Sort((op1, op2) => {
-            if (GetAllOperatorPredecessors(op1).Contains(op2)) return 1; // op1 > op2 => op2 goes earlier as predecessor
-            if (GetAllOperatorPredecessors(op2).Contains(op1)) return -1; // op2 > op1 => op1 goes eqrlier as pedecessor
-            return 0;
-        });
-        
-        // Debug.Log("Operators: " + string.Join("\n", operators));
+
+        var operatorsWithDepth = ProcessOperatorGraph(chainables.ToHashSet(), 0);
+        var operators = operatorsWithDepth
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => pair.Key)
+            .ToArray();
+
+        // Debug.Log("Operators: " + string.Join("\n\n", operators));
 
         var operatorPositions = operators
             .Select((oper, pos) => new KeyValuePair<string, int>(oper.id, pos))
