@@ -70,7 +70,7 @@ namespace Rules.Parsing {
                 "csv"
             };
 
-            var encodings = root.Elements("layer")
+            var encodings = root.Elements(MapUtils.TileLayer)
                 .Select(layer => layer.Elements("data").First().Attributes("encoding").First().Value);
 
             foreach (var encoding in encodings) {
@@ -101,7 +101,7 @@ namespace Rules.Parsing {
                 "point"
             };
 
-            var unsupportedTypes = root.Elements("objectgroup")
+            var unsupportedTypes = root.Elements(MapUtils.ObjectLayer)
                 .Select(objectGroup => objectGroup.Elements("object"))
                 .SelectMany(obj => obj)
                 .Select(obj => new { obj, type = MapUtils.GetObjectType(obj, MapUtils.RectTypeName) })
@@ -117,14 +117,38 @@ namespace Rules.Parsing {
             }
         }
 
+        void CheckUniqueObjectNaming(string mapInfoSource, string file) {
+            var document = XDocument.Parse(mapInfoSource);
+            var root = document.Root;
+            Debug.Assert(root != null, nameof(root) + " != null");
+
+            var uniqueNames = new HashSet<string>();
+            var notUniqueObjectNames = root.Elements()
+                .Where(el => el.Name == MapUtils.ObjectLayer || el.Name == MapUtils.ImageLayer)
+                .Select(layer => layer.Name == MapUtils.ObjectLayer ? layer.Elements("object") : new[] {layer})
+                .SelectMany(obj => obj)
+                .Select(obj => obj.Attribute("name")?.Value)
+                .Where(name => name != null)
+                .Where(name => !uniqueNames.Add(name))
+                .ToHashSet();
+            if (notUniqueObjectNames.Count == 0) {
+                return;
+            }
+
+            var message = $"These object names are not unique:\n{string.Join(", ", notUniqueObjectNames)}";
+
+            throw new MapParseException(file, message);
+        }
+
         static void CheckSupportedPropertyTypes(string mapInfoSource, string file) {
             var document = XDocument.Parse(mapInfoSource);
             var root = document.Root;
             Debug.Assert(root != null, nameof(root) + " != null");
 
             const string propertiesElementName = "properties";
-            var unsupportedPropertyTypes = root.Elements("objectgroup")
-                .Select(objectGroup => objectGroup.Elements("object"))
+            var unsupportedPropertyTypes = root.Elements()
+                .Where(el => el.Name == MapUtils.ObjectLayer || el.Name == MapUtils.ImageLayer)
+                .Select(layer => layer.Name == MapUtils.ObjectLayer ? layer.Elements("object") : new [] {layer})
                 .SelectMany(obj => obj)
                 .Where(obj => obj.Elements(propertiesElementName).Any())
                 .SelectMany(obj => obj.Element(propertiesElementName)
@@ -133,7 +157,7 @@ namespace Rules.Parsing {
                 .Select(pair => new {
                     pair.obj,
                     pair.prop,
-                    type = (pair.prop.Attribute("type")?.Value ?? "").IfEmpty("string").StartWithUpper()
+                    type = MapUtils.GetPropertyType(pair.prop)
                 })
                 .Where(triple => !Enum.TryParse(triple.type, out ValueType _));
 
@@ -155,6 +179,7 @@ namespace Rules.Parsing {
                 CheckSupportedOrientation,
                 CheckSupportedEncoding,
                 CheckSupportedObjects,
+                CheckUniqueObjectNaming,
                 CheckSupportedPropertyTypes,
             };
         }

@@ -28,4 +28,12 @@ public static class MapUtils {
 
         return classParameter;
     }
+
+    public const string TileLayer = "layer";
+    public const string ObjectLayer = "objectgroup";
+    public const string ImageLayer = "imagelayer";
+
+    public static string GetPropertyType(XElement property) {
+        return (property.Attribute("type")?.Value ?? "").IfEmpty("string").StartWithUpper();
+    }
 }

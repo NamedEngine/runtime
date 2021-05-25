@@ -49,17 +49,17 @@ public class MapLoader : MonoBehaviour {
             var layerType = layer.Name.ToString();
             var sortLayerString = sortingLayer.ToString();
             switch (layerType) {
-                case "layer":
+                case TileLayer:
                     var layerObjects = LoadTileLayer(layer, mapInfo, sortLayerString, tileSets);
 
                     var layerObject = new GameObject();
                     layerObject.transform.SetParent(mapObject.transform);
                     layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
                     break;
-                case "objectgroup":
+                case ObjectLayer:
                     layerObjectInfos = LoadObjectLayer(layer, sortLayerString, tileSets);
                     break;
-                case "imagelayer":
+                case ImageLayer:
                     layerObjectInfos = LoadImageLayer(layer, mapInfo, sortLayerString);
                     break;
                 default:
@@ -209,8 +209,8 @@ public class MapLoader : MonoBehaviour {
 
     MapObjectParameter[] ParametersFromObject(XElement obj) {
         MapObjectParameter ParameterFromProperty(XElement prop) {
-            var typeString = GetAttr(prop, "type").IfEmpty("string");
-            Enum.TryParse(typeString.StartWithUpper(), out ValueType type);
+            var typeString = GetPropertyType(prop);
+            Enum.TryParse(typeString, out ValueType type);
 
             var paramName = GetAttr(prop, "name");
             var value = GetAttr(prop, "value");
@@ -302,7 +302,7 @@ public class MapLoader : MonoBehaviour {
             return new Rect(pos, size);
         }
 
-        return tile.Element("objectgroup")?
+        return tile.Element(ObjectLayer)?
             .Elements()
             .Select(PosSizeFromObject)
             .ToArray()
