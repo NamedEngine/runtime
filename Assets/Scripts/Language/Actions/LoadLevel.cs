@@ -13,7 +13,11 @@ namespace Language.Actions {
             var levelPath = ((Value<string>) Context.Arguments[0]).Get();
             try {
                 Context.Base.EngineAPI.LoadLevel(levelPath);
-            } catch (MapParseException e){
+            }
+            catch (MapParseException e) {
+                throw new LogicException(nameof(LoadLevel), e.Message);
+            }
+            catch (FileLoadException e) {
                 throw new LogicException(nameof(LoadLevel), e.Message);
             }
 

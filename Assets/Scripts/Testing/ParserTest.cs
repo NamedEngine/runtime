@@ -22,7 +22,7 @@ public class ParserTest : MonoBehaviour {
         var binaryParser = new BinaryParser();
         
         File.WriteAllBytes(path, binaryParser.Save(parsedNodes));
-        var loadedNodes = binaryParser.Parse(fileLoader.LoadBytes(path));
+        var loadedNodes = binaryParser.Parse(fileLoader.LoadBytes(path, PathType.Binary));
         
         foreach (var info in loadedNodes.Values) {
             Debug.Log(info);

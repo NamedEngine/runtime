@@ -9,7 +9,7 @@ namespace Language.Actions {
         };
 
         SpriteAnimator _animator;
-        
+
         void SetAnimator() {
             _animator = Context.BoundGameObject.GetComponent<SpriteAnimator>();
         }
@@ -29,7 +29,15 @@ namespace Language.Actions {
             _animator.SetAnimation(
                 (Value<string>) Context.Arguments[0],
                 (Value<float>) Context.Arguments[1],
-                repeats
+                repeats,
+                e => {
+                    if (!(e is FileLoadException)) {
+                        return false;
+                    }
+
+                    Context.Base.EngineAPI.OnError(e);
+                    return true;
+                }
             );
 
             return null;

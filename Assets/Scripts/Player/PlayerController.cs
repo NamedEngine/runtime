@@ -16,13 +16,12 @@ namespace Player {
 
         bool _isSet;
 
-        public void Setup(IReadOnlyDictionary<string, IVariable> variables, LogicEngine.LogicEngineAPI engineAPI) {
+        public void Setup(IReadOnlyDictionary<string, IVariable> variables, LogicEngine.LogicEngineAPI engineAPI, Func<Exception, bool> exceptHandler) {
             _velocityX = variables[nameof(VelocityX)] as VelocityX;
             _velocityY = variables[nameof(VelocityY)] as VelocityY;
             _converter = engineAPI.GetSizePosConverter();
-            
-            _playerAnimation.Setup(Vector2.down);
-            
+
+            _playerAnimation.Setup(Vector2.down, exceptHandler);
             _isSet = true;
         }
 
@@ -39,12 +38,12 @@ namespace Player {
             }
 
             var directionInput = _playerInput.DirectionInput;
-            
+
             _playerMove.Move(directionInput, _playerInput.JumpInput, _converter, _velocityX, _velocityY);
             if (_playerInput.InteractInput) {
                  _playerInteract.Interact();   
             }
-            
+
             _playerAnimation.Animate(directionInput);
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Unity.Mathematics;
@@ -40,30 +39,34 @@ public class MapLoader : MonoBehaviour {
             .Select(LoadTileSet)
             .ToArray();
 
-        var layerObjectInfoLoaders =
-            new Dictionary<string, Func<XElement, string, List<MapObjectInfo>>> {
-                {"objectgroup", (layer, sortLayer) => LoadObjectLayer(layer, mapInfo, sortLayer, tileSets)},
-                {"imagelayer", (layer, sortLayer) => LoadImageLayer(layer, mapInfo, sortLayer, tileSets)}
-            };
-
         var objectInfos = new List<MapObjectInfo>();
         var sortingLayer = 0;
         var layers = root.Elements().Where(el => el.Name != tileSetElementName);
+        var layerObjectInfos = new List<MapObjectInfo>();
         foreach (var layer in layers) {
+            layerObjectInfos.Clear();
+
             var layerType = layer.Name.ToString();
-            if (layerType == "layer") {
-                var layerObjects = LoadTileLayer(layer, mapInfo, sortingLayer.ToString(), tileSets);
-                sortingLayer++;
-                
-                var layerObject = new GameObject();
-                layerObject.transform.SetParent(mapObject.transform);
-                layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
-            } else {
-                var layerObjectInfos = layerObjectInfoLoaders[layerType](layer, sortingLayer.ToString());
-                sortingLayer++;
-                
-                objectInfos.AddRange(layerObjectInfos);
+            var sortLayerString = sortingLayer.ToString();
+            switch (layerType) {
+                case "layer":
+                    var layerObjects = LoadTileLayer(layer, mapInfo, sortLayerString, tileSets);
+
+                    var layerObject = new GameObject();
+                    layerObject.transform.SetParent(mapObject.transform);
+                    layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
+                    break;
+                case "objectgroup":
+                    layerObjectInfos = LoadObjectLayer(layer, sortLayerString, tileSets);
+                    break;
+                case "imagelayer":
+                    layerObjectInfos = LoadImageLayer(layer, mapInfo, sortLayerString);
+                    break;
+                default:
+                    throw new ArgumentException($"Unexpected layer type: {layerType}");
             }
+            objectInfos.AddRange(layerObjectInfos);
+            sortingLayer++;
         }
 
         return objectInfos.ToArray();
@@ -136,7 +139,7 @@ public class MapLoader : MonoBehaviour {
         return tileObjects;
     }
 
-    List<MapObjectInfo> LoadObjectLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
+    List<MapObjectInfo> LoadObjectLayer(XElement layer, string sortingLayer, TileSet[] tileSets) {
         var objectParsersByType = new Dictionary<string, Func<XElement, string, MapObjectInfo>> {
             {RectTypeName, (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
             {"point", (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
@@ -148,10 +151,10 @@ public class MapLoader : MonoBehaviour {
             .ToList();
     }
 
-    List<MapObjectInfo> LoadImageLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
+    List<MapObjectInfo> LoadImageLayer(XElement layer, MapInfo mapInfo, string sortingLayer) {
         var imageInfo = layer.Elements("image").First();
         var rawImagePath = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(mapInfo.MapPath), rawImagePath);
+        var imagePath = rawImagePath.GetPathRelativeTo(mapInfo.MapPath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
         var rect = RectAndRotationFromObject(imageInfo, layer, "offsetx", "offsety").Item1;
 
@@ -238,7 +241,7 @@ public class MapLoader : MonoBehaviour {
         }
         
         var source = GetAttr(tileSetElement, sourceAttrName);
-        var path = Path.Combine(Path.GetDirectoryName(mapPath), source);
+        var path = source.GetPathRelativeTo(mapPath);
         return new TileSetInfo {
             TileSetElement = XDocument.Parse(fileLoader.LoadText(path)).Root,
             FirstGid = firstGid,
@@ -265,7 +268,7 @@ public class MapLoader : MonoBehaviour {
 
         var imageInfo = tileSetInfo.TileSetElement.Descendants().First();
         var imagePathRaw = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), imagePathRaw);
+        var imagePath = imagePathRaw.GetPathRelativeTo(tileSetInfo.TileSetPath);
         var texture = graphicsConverter.PathToTexture(imagePath);
 
         var tileInfos = tileSetInfo.TileSetElement.Elements("tile").ToArray();
@@ -317,7 +320,8 @@ public class MapLoader : MonoBehaviour {
             var size = new Vector2(width, height);
 
             var source = GetAttr(imageElement, "source");
-            var spritePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), source);
+            // var spritePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), source);
+            var spritePath = source.GetPathRelativeTo(tileSetInfo.TileSetPath);
             var sprite = graphicsConverter.PathToSprite(spritePath);
 
             var colliders = TileElementToColliders(tile, size);

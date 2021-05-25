@@ -9,7 +9,16 @@ using static LogicUtils;
 namespace Language.Classes {
     public class TopDownPlayer : BaseClass {
         CameraController _cameraController;
-        
+
+        bool ExceptHandler(Exception e) {
+            if (!(e is FileLoadException)) {
+                return false;
+            }
+
+            EngineAPI.OnError(new LogicException(nameof(TopDownPlayer), e.Message));
+            return true;
+        }
+
         protected override void BeforeStartProcessingInternal() {
             GetComponents<BoxCollider2D>()
                 .Where(coll => !coll.isTrigger)
@@ -20,7 +29,7 @@ namespace Language.Classes {
             void AdjustColliders() {
                 var playerController = GetComponent<PlayerController>();
                 if (playerController) {
-                    playerController.Setup(Variables, EngineAPI);
+                    playerController.Setup(Variables, EngineAPI, ExceptHandler);
                 }
             }
             

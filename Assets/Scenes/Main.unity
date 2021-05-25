@@ -1439,6 +1439,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   root: Resources
+  supportedImageFormats:
+  - png
+  - jpg
 --- !u!114 &2082333167
 MonoBehaviour:
   m_ObjectHideFlags: 0

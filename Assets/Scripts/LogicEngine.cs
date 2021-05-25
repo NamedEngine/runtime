@@ -102,7 +102,7 @@ public class LogicEngine : MonoBehaviour {
                 _engine._logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
             }
             catch (LogicException e) {
-                _engine.OnLogicError(e);
+                OnError(e);
             }
         }
 
@@ -113,31 +113,39 @@ public class LogicEngine : MonoBehaviour {
         }
 
         public bool LevelChanged => _engine._levelChanged;
+
+        public void OnError(Exception e) => _engine.OnError(e);
     }
 
-    void OnLogicError(Exception e) {
+    void OnError(Exception e) {
         logicExceptionHandler.DisplayError(e.Message);
         enabled = false;
         // TODO: maybe also disable all logicObjects
     }
 
     void Start() {
+        const string mapPath = "Maps/main.tmx";
         try {
             _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
             _logicClasses = logicLoader.LoadLogicClasses(_objectNameGenerator);
 
-            const string mapPath = "Maps/main.tmx";
             new LogicEngineAPI(this).LoadLevel(mapPath);
         }
         catch (ParseException e) {
-            OnLogicError(e);
+            OnError(e);
+        }
+        catch (FileLoadException e) when (e.Path == mapPath.ToProperPath()) {
+            OnError(new Exception($"Entry point \"{mapPath}\" not found"));
+        }
+        catch (FileLoadException e) {
+            OnError(e);
         }
     }
 
     void Update() {
         _levelChanged = false;
-        
+
         var objectKeys = _logicObjects.Keys.ToArray();
         foreach (var objectKey in objectKeys) {
             if (_levelChanged) {
@@ -148,7 +156,10 @@ public class LogicEngine : MonoBehaviour {
                 _logicObjects[objectKey].ProcessLogic();
             }
             catch (LogicException e) {
-                OnLogicError(e);
+                OnError(e);
+            }
+            catch (FileLoadException e) {
+                OnError(e);
             }
         }
     }

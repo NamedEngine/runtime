@@ -7,7 +7,7 @@ namespace Language.Actions {
         };
 
         SpriteAnimator _animator;
-        
+
         void SetAnimator() {
             _animator = Context.BoundGameObject.GetComponent<SpriteAnimator>();
         }
@@ -21,8 +21,13 @@ namespace Language.Actions {
 
         protected override IEnumerator ActionLogic() {
             _setAnimatorOnce();
-            
-            _animator.SetSprite((Value<string>) Context.Arguments[0]);
+
+            try {
+                _animator.SetSprite((Value<string>) Context.Arguments[0]);
+            }
+            catch (FileLoadException e) {
+                throw new LogicException(nameof(SetSprite), e.Message);
+            }
 
             return null;
         }
