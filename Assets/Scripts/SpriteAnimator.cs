@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -65,22 +66,28 @@ public class SpriteAnimator : MonoBehaviour {
         _spriteRenderer.sprite = sprite;
     }
 
-    public void SetAnimation(string dirPath, float time, int repeats, bool flipX = false, bool flipY = false) {
+    public void SetAnimation(string dirPath, float time, int repeats, Func<Exception, bool> exceptHandler, bool flipX = false, bool flipY = false) {
         StopAllCoroutines();
-        StartCoroutine(PlayAnimationCoro(dirPath, time, repeats, flipX, flipY));
+        this.StartThrowingCoroutine(PlayAnimationCoro(dirPath, time, repeats, flipX, flipY), exceptHandler);
     }
 
-    public IEnumerator PlayAnimation(string dirPath, float time, int repeats, bool flipX = false, bool flipY = false) {
+    public IEnumerator PlayAnimation(string dirPath, float time, int repeats, Func<Exception, bool> exceptHandler, bool flipX = false, bool flipY = false) {
         StopAllCoroutines();
-
-        yield return StartCoroutine(PlayAnimationCoro(dirPath, time, repeats, flipX, flipY));
+        yield return this.StartThrowingCoroutine(PlayAnimationCoro(dirPath, time, repeats, flipX, flipY), exceptHandler);
     }
 
     IEnumerator PlayAnimationCoro(string dirPath, float time, int repeats, bool flipX, bool flipY) {
         _spriteRenderer.flipX = flipX;
         _spriteRenderer.flipY = flipY;
 
-        var sprites = FromCacheOrLoadDir(dirPath.ToProperPath());
+        Sprite[] sprites;
+        try {
+            sprites = FromCacheOrLoadDir(dirPath.ToProperPath());
+        }
+        catch (WrongTypeException e) when (e.ExpectedType == PathType.Image) {
+            throw new WrongTypeException(dirPath, e.ExpectedType,
+                "Not all files in the specified directory are images");
+        }
 
         var timePerSprite = time / sprites.Length;
 

@@ -58,6 +58,7 @@ public class LogicEngine : MonoBehaviour {
 
             var newObject = _engine.classInstantiator.CreateObject(objName, className, _engine._logicClasses,
                 MapObjectInfo.GetEmpty(), _engine._classPrefabs, this);
+            newObject.transform.parent = _engine.mapObject.transform;
             _engine._logicObjects.Add(objName, newObject);
 
             return newObject;
@@ -78,10 +79,11 @@ public class LogicEngine : MonoBehaviour {
             }
 
             Destroy(foundObject.gameObject);
+            _engine._logicObjects.Remove(name);
             return true;
         }
 
-        public bool LoadLevel(string path) {
+        public void LoadLevel(string path) {
             _engine._levelChanged = true;
             
             if (_engine._logicObjects != null) {
@@ -94,16 +96,14 @@ public class LogicEngine : MonoBehaviour {
             var objectInfos = _engine.mapLoader.LoadMap(path.ToProperPath(), _engine.mapObject);
 
             _engine._logicObjects = _engine.classInstantiator.InstantiateMapObjects(_engine._logicClasses, objectInfos,
-                _engine._classPrefabs, this, _engine._objectNameGenerator, _engine.mapObject);
+                _engine._classPrefabs, this, _engine._objectNameGenerator, _engine.mapObject, path);
 
             try {
                 _engine._logicObjects.Values.ToList().ForEach(lo => lo.BeforeStartProcessing());
             }
             catch (LogicException e) {
-                _engine.OnLogicError(e);
+                OnError(e);
             }
-
-            return true;
         }
 
         void ClearMap() {
@@ -113,31 +113,39 @@ public class LogicEngine : MonoBehaviour {
         }
 
         public bool LevelChanged => _engine._levelChanged;
+
+        public void OnError(Exception e) => _engine.OnError(e);
     }
 
-    void OnLogicError(Exception e) {
+    void OnError(Exception e) {
         logicExceptionHandler.DisplayError(e.Message);
         enabled = false;
         // TODO: maybe also disable all logicObjects
     }
 
     void Start() {
+        const string mapPath = "Maps/main.tmx";
         try {
             _classPrefabs = classPrefabs.ToDictionary(info => info.className, info => info.prefab);
 
-            _logicClasses = logicLoader.LoadLogicClasses();
+            _logicClasses = logicLoader.LoadLogicClasses(_objectNameGenerator);
 
-            const string mapPath = "Maps/main.tmx";
             new LogicEngineAPI(this).LoadLevel(mapPath);
         }
-        catch (LogicParseException e) {
-            OnLogicError(e);
+        catch (ParseException e) {
+            OnError(e);
+        }
+        catch (FileLoadException e) when (e.Path == mapPath.ToProperPath()) {
+            OnError(new Exception($"Entry point \"{mapPath}\" not found"));
+        }
+        catch (FileLoadException e) {
+            OnError(e);
         }
     }
 
     void Update() {
         _levelChanged = false;
-        
+
         var objectKeys = _logicObjects.Keys.ToArray();
         foreach (var objectKey in objectKeys) {
             if (_levelChanged) {
@@ -148,7 +156,10 @@ public class LogicEngine : MonoBehaviour {
                 _logicObjects[objectKey].ProcessLogic();
             }
             catch (LogicException e) {
-                OnLogicError(e);
+                OnError(e);
+            }
+            catch (FileLoadException e) {
+                OnError(e);
             }
         }
     }

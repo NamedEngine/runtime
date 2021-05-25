@@ -8,7 +8,7 @@
         public DoesObjExist(ConstrainableContext context, bool constraintReference) : base(ArgTypes, context, constraintReference) { }
 
         protected override bool InternalGet() {
-            return Context.Base.EngineAPI.GetObjectByName((Value<string>) Context.Arguments[0], ((ClassRef) Context.Arguments[1]).ClassName) == null;
+            return Context.Base.EngineAPI.GetObjectByName((Value<string>) Context.Arguments[0], ((ClassRef) Context.Arguments[1]).ClassName) != null;
         }
     }
 }

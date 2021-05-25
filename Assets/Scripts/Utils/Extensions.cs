@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 
 public static class Extensions {
     public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null) {
@@ -101,7 +103,39 @@ public static class Extensions {
     }
 
     public const char StringPathSeparator = '/';
-    public static string ToProperPath (this string str) {
+    public static string ToProperPath(this string str) {
         return Path.Combine(str.Split(StringPathSeparator));
+    }
+
+    public static string GetPathRelativeTo(this string path, string relativeTo) {
+        var relativeDir = Path.GetDirectoryName(relativeTo) ?? "/";
+        return Path.Combine(relativeDir, path);
+    }
+
+    public static bool HasExtension(this string path, string extension) {
+        return path.ToLower().EndsWith('.' + extension.ToLower());
+    }
+    
+    public static Coroutine StartThrowingCoroutine(this MonoBehaviour monoBehaviour, IEnumerator enumerator, Func<Exception, bool> exceptHandler) {
+        return monoBehaviour.StartCoroutine(enumerator.OnException(exceptHandler));
+    }
+
+    static IEnumerator OnException(this IEnumerator enumerator, Func<Exception, bool> exceptHandler) {
+        while (true) {
+            object current;
+            try {
+                if (enumerator.MoveNext() == false) {
+                    break;
+                }
+                current = enumerator.Current;
+            }
+            catch (Exception ex) {
+                if (!exceptHandler(ex)) {
+                    throw;
+                }
+                yield break;
+            }
+            yield return current;
+        }
     }
 }

@@ -10,10 +10,8 @@ public class LogicLoader : MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     [SerializeField] TemporaryInstantiator temporaryInstantiator;
     [SerializeField] GameObject kinematicObjectPrefab;
-    readonly IdGenerator _idGenerator = new IdGenerator();
-    public Dictionary<string, LogicObject> LoadLogicClasses() {
-        _idGenerator.Reset();
-        var parser = new DrawIOParser();
+    public Dictionary<string, LogicObject> LoadLogicClasses(IdGenerator idGenerator) {
+        var parser = new DrawIOParser(idGenerator);
 
         var filePairs = fileLoader
             .LoadAllWithExtensionAndNames(fileLoader.LoadText, ".xml")
@@ -23,29 +21,27 @@ public class LogicLoader : MonoBehaviour {
             Rules.RuleChecker.CheckParsing<Rules.Parsing.DrawIO, string>(pair.Item1, pair.Item2)
         );
 
-        var parsedNodes = filePairs
-            .Select(filePair => parser.Parse(filePair.Item1)) // TODO: replace ids by new ones from shared pool before merging into one dict (problem: same ids in different files) 
+        var filesWithParsedNodes = filePairs
+            .Select(filePair => (filePair.Item2, parser.Parse(filePair.Item1)))
+            .ToArray();
+
+        var parsedNodes = filesWithParsedNodes
+            .SelectMany(dictPair => dictPair.Item2)
+            .ToDictionary();
+
+        var idToFile = filesWithParsedNodes
+            .Select(dictPair => 
+                dictPair.Item2.ToDictionary(kv => kv.Key, kv => dictPair.Item1))
             .SelectMany(x => x)
             .ToDictionary();
 
-        var idToFile = filePairs
-            .Select(filePair => (parser.Parse(filePair.Item1), filePair.Item2))
-            .Select(dictPair => 
-                dictPair.Item1.ToDictionary(kv => kv.Key, kv => dictPair.Item2))
-            .SelectMany(x => x)
-            .ToDictionary();
-        
         Rules.RuleChecker.CheckLogic(parsedNodes, idToFile, temporaryInstantiator);
 
-        // foreach (var node in parsedNodes.Values) {
-        //     Debug.Log(node);
-        // }
-
-        var objects = CreateAndSetupObjects(parsedNodes);
+        var objects = CreateAndSetupObjects(parsedNodes, idGenerator);
         return objects;
     }
 
-    Dictionary<string, LogicObject> CreateAndSetupObjects(Dictionary<string, ParsedNodeInfo> parsedNodes) {
+    Dictionary<string, LogicObject> CreateAndSetupObjects(Dictionary<string, ParsedNodeInfo> parsedNodes, IdGenerator idGenerator) {
         var baseClasses = InstantiateBaseClasses();
         
         var objects = CreateObjects(parsedNodes);
@@ -58,7 +54,7 @@ public class LogicLoader : MonoBehaviour {
             .Zip(objects, (variables, pair) => (parsedNodes[pair.Key].name, variables))
             .ToDictionary();
         foreach (var baseClass in baseClasses) {
-            allVariables.Add(baseClass.Class, baseClass.Variables.ToDictionary(pair => _idGenerator.NewId(), pair => (pair.Key, pair.Value)));
+            allVariables.Add(baseClass.Class, baseClass.Variables.ToDictionary(pair => idGenerator.NewId(), pair => (pair.Key, pair.Value)));
         }
         
         Dictionary<string, (string, IVariable)> GetVariablesWithInherited(string className,
@@ -264,41 +260,38 @@ public class LogicLoader : MonoBehaviour {
         }
         // Debug.Log("Chainables: " + string.Join("\n", chainables));
 
-        HashSet<ParsedNodeInfo> GetAllOperatorPredecessors(ParsedNodeInfo oper) {
-            var rawPredecessors = oper.parameters
-                .Select(parameterId => parsedNodes[parameterId])
-                .Where(parameterInfo => parameterInfo.prev.Length != 0)
-                .Select(parameterInfo => parameterInfo.prev.First())
-                .Select(predecessorId => parsedNodes[predecessorId])
-                .Where(predecessorInfo => predecessorInfo.type == NodeType.Operator)
-                .ToHashSet();
-
-            var predecessors = new HashSet<ParsedNodeInfo>(rawPredecessors);
-            predecessors.Add(oper);
-            foreach (var predecessor in rawPredecessors) {
-                predecessors.UnionWith(GetAllOperatorPredecessors(predecessor));
+        Dictionary<ParsedNodeInfo, int> ProcessOperatorGraph(HashSet<ParsedNodeInfo> prevLevel, int nextLevelNum,
+            Dictionary<ParsedNodeInfo, int> accumulator = null) {
+            if (accumulator == null) {
+                accumulator = new Dictionary<ParsedNodeInfo, int>();
             }
 
-            return predecessors;
+            if (prevLevel.Count == 0) {
+                return accumulator;
+            }
+
+            var newLevel = prevLevel
+                .SelectMany(info => info.parameters)
+                .Select(parameterId => parsedNodes[parameterId])
+                .Where(parameterInfo => parameterInfo.prev.Length != 0)
+                .Select(parameterInfo => parsedNodes[parameterInfo.prev.First()])
+                .Where(valueInfo => valueInfo.type == NodeType.Operator)
+                .ToHashSet();
+
+            foreach (var info in newLevel) {
+                accumulator[info] = nextLevelNum;
+            }
+
+            return ProcessOperatorGraph(newLevel, nextLevelNum + 1, accumulator);
         }
-        var operators = chainables
-            .SelectMany(info => info.parameters)
-            .Select(parameterId => parsedNodes[parameterId])
-            .Where(parameterInfo => parameterInfo.prev.Length != 0)
-            .Select(parameterInfo => parsedNodes[parameterInfo.prev.First()])
-            .Where(valueInfo => valueInfo.type == NodeType.Operator)
-            .Aggregate(new HashSet<ParsedNodeInfo>(), (set, info) => {
-                set.UnionWith(GetAllOperatorPredecessors(info));
-                return set;
-            })
-            .ToList();
-        operators.Sort((op1, op2) => {
-            if (GetAllOperatorPredecessors(op1).Contains(op2)) return 1; // op1 > op2 => op2 goes earlier as predecessor
-            if (GetAllOperatorPredecessors(op2).Contains(op1)) return -1; // op2 > op1 => op1 goes eqrlier as pedecessor
-            return 0;
-        });
-        
-        // Debug.Log("Operators: " + string.Join("\n", operators));
+
+        var operatorsWithDepth = ProcessOperatorGraph(chainables.ToHashSet(), 0);
+        var operators = operatorsWithDepth
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => pair.Key)
+            .ToArray();
+
+        // Debug.Log("Operators: " + string.Join("\n\n", operators));
 
         var operatorPositions = operators
             .Select((oper, pos) => new KeyValuePair<string, int>(oper.id, pos))

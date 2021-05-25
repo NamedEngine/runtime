@@ -47,10 +47,10 @@ namespace Rules.Logic {
             
             var tooManyPrevNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Variable)
-                .Where(info => info.prev.Length > 1);
+                .Where(info => info.prev.Length != 1);
             
             foreach (var nodeInfo in tooManyPrevNodes) {
-                var message = $"{nodeInfo.ToNameAndType()} can only have one related class";
+                var message = $"{nodeInfo.ToNameAndType()} should have exactly one related class";
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }

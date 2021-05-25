@@ -103,7 +103,9 @@ public class LogicChain : MonoBehaviour {
             // Debug.Log("FINISHED RUNNING CORO; COROS LEFT: " + _coroCount);
         }
         // Debug.Log("Running new coro!");
-        StartCoroutine(Runner());
+        if (this) {
+            StartCoroutine(Runner());
+        }
     }
 
     public void Finish() {

@@ -3,6 +3,11 @@ using System.Linq;
 using System.Xml.Linq;
 
 public class DrawIOParser : ILogicParser<string> {
+    readonly IdGenerator _idGenerator;
+
+    public DrawIOParser(IdGenerator idGenerator) {
+        _idGenerator = idGenerator;
+    }
     static string GetAttr(XElement element, string name) => element.Attribute(name)?.Value;
 
     static KeyValuePair<string, ParsedNodeInfo> ObjectToInfoPair(XElement obj) {
@@ -86,6 +91,27 @@ public class DrawIOParser : ILogicParser<string> {
             infoDict[next] = updatedInfo;
         }
 
-        return infoDict;
+        var oldToNewIds = new Dictionary<string, string>();
+
+        string OldToNewId(string oldId) {
+            if (!oldToNewIds.ContainsKey(oldId)) {
+                oldToNewIds[oldId] = _idGenerator.NewId();
+            }
+            
+            return oldToNewIds[oldId];
+        }
+
+        return infoDict.ToDictionary(pair => OldToNewId(pair.Key), pair => {
+            var info = pair.Value;
+            return new ParsedNodeInfo {
+                id = OldToNewId(info.id),
+                type = info.type,
+                name = info.name,
+                parent = info.parent == null ? null : OldToNewId(info.parent),
+                parameters = info.parameters.Select(OldToNewId).ToArray(),
+                prev = info.prev.Select(OldToNewId).ToArray(),
+                next = info.next.Select(OldToNewId).ToArray(),
+            };
+        });
     }
 }

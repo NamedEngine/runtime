@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 
 namespace Language.Actions {
     public class CreateObject : Action {
@@ -14,7 +13,7 @@ namespace Language.Actions {
             var objName = ((Value<string>) Context.Arguments[0]).Get();
             var res = Context.Base.EngineAPI.CreateObject(objName, ((ClassRef) Context.Arguments[1]).ClassName);
             if (res == null) {
-                throw new ArgumentException($"Object with name \"{objName}\" already exists!");
+                throw new LogicException(nameof(CreateObject), $"Object with name \"{objName}\" already exists!");
             }
 
             return null;

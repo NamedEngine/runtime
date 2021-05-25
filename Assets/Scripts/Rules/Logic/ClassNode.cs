@@ -10,8 +10,7 @@ namespace Rules.Logic {
                 .Select(info => (info, info.next
                     .Select(nextId => parsedNodes[nextId])
                     .Where(nextInfo => nextInfo.type == NodeType.Operator
-                                       || nextInfo.type == NodeType.ClassRef
-                                       || nextInfo.type == NodeType.VariableRef)
+                                       || nextInfo.type == NodeType.ClassRef)
                     .ToArray()))
                 .Where(pair => pair.Item2.Length > 0);
 

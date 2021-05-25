@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using static MapUtils;
 using Debug = System.Diagnostics.Debug;
 
 public class MapLoader : MonoBehaviour {
@@ -18,72 +18,106 @@ public class MapLoader : MonoBehaviour {
     static float GetFloatAttr(XElement element, string name) => Convert.ToSingle(GetAttr(element, name).IfEmpty("0"), new ProjectFormatProvider());
 
     public MapObjectInfo[] LoadMap(string mapPath, GameObject mapObject) {
+        var mapInfoSource = fileLoader.LoadText(mapPath);
+        Rules.RuleChecker.CheckParsing<Rules.Parsing.Tiled, string>(mapInfoSource, mapPath);
+
         // TODO: do something with path handling in this file
 
-        var mapDocument = XDocument.Parse(fileLoader.LoadText(mapPath));
+        var mapDocument = XDocument.Parse(mapInfoSource);
         var root = mapDocument.Root;
         Debug.Assert(root != null, nameof(root) + " != null");
 
-        var tileSets = root.Descendants("tileset")
-            .Select(d => new { path = GetAttr(d, "source"), gid = GetIntAttr(d, "firstgid") })
-            .Select(item => new { fullPath = Path.Combine(Path.GetDirectoryName(mapPath), item.path), item.gid })
-            .Select(item => LoadTileSet(item.fullPath, item.gid))
-            .ToList();
+        var mapInfo = new MapInfo {
+            MapTileWidth = GetFloatAttr(root, "tilewidth"),
+            MapTileHeight = GetFloatAttr(root, "tileheight"),
+            MapPath = mapPath
+        };
 
-        var layerObjectInfoLoaders =
-            new Dictionary<string, Func<XElement, XElement, string, string, List<MapObjectInfo>>> {
-                {"objectgroup", LoadObjectLayer},
-                {"imagelayer", LoadImageLayer}
-            };
+        const string tileSetElementName = "tileset";
+        var tileSets = root.Elements(tileSetElementName)
+            .Select(element => GetTileSetInfo(element, mapInfo.MapPath))
+            .Select(LoadTileSet)
+            .ToArray();
 
         var objectInfos = new List<MapObjectInfo>();
         var sortingLayer = 0;
-        foreach (var descendant in root.Descendants()) {
-            var layerType = descendant.Name.ToString();
-            if (layerType == "layer") {
-                var layerObjects = LoadTileLayer(descendant, sortingLayer.ToString(), tileSets);
-                sortingLayer++;
-                
-                var layerObject = new GameObject();
-                layerObject.transform.SetParent(mapObject.transform);
-                layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
-            } else if (layerObjectInfoLoaders.ContainsKey(layerType)) {
-                var layerObjectInfos =
-                    layerObjectInfoLoaders[layerType](descendant, root, sortingLayer.ToString(), mapPath);
-                sortingLayer++;
-                
-                objectInfos.AddRange(layerObjectInfos);
+        var layers = root.Elements().Where(el => el.Name != tileSetElementName);
+        var layerObjectInfos = new List<MapObjectInfo>();
+        foreach (var layer in layers) {
+            layerObjectInfos.Clear();
+
+            var layerType = layer.Name.ToString();
+            var sortLayerString = sortingLayer.ToString();
+            switch (layerType) {
+                case TileLayer:
+                    var layerObjects = LoadTileLayer(layer, mapInfo, sortLayerString, tileSets);
+
+                    var layerObject = new GameObject();
+                    layerObject.transform.SetParent(mapObject.transform);
+                    layerObjects.ForEach(o => o.transform.SetParent(layerObject.transform));
+                    break;
+                case ObjectLayer:
+                    layerObjectInfos = LoadObjectLayer(layer, sortLayerString, tileSets);
+                    break;
+                case ImageLayer:
+                    layerObjectInfos = LoadImageLayer(layer, mapInfo, sortLayerString);
+                    break;
+                default:
+                    throw new ArgumentException($"Unexpected layer type: {layerType}");
             }
+            objectInfos.AddRange(layerObjectInfos);
+            sortingLayer++;
         }
 
         return objectInfos.ToArray();
     }
 
-    List<GameObject> LoadTileLayer(XElement layer, string sortingLayer, List<TileSet> tileSets) {
-        var data = layer.Descendants("data").First().Value;
-        
-        var tileNumbers = data.Split('\n')
-            .Where(l => l.Length > 0)
-            .Select(l => l.EndsWith(",") ? l.Substring(0, l.Length - 1) : l)
-            .Select(l => l.Split(',').Select(s => Convert.ToInt32(s)).ToArray())
-            .ToArray();
+    List<GameObject> LoadTileLayer(XElement layer, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
+        var data = layer.Elements("data").First();
+        var chunks = data.Elements("chunk").ToList();
+        if (chunks.Count == 0) {
+            chunks.Add(data);
+        }
 
+        ChunkInfo GetChunkInfo(XElement chunk) {
+            var tileNumbers = chunk.Value.Split('\n')
+                .Where(l => l.Length > 0)
+                .Select(l => l.EndsWith(",") ? l.Substring(0, l.Length - 1) : l)
+                .Select(l => l.Split(',').Select(s => Convert.ToInt32(s)).ToArray())
+                .ToArray();
+
+            return new ChunkInfo {
+                OffsetX = GetIntAttr(chunk, "x"),
+                OffsetY = GetIntAttr(chunk, "y"),
+                TileNumbers = tileNumbers
+            };
+        }
+
+        return chunks.Select(GetChunkInfo)
+            .Select(chunk => LoadTileChunk(chunk, mapInfo, sortingLayer, tileSets))
+            .SelectMany(tileObjects => tileObjects)
+            .ToList();
+    }
+
+    List<GameObject> LoadTileChunk(ChunkInfo chunkInfo, MapInfo mapInfo, string sortingLayer, TileSet[] tileSets) {
         var tileObjects = new List<GameObject>();
-        var rows = tileNumbers.Length;
+        var rows = chunkInfo.TileNumbers.Length;
         for (var row = 0; row < rows; row++) {
-            var columns = tileNumbers[row].Length;
+            var columns = chunkInfo.TileNumbers[row].Length;
             for (var column = 0; column < columns; column++) {
-                var tileNumber = tileNumbers[row][column];
+                var tileNumber = chunkInfo.TileNumbers[row][column];
                 var tileSet = tileSets.FirstOrDefault(t => t.InRange(tileNumber));
                 if (tileSet == null) {
                     continue;
                 }
-                
+
                 var sprite = tileSet.GetSprite(tileNumber);
 
-                var xPos = column * tileSet.TileWidth;
-                var yPos = row * tileSet.TileHeight;
-                var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yPos), tileSet.TileSize);
+                var tileSize = tileSet.GetTileSize(tileNumber);
+                var xPos = (column + chunkInfo.OffsetX) * mapInfo.MapTileWidth;
+                var yPos = (row + chunkInfo.OffsetY) * mapInfo.MapTileHeight;
+                var yAlignedPos = yPos + mapInfo.MapTileHeight - tileSize.y;
+                var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yAlignedPos), tileSize);
 
                 var tile = Instantiate(tilePrefab, pos, quaternion.identity);
                 var sr = tile.GetComponent<SpriteRenderer>();
@@ -97,7 +131,7 @@ public class MapLoader : MonoBehaviour {
                     c.offset = rect.position;
                     c.size = rect.size;
                 }
-                
+
                 tileObjects.Add(tile);
             }
         }
@@ -105,29 +139,25 @@ public class MapLoader : MonoBehaviour {
         return tileObjects;
     }
 
-    List<MapObjectInfo> LoadObjectLayer(XElement layer, XElement map, string sortingLayer, string mapPath) {
+    List<MapObjectInfo> LoadObjectLayer(XElement layer, string sortingLayer, TileSet[] tileSets) {
+        var objectParsersByType = new Dictionary<string, Func<XElement, string, MapObjectInfo>> {
+            {RectTypeName, (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
+            {"point", (element, sortLayer) => ParseRect(element, sortLayer, tileSets)},
+        };
 
-        Rect GetRect(XElement obj) => RectFromObject(obj, obj, "x", "y");
-
-        return layer.Descendants("object")
-            .Select(obj => (obj, GetRect(obj)))
-            .Select(pair => new MapObjectInfo {
-                Name = GetAttr(pair.obj, "name"),
-                Rect = pair.Item2,
-                SortingLayer = sortingLayer,
-                Sprite = null,
-                Parameters = ParametersFromObject(pair.obj)
-            })
+        return layer.Elements("object")
+            .Select(obj => new {obj, type = GetObjectType(obj, RectTypeName)})
+            .Select(pair => objectParsersByType[pair.type](pair.obj, sortingLayer))
             .ToList();
     }
 
-    List<MapObjectInfo> LoadImageLayer(XElement layer, XElement map, string sortingLayer, string mapPath) {
-        var imageInfo = layer.Descendants("image").First();
+    List<MapObjectInfo> LoadImageLayer(XElement layer, MapInfo mapInfo, string sortingLayer) {
+        var imageInfo = layer.Elements("image").First();
         var rawImagePath = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(mapPath), rawImagePath);
+        var imagePath = rawImagePath.GetPathRelativeTo(mapInfo.MapPath);
         var sprite = graphicsConverter.PathToSprite(imagePath);
-        var rect = RectFromObject(imageInfo, layer, "offsetx", "offsety");
-        
+        var rect = RectAndRotationFromObject(imageInfo, layer, "offsetx", "offsety").Item1;
+
         return new List<MapObjectInfo> { new MapObjectInfo {
             Name = GetAttr(layer, "name"),
             Rect = rect,
@@ -137,31 +167,50 @@ public class MapLoader : MonoBehaviour {
         } };
     }
 
-    Rect RectFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName) {
+    MapObjectInfo ParseRect(XElement obj, string sortingLayer, TileSet[] tileSets) {
+        (Rect, float) GetRectRotation(XElement o, bool isFromTile) => RectAndRotationFromObject(o, o, "x", "y", isFromTile);
+
+        var gid = GetIntAttr(obj, "gid");
+        var tileSet = tileSets.FirstOrDefault(t => t.InRange(gid));
+
+        var (rect, rotation) = GetRectRotation(obj, tileSet != null);
+        return new MapObjectInfo {
+            Name = GetAttr(obj, "name"),
+            Rect = rect,
+            Rotation = rotation,
+            SortingLayer = sortingLayer,
+            Sprite = tileSet?.GetSprite(gid),
+            Parameters = ParametersFromObject(obj)
+        };
+    }
+
+    (Rect, float) RectAndRotationFromObject(XElement sizeObj, XElement posObj, string xPosName, string yPosName, bool isFromTile = false) {
         var width = GetFloatAttr(sizeObj, "width");
         var height = GetFloatAttr(sizeObj, "height");
         var xPos = GetFloatAttr(posObj, xPosName);
         var yPos = GetFloatAttr(posObj, yPosName);
+        var rotation = GetFloatAttr(posObj, "rotation");
 
         var mapSize = new Vector2(width, height);
         var size = mapSize * sizePositionConverter.SizeM2U;
-        var pos = sizePositionConverter.InitialPositionOnMapToUnity(new Vector2(xPos, yPos), mapSize);
+        var mapPosRotated = new Vector2(xPos, yPos);
 
-        return new Rect(pos, size);
+        var vectorToCenter = isFromTile ? mapSize / 2 * new Vector2(1, -1) : mapSize / 2;
+        var vectorToFindCenter = Quaternion.Euler(0, 0, rotation) * vectorToCenter;
+
+        var mapPos = mapPosRotated + (Vector2) vectorToFindCenter - vectorToCenter;
+        if (isFromTile) {
+            mapPos.y -= mapSize.y;
+        }
+        var pos = sizePositionConverter.InitialPositionOnMapToUnity(mapPos, mapSize);
+
+        return (new Rect(pos, size), rotation);
     }
 
     MapObjectParameter[] ParametersFromObject(XElement obj) {
         MapObjectParameter ParameterFromProperty(XElement prop) {
-            var typeString = GetAttr(prop, "type").IfEmpty("string");
-            var parsed = Enum.TryParse(typeString.StartWithUpper(), out ValueType type);
-            if (!parsed) {
-                var objNaming = GetAttr(obj, "name") != ""
-                    ? "object named \"" + GetAttr(obj, "name") + "\""
-                    : "unnamed object";
-                var id = GetAttr(obj, "id");
-                throw new ArgumentException("Found unsupported type \"" + typeString + "\" in the " + objNaming +
-                                            " with id " + id);  // TODO: to map rules
-            }
+            var typeString = GetPropertyType(prop);
+            Enum.TryParse(typeString, out ValueType type);
 
             var paramName = GetAttr(prop, "name");
             var value = GetAttr(prop, "value");
@@ -178,28 +227,68 @@ public class MapLoader : MonoBehaviour {
             .ToArray();
     }
 
-    TileSet LoadTileSet(string tileSetPath, int firstgid) {
-        var tileSetDocument = XDocument.Parse(fileLoader.LoadText(tileSetPath));
+    TileSetInfo GetTileSetInfo(XElement tileSetElement, string mapPath) {
+        var firstGid = GetIntAttr(tileSetElement, "firstgid");
 
-        var root = tileSetDocument.Root;
-        Debug.Assert(root != null, nameof(root) + " != null");
+        const string sourceAttrName = "source";
+        var hasSource = tileSetElement.Attributes().Any(attr => attr.Name == sourceAttrName);
+        if (!hasSource) {
+            return new TileSetInfo {
+                TileSetElement = tileSetElement,
+                FirstGid = firstGid,
+                TileSetPath = mapPath
+            };
+        }
         
-        var tileWidth = GetFloatAttr(root, "tilewidth");
-        var tileHeight = GetFloatAttr(root, "tileheight");
-        var tileCount = GetIntAttr(root, "tilecount");
-        var columns = GetIntAttr(root, "columns");
-        var rows = tileCount / columns;
+        var source = GetAttr(tileSetElement, sourceAttrName);
+        var path = source.GetPathRelativeTo(mapPath);
+        return new TileSetInfo {
+            TileSetElement = XDocument.Parse(fileLoader.LoadText(path)).Root,
+            FirstGid = firstGid,
+            TileSetPath = path
+        };
+    }
 
-        var imageInfo = root.Descendants().First();
+    TileSet LoadTileSet(TileSetInfo tileSetInfo) {
+        if (!tileSetInfo.TileSetElement.Elements("image").Any()) {
+            return LoadMultiImageTileSet(tileSetInfo);
+        }
+
+        return LoadOneImageTileSet(tileSetInfo);
+    }
+
+    OneImageTileSet LoadOneImageTileSet(TileSetInfo tileSetInfo) {
+        var tileWidth = GetFloatAttr(tileSetInfo.TileSetElement, "tilewidth");
+        var tileHeight = GetFloatAttr(tileSetInfo.TileSetElement, "tileheight");
+        var tileCount = GetIntAttr(tileSetInfo.TileSetElement, "tilecount");
+        var columns = GetIntAttr(tileSetInfo.TileSetElement, "columns");
+        var rows = tileCount / columns;
+        var margin = GetFloatAttr(tileSetInfo.TileSetElement, "margin");
+        var spacing = GetFloatAttr(tileSetInfo.TileSetElement, "spacing");
+
+        var imageInfo = tileSetInfo.TileSetElement.Descendants().First();
         var imagePathRaw = GetAttr(imageInfo, "source");
-        var imagePath = Path.Combine(Path.GetDirectoryName(tileSetPath), imagePathRaw);
+        var imagePath = imagePathRaw.GetPathRelativeTo(tileSetInfo.TileSetPath);
         var texture = graphicsConverter.PathToTexture(imagePath);
 
-        var tileInfos = root.Descendants("tile").ToArray();
+        var tileInfos = tileSetInfo.TileSetElement.Elements("tile").ToArray();
         var tileIds = tileInfos.Select(i => GetIntAttr(i, "id")).ToArray();
 
         var tileSize = new Vector2(tileWidth, tileHeight);
 
+        var tileColliders = tileInfos
+            .Select(i => TileElementToColliders(i, tileSize))
+            .ToArray();
+
+        var colliders = tileIds
+            .Zip(tileColliders, (id, rects) => new {id, rects})
+            .ToDictionary(item => item.id, item => item.rects);
+
+        return new OneImageTileSet(graphicsConverter, texture, tileSetInfo.FirstGid, tileWidth, tileHeight, columns, rows, 
+            margin, spacing, colliders);
+    }
+
+    Rect[] TileElementToColliders(XElement tile, Vector2 tileSize) {
         Rect PosSizeFromObject(XElement obj) {
             var width = GetFloatAttr(obj, "width");
             var height = GetFloatAttr(obj, "height");
@@ -213,15 +302,42 @@ public class MapLoader : MonoBehaviour {
             return new Rect(pos, size);
         }
 
-        var tileColliders = tileInfos
-            .Select(i => i.Descendants("objectgroup").First().Descendants().ToArray())
-            .Select(objects => objects.Select(PosSizeFromObject).ToArray())
-            .ToArray();
+        return tile.Element(ObjectLayer)?
+            .Elements()
+            .Select(PosSizeFromObject)
+            .ToArray()
+               ?? new Rect[] { };
+    }
 
-        var colliders = tileIds
-            .Zip(tileColliders, (id, rects) => new {id, rects})
-            .ToDictionary(item => item.id, item => item.rects);
+    MultiImageTileSet LoadMultiImageTileSet(TileSetInfo tileSetInfo) {
+        KeyValuePair<int, MultiImageTileSet.TileInfo> TileElementToTileInfo(XElement tile) {
+            var id = GetIntAttr(tile, "id");
 
-        return new TileSet(graphicsConverter, texture, firstgid, tileWidth, tileHeight, columns, rows, colliders);
+            var imageElement = tile.Element("image");
+
+            var width = GetFloatAttr(imageElement, "width");
+            var height = GetFloatAttr(imageElement, "height");
+            var size = new Vector2(width, height);
+
+            var source = GetAttr(imageElement, "source");
+            // var spritePath = Path.Combine(Path.GetDirectoryName(tileSetInfo.TileSetPath), source);
+            var spritePath = source.GetPathRelativeTo(tileSetInfo.TileSetPath);
+            var sprite = graphicsConverter.PathToSprite(spritePath);
+
+            var colliders = TileElementToColliders(tile, size);
+
+            return new KeyValuePair<int, MultiImageTileSet.TileInfo>(id, new MultiImageTileSet.TileInfo {
+                Sprite = sprite,
+                Size = size,
+                Colliders = colliders
+            });
+        }
+
+        var tileInfos = tileSetInfo.TileSetElement
+            .Elements("tile")
+            .Select(TileElementToTileInfo)
+            .ToDictionary();
+
+        return new MultiImageTileSet(tileInfos, tileSetInfo.FirstGid);
     }
 }

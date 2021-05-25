@@ -1,10 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
 using UnityEngine;
+
 public class ParserTest : MonoBehaviour {
     [SerializeField] FileLoader fileLoader;
     void Start() {
-        var parser = new DrawIOParser();
+        var parser = new DrawIOParser(new IdGenerator());
         
         var parsedNodes = fileLoader
             .LoadAllWithExtension(fileLoader.LoadText, ".xml")
@@ -21,7 +22,7 @@ public class ParserTest : MonoBehaviour {
         var binaryParser = new BinaryParser();
         
         File.WriteAllBytes(path, binaryParser.Save(parsedNodes));
-        var loadedNodes = binaryParser.Parse(fileLoader.LoadBytes(path));
+        var loadedNodes = binaryParser.Parse(fileLoader.LoadBytes(path, PathType.Binary));
         
         foreach (var info in loadedNodes.Values) {
             Debug.Log(info);

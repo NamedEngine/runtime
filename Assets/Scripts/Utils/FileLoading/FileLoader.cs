@@ -5,14 +5,14 @@ using System.Linq;
 using UnityEngine;
 
 public class FileLoader : MonoBehaviour {
-    [SerializeField] PathLimiter pathLimiter;
+    [SerializeField] PathChecker pathLimiter;
 
-    public byte[] LoadBytes(string path) {
-        return File.ReadAllBytes(pathLimiter.CompleteAndCheckRange(path));
+    public byte[] LoadBytes(string path, PathType pathType) {
+        return File.ReadAllBytes(pathLimiter.CompleteAndCheck(path, pathType));
     }
     
     public string LoadText(string path) {
-        return File.ReadAllText(pathLimiter.CompleteAndCheckRange(path));
+        return File.ReadAllText(pathLimiter.CompleteAndCheck(path, PathType.Text));
     }
 
     public (T, string)[] LoadAllWithExtensionAndNames<T>(Func<string, T> loaderMethod, string extension = null, string root = null) {
@@ -23,7 +23,7 @@ public class FileLoader : MonoBehaviour {
         var shouldEndWith = extension ?? "";
         directories.Enqueue(startingDir);
         while (directories.Count != 0) {
-            var currentDirectory = pathLimiter.CompleteAndCheckRange(directories.Dequeue());
+            var currentDirectory = pathLimiter.CompleteAndCheck(directories.Dequeue(), PathType.Directory);
             
             var newFiles = Directory.GetFiles(currentDirectory);
             files.AddRange(newFiles);

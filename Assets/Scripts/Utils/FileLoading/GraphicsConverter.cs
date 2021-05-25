@@ -6,18 +6,18 @@ public class GraphicsConverter: MonoBehaviour {
     public float PixelsPerUnit => pixelsPerUnit;
     public readonly Vector2 DefaultPivot = new Vector2(.5f, .5f);
 
-    public byte[] PathToBytes(string path) {
-        return fileLoader.LoadBytes(path);
+    byte[] PathToBytes(string path) {
+        return fileLoader.LoadBytes(path, PathType.Image);
     }
-    
-    public Texture2D BytesToTexture(byte[] bytes) {
+
+    Texture2D BytesToTexture(byte[] bytes) {
         var texture = new Texture2D(1, 1);
         texture.LoadImage(bytes);
         texture.filterMode = FilterMode.Point;
         return texture;
     }
 
-    public Sprite TextureToSprite(Texture2D texture) {
+    Sprite TextureToSprite(Texture2D texture) {
         var rect = new Rect(Vector2.zero, new Vector2(texture.width, texture.height));
         var sprite = Sprite.Create(texture, rect, DefaultPivot, pixelsPerUnit);
         return sprite;
