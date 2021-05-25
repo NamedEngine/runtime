@@ -111,7 +111,8 @@ namespace Rules.Logic {
                         var paramPrev = node.parameters
                             .Select(paramId => parsedNodes[paramId].prev
                                 .Where(paramPrevId => parsedNodes[paramPrevId].type != NodeType.Class
-                                                      && parsedNodes[paramPrevId].type != NodeType.ClassRef))
+                                                      && parsedNodes[paramPrevId].type != NodeType.ClassRef
+                                                      && parsedNodes[paramPrevId].type != NodeType.VariableRef))
                             .SelectMany(paramPrevId => paramPrevId);
                         
                         prev.AddRange(paramPrev);
