@@ -65,6 +65,16 @@ namespace Rules.Logic {
 
                 throw new LogicParseException(idToFile[nodeInfo.id], message);
             }
+            
+            var notEnoughPrevNodes = parsedNodes.Values
+                .Where(info => info.type == NodeType.VariableRef)
+                .Where(info => info.prev.Length == 0);
+            
+            foreach (var nodeInfo in notEnoughPrevNodes) {
+                var message = $"{nodeInfo.ToNameAndType()} should be connected to at least one\nclass or class reference";
+
+                throw new LogicParseException(idToFile[nodeInfo.id], message);
+            }
         }
 
         static void CheckParents(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile) {

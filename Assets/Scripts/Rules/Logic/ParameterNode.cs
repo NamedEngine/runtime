@@ -61,6 +61,7 @@ namespace Rules.Logic {
 
         static void CheckName(Dictionary<string, ParsedNodeInfo> parsedNodes, Dictionary<string, string> idToFile,
             TemporaryInstantiator instantiator) {
+            // TODO: currently it's ok if variable is expected and not provided but label can be casted to its type. FIX
             var cantCastValuesNodes = parsedNodes.Values
                 .Where(info => info.type == NodeType.Parameter)
                 .Where(info => info.prev.Length == 0)
